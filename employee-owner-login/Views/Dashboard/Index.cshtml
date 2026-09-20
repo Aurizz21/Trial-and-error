@@ -1,0 +1,183 @@
+@model PoultryOS.Models.DashboardSummaryViewModel
+@{
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Dashboard";
+    ViewData["CriticalAlertCount"] = Model.CriticalAlertCount;
+}
+
+<section class="page-header">
+    <div>
+        <p class="greeting">@Model.PageGreeting, @Html.Encode(Model.Username)</p>
+        <h1>@Html.Encode(Model.FullDate)</h1>
+    </div>
+    <div class="depletion-banner">@Html.Encode(Model.DepletionBanner)</div>
+</section>
+
+<section class="kpi-grid">
+    <article class="kpi-card">
+        <div class="kpi-label">Current Stock</div>
+        <div class="kpi-value">@Model.TotalUnits</div>
+        <div class="kpi-meta">@Model.ProductTypesCount product types</div>
+    </article>
+    <article class="kpi-card">
+        <div class="kpi-label">Today's Sales</div>
+        <div class="kpi-value">@Model.TodaySalesUnits</div>
+        <div class="kpi-meta">@Model.TodaySalesChangePercent.ToString("0.0")% vs last week</div>
+    </article>
+    <article class="kpi-card">
+        <div class="kpi-label">Critical Alerts</div>
+        <div class="kpi-value">@Model.CriticalAlertCount</div>
+        <div class="kpi-meta">@Model.WarningAlertCount warning(s) active</div>
+    </article>
+    <article class="kpi-card">
+        <div class="kpi-label">Forecast Accuracy</div>
+        <div class="kpi-value">@Model.ForecastAccuracy.ToString("0.0")%</div>
+        <div class="kpi-meta">7-Day WMA model</div>
+    </article>
+</section>
+
+<section class="dashboard-grid two-up">
+    <article class="panel chart-panel">
+        <div class="panel-header"><h2>Daily Sales Trend</h2></div>
+        <canvas id="dailySalesChart" height="220"></canvas>
+    </article>
+    <article class="panel chart-panel">
+        <div class="panel-header"><h2>Low Stock Distribution</h2></div>
+        <canvas id="lowStockChart" height="220"></canvas>
+    </article>
+</section>
+
+<section class="dashboard-grid two-up">
+    <article class="panel chart-panel">
+        <div class="panel-header"><h2>Weekly Inventory Consumption</h2></div>
+        <canvas id="consumptionChart" height="220"></canvas>
+    </article>
+    <article class="panel chart-panel">
+        <div class="panel-header"><h2>Forecasted Stock Depletion</h2></div>
+        <div class="depletion-banner panel-banner">@Html.Encode(Model.DepletionBanner)</div>
+        <canvas id="depletionChart" height="220"></canvas>
+    </article>
+</section>
+
+<section class="dashboard-grid two-up">
+    <article class="panel alert-panel">
+        <div class="panel-header"><h2>Active Alerts</h2></div>
+        <div class="alert-list">
+            @if (Model.ActiveAlerts.Count == 0)
+            {
+                <div class="empty-state">No active alerts</div>
+            }
+            else
+            {
+                foreach (var alert in Model.ActiveAlerts)
+                {
+                    <div class="alert-row">
+                        <div>
+                            <div class="alert-name">@Html.Encode(alert.ProductName)</div>
+                            <div class="alert-meta">Remaining stock: @alert.CurrentStock</div>
+                        </div>
+                        <div class="alert-side">
+                            <span class="status-badge status-@alert.Status.ToLowerInvariant()">@alert.Status</span>
+                            <small>@alert.DaysRemaining days left</small>
+                            <small>Reorder @alert.SuggestedReorderQuantity</small>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </article>
+
+    <article class="panel quick-sale-panel" id="quickSaleCard">
+        <div class="panel-header"><h2>Quick Sale</h2></div>
+        <form id="quick-sale-form" method="post">
+            @Html.AntiForgeryToken()
+            <label>
+                Product
+                <select id="productId" name="productId">
+                    @foreach (var product in Model.Products)
+                    {
+                        <option value="@product.Id">@Html.Encode(product.Name)</option>
+                    }
+                </select>
+            </label>
+            <label>
+                Quantity
+                <input id="quantity" name="quantity" type="number" min="1" max="200" value="1" />
+            </label>
+            <button type="submit" class="primary-btn">Record Sale</button>
+        </form>
+        <div id="quick-sale-toast" class="toast" aria-live="polite"></div>
+    </article>
+</section>
+
+<section class="panel stock-panel">
+    <div class="panel-header split-header">
+        <h2>Stock Overview</h2>
+        <div class="filter-row">
+            <input id="stockFilter" type="text" placeholder="Filter by product" />
+            <div class="status-filters">
+                <button class="chip active" data-status="All" type="button">All</button>
+                <button class="chip" data-status="Healthy" type="button">Healthy</button>
+                <button class="chip" data-status="Warning" type="button">Warning</button>
+                <button class="chip" data-status="Critical" type="button">Critical</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Current Stock</th>
+                    <th>Weekly Consumption</th>
+                    <th>Days Remaining</th>
+                    <th>Predicted Depletion Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="stockTableBody">
+                @foreach (var row in Model.StockOverview)
+                {
+                    <tr data-status="@row.Status" data-name="@row.Product">
+                        <td>@Html.Encode(row.Product)</td>
+                        <td>@Html.Encode(row.Category)</td>
+                        <td>@row.CurrentStock</td>
+                        <td>@row.WeeklyConsumption</td>
+                        <td>@Html.Encode(row.DaysRemaining)</td>
+                        <td>@Html.Encode(row.PredictedDepletionDate)</td>
+                        <td><span class="status-badge status-@row.Status.ToLowerInvariant()">@row.Status</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+@if (Model.IsOwner)
+{
+    <aside class="panel recent-activity-panel">
+        <div class="panel-header"><h2>Recent Activity</h2></div>
+        <ul class="activity-list">
+            @foreach (var entry in Model.RecentActivity)
+            {
+                <li>
+                    <span>@entry.Timestamp.ToString("HH:mm")</span>
+                    <strong>@Html.Encode(entry.User)</strong>
+                    <span>@Html.Encode(entry.ActionType)</span>
+                    <small>@Html.Encode(entry.Description)</small>
+                </li>
+            }
+        </ul>
+    </aside>
+}
+
+<script>
+    window.dashboardState = {
+        dailySalesTrend: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DailySalesTrend)),
+        lowStockDistribution: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.LowStockDistribution)),
+        weeklyConsumption: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.WeeklyConsumption)),
+        activeAlerts: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ActiveAlerts))
+    };
+</script>

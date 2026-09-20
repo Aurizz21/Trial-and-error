@@ -1,0 +1,100 @@
+@using System.Security.Claims
+@{
+    var userName = Context.User.Identity?.Name ?? "User";
+    var role = Context.User.IsInRole("Owner") ? "Owner" : "Employee";
+    var criticalAlertCount = ViewData["CriticalAlertCount"] ?? 0;
+    var alertBadge = criticalAlertCount is int c ? c : 0;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - PoultryOS</title>
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+</head>
+<body class="dashboard-body">
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-mark">P</div>
+                <div>
+                    <div class="logo-text">PoultryOS</div>
+                    <small>Inventory Platform</small>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav" aria-label="Sidebar navigation">
+                <div class="nav-group-label">Main</div>
+                <a class="nav-link active" href="/Dashboard" aria-current="page">Dashboard</a>
+                <a class="nav-link coming-soon" href="#" title="Coming soon">Sales Entry</a>
+                <a class="nav-link coming-soon" href="#" title="Coming soon">
+                    <span>Stock &amp; Alerts</span>
+                    <span class="nav-badge badge-critical">@alertBadge</span>
+                </a>
+                <a class="nav-link coming-soon" href="#" title="Coming soon">Forecast</a>
+
+                @if (Context.User.IsInRole("Owner"))
+                {
+                    <div class="nav-group-label">Management</div>
+                    <a class="nav-link coming-soon" href="#" title="Coming soon">Product Management</a>
+                    <a class="nav-link coming-soon" href="#" title="Coming soon">Sales History</a>
+                    <a class="nav-link coming-soon" href="#" title="Coming soon">Audit Trail</a>
+                }
+            </nav>
+
+            <div class="sidebar-footer">
+                <form asp-controller="Account" asp-action="Logout" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="signout-link">Sign Out</button>
+                </form>
+                <div class="user-mini">
+                    <div class="avatar">@userName.Substring(0, 1).ToUpperInvariant()</div>
+                    <div>
+                        <strong>@userName</strong>
+                        <small>@role</small>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="main-panel">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="mobile-menu" type="button" aria-label="Open navigation">☰</button>
+                    <div class="farm-title">Sunrise Poultry Farm</div>
+                </div>
+
+                <div class="topbar-search">
+                    <span>⌕</span>
+                    <input type="search" placeholder="Search products, alerts, or sales" aria-label="Search" />
+                </div>
+
+                <div class="topbar-right">
+                    <div class="date-pill">@DateTime.Now.ToString("ddd, MMM dd")</div>
+                    <button class="notification-btn" type="button" aria-label="Critical alerts">
+                        🔔
+                        <span class="notification-badge">@alertBadge</span>
+                    </button>
+                    <div class="user-profile">
+                        <div class="avatar avatar-lg">@userName.Substring(0, 1).ToUpperInvariant()</div>
+                        <div>
+                            <div class="profile-name">@userName</div>
+                            <small>@role</small>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div id="offlineBanner" class="offline-banner hidden" aria-live="polite"></div>
+
+            <main class="content-area">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <script src="~/lib/chartjs/chart.min.js" asp-append-version="true"></script>
+    <script src="~/js/dashboard.js" asp-append-version="true"></script>
+</body>
+</html>
