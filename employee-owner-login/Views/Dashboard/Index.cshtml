@@ -1,0 +1,26 @@
+@using System.Security.Claims
+@{
+    ViewData["Title"] = "Dashboard";
+    var username = User.FindFirstValue(ClaimTypes.Name) ?? User.Identity?.Name ?? "user";
+    var role = User.FindFirstValue(ClaimTypes.Role) ?? "User";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PoultryOS | Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        :root { font-family: "DM Sans", sans-serif; color: #17212b; background: #f1f6f4; } * { box-sizing: border-box; } body { margin: 0; } .dashboard { min-height: 100vh; padding: 34px 7vw; } .topbar { display: flex; justify-content: space-between; align-items: center; } .brand { color: #0f766e; font-family: "Space Grotesk", sans-serif; font-size: 21px; font-weight: 700; text-decoration: none; } .signout { padding: 10px 16px; border: 1px solid #d9e3df; border-radius: 6px; color: #0f766e; background: white; font-weight: 700; cursor: pointer; } .welcome { max-width: 780px; margin: 14vh auto 0; padding: 50px; border: 1px solid #e0e9e5; border-radius: 12px; background: white; box-shadow: 0 20px 55px rgba(33, 75, 64, .08); } .eyebrow { margin: 0 0 12px; color: #e9775b; font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; } h1 { margin: 0; font-family: "Space Grotesk", sans-serif; font-size: clamp(32px, 5vw, 58px); letter-spacing: -.04em; } p { color: #71808d; } .role { color: #0f766e; font-weight: 700; } @@media (max-width: 600px) { .dashboard { padding: 25px 6vw; } .welcome { margin-top: 18vh; padding: 30px 24px; } }
+    </style>
+</head>
+<body>
+    <main class="dashboard">
+        <header class="topbar"><a class="brand" href="/Dashboard">PoultryOS</a><form asp-controller="Account" asp-action="Logout" method="post"><button class="signout" type="submit">Sign out</button></form></header>
+        <section class="welcome"><p class="eyebrow">Inventory dashboard</p><h1>Welcome, @username (<span class="role">@role</span>)</h1><p>Your dashboard is ready. Inventory insights and forecasting tools will appear here.</p></section>
+    </main>
+</body>
+</html>
