@@ -5,6 +5,8 @@ namespace PoultryOS.Services;
 
 public sealed class InventoryService : IInventoryService
 {
+    private const double ReorderCoverDays = 3d;
+    private const double WarningDaysRemaining = 3d;
     private readonly List<Product> products = new();
     private readonly List<SaleRecord> sales = new();
     private readonly List<AuditEntry> auditEntries = new();
@@ -30,8 +32,10 @@ public sealed class InventoryService : IInventoryService
             LastUpdatedLabel = now.ToString("h:mm tt", CultureInfo.InvariantCulture),
             FarmName = "Sunrise Poultry Farm",
             TotalProducts = products.Count,
-            TotalUnits = products.Sum(p => p.CurrentStock),
-            TodaySalesUnits = products.Sum(p => p.SalesHistory.LastOrDefault()),
+            WholeChickenStock = products.Where(p => p.Category == "Whole Chicken").Sum(p => p.CurrentStock),
+            CutsAndPartsStock = products.Where(p => p.Category == "Cuts & Parts").Sum(p => p.CurrentStock),
+            WholeChickenTodaySales = products.Where(p => p.Category == "Whole Chicken").Sum(p => p.SalesHistory.LastOrDefault()),
+            CutsAndPartsTodaySales = products.Where(p => p.Category == "Cuts & Parts").Sum(p => p.SalesHistory.LastOrDefault()),
             TodaySalesChangePercent = CalculateTodaySalesChange(),
             ForecastAccuracy = CalculateForecastAccuracy(),
             DailySalesTrend = BuildDailySalesTrend(),
@@ -52,7 +56,7 @@ public sealed class InventoryService : IInventoryService
         return summary;
     }
 
-    public DashboardSummaryViewModel RecordSale(int productId, int quantity, string username, string role)
+    public DashboardSummaryViewModel RecordSale(int productId, decimal quantity, string username, string role)
     {
         if (string.IsNullOrWhiteSpace(username))
         {
@@ -65,6 +69,11 @@ public sealed class InventoryService : IInventoryService
         if (quantity <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(quantity), "Sale quantity must be greater than zero.");
+        }
+
+        if (product.Units == "pcs" && quantity != decimal.Truncate(quantity))
+        {
+            throw new ArgumentException("Whole Chicken sales must use whole pcs.", nameof(quantity));
         }
 
         if (quantity > product.CurrentStock)
@@ -100,26 +109,21 @@ public sealed class InventoryService : IInventoryService
     {
         var seeds = new[]
         {
-            new { Id = 1, Name = "Layer Feed (50kg)", Category = "Feed", Units = "bags", Supplier = "Sunrise Mills", CurrentStock = 48, ReorderThreshold = 48, BaseDemand = 18 },
-            new { Id = 2, Name = "Broiler Starter (25kg)", Category = "Feed", Units = "bags", Supplier = "Poultry Plus", CurrentStock = 6, ReorderThreshold = 6, BaseDemand = 11 },
-            new { Id = 3, Name = "Broiler Finisher (50kg)", Category = "Feed", Units = "bags", Supplier = "Poultry Plus", CurrentStock = 4, ReorderThreshold = 4, BaseDemand = 10 },
-            new { Id = 4, Name = "Newcastle Vaccine", Category = "Health", Units = "vials", Supplier = "Vet Supply Co.", CurrentStock = 3, ReorderThreshold = 3, BaseDemand = 2 },
-            new { Id = 5, Name = "Vitamin Supplement", Category = "Health", Units = "kg", Supplier = "Agri Health", CurrentStock = 14, ReorderThreshold = 14, BaseDemand = 7 },
-            new { Id = 6, Name = "Disinfectant 5L", Category = "Sanitation", Units = "bottles", Supplier = "Farm Clean", CurrentStock = 8, ReorderThreshold = 8, BaseDemand = 4 },
-            new { Id = 7, Name = "Drinking Nipples (pack)", Category = "Equipment", Units = "packs", Supplier = "Barn Essentials", CurrentStock = 2, ReorderThreshold = 2, BaseDemand = 3 },
-            new { Id = 8, Name = "Egg Trays (30-cell)", Category = "Packaging", Units = "units", Supplier = "Poultry Packaging", CurrentStock = 16, ReorderThreshold = 16, BaseDemand = 12 }
+            new { Id = 1, Name = "Whole Chicken", Category = "Whole Chicken", Units = "pcs", Supplier = "Commercial Poultry Farm", CurrentStock = 130m, ReorderThreshold = 40m, MinimumDailySales = 30, MaximumDailySales = 45 },
+            new { Id = 2, Name = "Chicken Breast", Category = "Cuts & Parts", Units = "kg", Supplier = "Commercial Poultry Farm", CurrentStock = 8m, ReorderThreshold = 10m, MinimumDailySales = 8, MaximumDailySales = 12 },
+            new { Id = 3, Name = "Chicken Thigh", Category = "Cuts & Parts", Units = "kg", Supplier = "Commercial Poultry Farm", CurrentStock = 40m, ReorderThreshold = 12m, MinimumDailySales = 9, MaximumDailySales = 13 },
+            new { Id = 4, Name = "Chicken Wings", Category = "Cuts & Parts", Units = "kg", Supplier = "Commercial Poultry Farm", CurrentStock = 18m, ReorderThreshold = 6m, MinimumDailySales = 5, MaximumDailySales = 8 },
+            new { Id = 5, Name = "Chicken Feet", Category = "Cuts & Parts", Units = "kg", Supplier = "Commercial Poultry Farm", CurrentStock = 14m, ReorderThreshold = 5m, MinimumDailySales = 3, MaximumDailySales = 5 }
         };
 
+        var random = new Random(20260921);
         foreach (var seed in seeds)
         {
-            var random = new Random(202406 + seed.Id);
-            var history = new List<int>(14);
+            var history = new List<decimal>(14);
 
             for (var day = 0; day < 14; day++)
             {
-                var variation = random.Next(-2, 3);
-                var demand = Math.Max(0, seed.BaseDemand + variation + (day % 5 == 0 ? 2 : 0) - (day % 7 == 0 ? 1 : 0));
-                history.Add(demand);
+                history.Add(random.Next(seed.MinimumDailySales, seed.MaximumDailySales + 1));
             }
 
             products.Add(new Product
@@ -155,15 +159,16 @@ public sealed class InventoryService : IInventoryService
 
     private decimal CalculateTodaySalesChange()
     {
-        var totalThisWeek = products.Sum(product => product.SalesHistory.LastOrDefault());
-        var previousWeek = products.Sum(product => product.SalesHistory.ElementAtOrDefault(product.SalesHistory.Count - 7));
+        var changes = products
+            .GroupBy(product => product.Category)
+            .Select(group =>
+            {
+                var current = group.Sum(product => product.SalesHistory.LastOrDefault());
+                var previous = group.Sum(product => product.SalesHistory.ElementAtOrDefault(product.SalesHistory.Count - 7));
+                return previous == 0 ? 0m : (current - previous) / previous * 100m;
+            });
 
-        if (previousWeek == 0)
-        {
-            return 0m;
-        }
-
-        return Math.Round(((decimal)totalThisWeek - previousWeek) / previousWeek * 100m, 1);
+        return Math.Round(changes.DefaultIfEmpty().Average(), 1);
     }
 
     private double CalculateForecastAccuracy()
@@ -186,7 +191,7 @@ public sealed class InventoryService : IInventoryService
                 var weightedTotal = 0d;
                 for (var j = 0; j < recent.Count; j++)
                 {
-                    weightedTotal += (j + 1) * recent[j];
+                    weightedTotal += (j + 1) * (double)recent[j];
                 }
 
                 forecastValues.Add(weightedTotal / 28d);
@@ -194,7 +199,7 @@ public sealed class InventoryService : IInventoryService
 
             var actual = recent[recent.Count - 1];
             var forecast = forecastValues.Last();
-            var error = actual == 0 ? 0d : Math.Abs((actual - forecast) / actual) * 100d;
+            var error = actual == 0 ? 0d : Math.Abs(((double)actual - forecast) / (double)actual) * 100d;
             scores.Add(100d - Math.Min(100d, error));
         }
 
@@ -206,35 +211,41 @@ public sealed class InventoryService : IInventoryService
         return Math.Round(scores.Average(), 1);
     }
 
-    private List<KeyValuePair<string, int>> BuildDailySalesTrend()
+    private List<DailySalesPoint> BuildDailySalesTrend()
     {
-        var labels = new List<KeyValuePair<string, int>>();
+        var points = new List<DailySalesPoint>();
         var currentDay = DateTime.Today;
 
         for (var i = 13; i >= 0; i--)
         {
             var day = currentDay.AddDays(i - 13);
-            var total = 0;
             foreach (var product in products)
             {
-                total += product.SalesHistory.ElementAtOrDefault(product.SalesHistory.Count - 14 + i);
+                points.Add(new DailySalesPoint
+                {
+                    Label = day.ToString("MMM d", CultureInfo.InvariantCulture),
+                    Product = product.Name,
+                    Category = product.Category,
+                    Units = product.Units,
+                    Value = product.SalesHistory.ElementAtOrDefault(product.SalesHistory.Count - 14 + i)
+                });
             }
-
-            labels.Add(new KeyValuePair<string, int>(day.ToString("MMM d", CultureInfo.InvariantCulture), total));
         }
 
-        return labels;
+        return points;
     }
 
-    private List<KeyValuePair<string, int>> BuildWeeklyConsumption()
+    private List<ProductSalesSummary> BuildWeeklyConsumption()
     {
-        var categories = products
-            .GroupBy(p => p.Category)
-            .Select(group => new KeyValuePair<string, int>(group.Key, group.Sum(p => p.SalesHistory.TakeLast(7).Sum())))
-            .OrderBy(x => x.Key)
+        return products
+            .Select(product => new ProductSalesSummary
+            {
+                Product = product.Name,
+                Category = product.Category,
+                Units = product.Units,
+                Value = product.SalesHistory.TakeLast(7).Sum()
+            })
             .ToList();
-
-        return categories;
     }
 
     private List<DonutSlice> BuildLowStockDistribution(List<AlertItem> alerts)
@@ -244,12 +255,12 @@ public sealed class InventoryService : IInventoryService
             .Select(p => new DonutSlice
             {
                 Label = p.Name,
-                Value = p.CurrentStock,
-                Color = p.CurrentStock <= p.ReorderThreshold ? "#ef4444" : "#f59e0b"
+                Value = (int)Math.Ceiling(p.CurrentStock),
+                Color = alerts.First(a => a.ProductId == p.Id).Status == "Critical" ? "#ef4444" : "#f59e0b"
             })
             .ToList();
 
-        return atRiskProducts.Count > 0 ? atRiskProducts : new List<DonutSlice> { new() { Label = "Stable", Value = 1, Color = "#10b981" } };
+        return atRiskProducts.Count > 0 ? atRiskProducts : new List<DonutSlice> { new() { Label = "All products are healthy", Value = 1, Color = "#10b981" } };
     }
 
     private List<StockOverviewRow> BuildStockOverview()
@@ -260,10 +271,10 @@ public sealed class InventoryService : IInventoryService
         {
             var weeklyConsumption = product.SalesHistory.TakeLast(7).Sum();
             var forecast = CalculateWma(product.SalesHistory);
-            var daysRemaining = forecast > 0 ? product.CurrentStock / forecast : 0d;
+            var daysRemaining = forecast > 0 ? (double)product.CurrentStock / forecast : 0d;
             var status = DetermineStatus(product, weeklyConsumption, daysRemaining);
             var predictedDate = forecast > 0 && product.CurrentStock > 0
-                ? DateTime.Today.AddDays(product.CurrentStock / forecast)
+                ? DateTime.Today.AddDays((double)product.CurrentStock / forecast)
                 : DateTime.Today;
 
             rows.Add(new StockOverviewRow
@@ -290,7 +301,7 @@ public sealed class InventoryService : IInventoryService
         {
             var weeklyConsumption = product.SalesHistory.TakeLast(7).Sum();
             var forecast = CalculateWma(product.SalesHistory);
-            var daysRemaining = forecast > 0 ? product.CurrentStock / forecast : double.PositiveInfinity;
+            var daysRemaining = forecast > 0 ? (double)product.CurrentStock / forecast : double.PositiveInfinity;
             var status = DetermineStatus(product, weeklyConsumption, daysRemaining);
 
             if (status == "Healthy")
@@ -298,7 +309,7 @@ public sealed class InventoryService : IInventoryService
                 continue;
             }
 
-            var suggestedReorderQuantity = (int)Math.Ceiling(Math.Max(0d, forecast * 14d - product.CurrentStock));
+            var suggestedReorderQuantity = (decimal)Math.Ceiling(Math.Max(0d, forecast * ReorderCoverDays - (double)product.CurrentStock));
 
             alerts.Add(new AlertItem
             {
@@ -307,7 +318,9 @@ public sealed class InventoryService : IInventoryService
                 Status = status,
                 CurrentStock = product.CurrentStock,
                 DaysRemaining = forecast > 0 ? daysRemaining : 0,
+                Forecast = forecast,
                 SuggestedReorderQuantity = suggestedReorderQuantity,
+                Units = product.Units,
                 Message = status == "Critical"
                     ? $"Stock depletion in ~{Math.Max(1, (int)Math.Round(daysRemaining))} day(s). Reorder {suggestedReorderQuantity} {product.Units} immediately."
                     : $"Low stock forecasted within {Math.Ceiling(daysRemaining)} day(s). Reorder {suggestedReorderQuantity} {product.Units}."
@@ -320,15 +333,14 @@ public sealed class InventoryService : IInventoryService
             .ToList();
     }
 
-    private static string DetermineStatus(Product product, int weeklyConsumption, double daysRemaining)
+    private static string DetermineStatus(Product product, decimal weeklyConsumption, double daysRemaining)
     {
-        // Alert rule: critical when stock is under 20% of the weekly burn or at/below the reorder threshold; warning only when depletion is within 7 days.
-        if (product.CurrentStock < Math.Max(1, (int)Math.Floor(weeklyConsumption * 0.2d)) || product.CurrentStock <= product.ReorderThreshold)
+        if (product.CurrentStock < weeklyConsumption * 0.2m || product.CurrentStock <= product.ReorderThreshold)
         {
             return "Critical";
         }
 
-        if (daysRemaining <= 7)
+        if (daysRemaining <= WarningDaysRemaining)
         {
             return "Warning";
         }
@@ -336,7 +348,7 @@ public sealed class InventoryService : IInventoryService
         return "Healthy";
     }
 
-    private static double CalculateWma(IReadOnlyList<int> sales)
+    private static double CalculateWma(IReadOnlyList<decimal> sales)
     {
         if (sales.Count < 7)
         {
@@ -347,7 +359,7 @@ public sealed class InventoryService : IInventoryService
         var weightedTotal = 0d;
         for (var i = 0; i < trailing.Count; i++)
         {
-            weightedTotal += (i + 1) * trailing[i];
+            weightedTotal += (i + 1) * (double)trailing[i];
         }
 
         return weightedTotal / 28d;

@@ -2,10 +2,31 @@ document.addEventListener('DOMContentLoaded', () => {
   const state = window.dashboardState || {};
   const sidebar = document.getElementById('sidebar');
   const menuButton = document.querySelector('.mobile-menu');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
   const offlineBanner = document.getElementById('offlineBanner');
 
+  const closeDrawer = () => {
+    sidebar?.classList.remove('open');
+    sidebarOverlay?.classList.remove('open');
+    document.body.classList.remove('drawer-open');
+    menuButton?.setAttribute('aria-expanded', 'false');
+  };
+
+  const toggleDrawer = () => {
+    const isOpen = sidebar?.classList.toggle('open') ?? false;
+    sidebarOverlay?.classList.toggle('open', isOpen);
+    document.body.classList.toggle('drawer-open', isOpen);
+    menuButton?.setAttribute('aria-expanded', String(isOpen));
+  };
+
   if (menuButton && sidebar) {
-    menuButton.addEventListener('click', () => sidebar.classList.toggle('open'));
+    menuButton.setAttribute('aria-expanded', 'false');
+    menuButton.addEventListener('click', toggleDrawer);
+    sidebarOverlay?.addEventListener('click', closeDrawer);
+    sidebar.querySelectorAll('.nav-link').forEach(link => link.addEventListener('click', closeDrawer));
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') closeDrawer();
+    });
   }
 
   const showOffline = () => {
@@ -28,34 +49,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const lowStockCanvas = document.getElementById('lowStockChart');
     const consumptionCanvas = document.getElementById('consumptionChart');
     const depletionCanvas = document.getElementById('depletionChart');
+    const selectedCategory = document.querySelector('.chart-mode.active')?.dataset.category || 'Whole Chicken';
 
     if (dailyCanvas && state.dailySalesTrend) {
-      const labels = state.dailySalesTrend.map(item => item.key || item.Key || item[0]);
-      const values = state.dailySalesTrend.map(item => item.value || item.Value || item[1]);
+      const points = state.dailySalesTrend.filter(item => (item.category || item.Category) === selectedCategory);
+      const products = [...new Set(points.map(item => item.product || item.Product))];
+      const labels = [...new Set(points.map(item => item.label || item.Label))];
+      const datasets = products.map((product, index) => ({
+        label: product,
+        data: labels.map(label => points.find(item => (item.product || item.Product) === product && (item.label || item.Label) === label)?.value ?? 0),
+        borderColor: ['#2563eb', '#0f766e', '#d97706', '#9333ea'][index % 4],
+        backgroundColor: 'transparent',
+        tension: 0.35,
+        pointRadius: 2
+      }));
       if (window.dailySalesChart) window.dailySalesChart.destroy();
       window.dailySalesChart = new Chart(dailyCanvas, {
         type: 'line',
-        data: {
-          labels,
-          datasets: [{
-            label: 'Units sold',
-            data: values,
-            borderColor: '#2563eb',
-            backgroundColor: 'rgba(37, 99, 235, 0.15)',
-            fill: true,
-            tension: 0.35,
-            pointRadius: 3,
-            pointHoverRadius: 5
-          }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+        data: { labels, datasets },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, title: { display: true, text: selectedCategory === 'Whole Chicken' ? 'pcs' : 'kg' } } }, plugins: { legend: { display: datasets.length > 1 } } }
       });
     }
 
     if (lowStockCanvas && state.lowStockDistribution) {
       const slices = state.lowStockDistribution;
+      const healthy = slices.length === 1 && (slices[0].label || slices[0].Label) === 'All products are healthy';
+      const emptyState = document.getElementById('lowStockEmpty');
+      if (emptyState) emptyState.classList.toggle('hidden', !healthy);
+      lowStockCanvas.classList.toggle('hidden', healthy);
       if (window.lowStockChart) window.lowStockChart.destroy();
-      window.lowStockChart = new Chart(lowStockCanvas, {
+      if (!healthy) {
+        window.lowStockChart = new Chart(lowStockCanvas, {
         type: 'doughnut',
         data: {
           labels: slices.map(item => item.label || item.Label),
@@ -65,27 +89,28 @@ document.addEventListener('DOMContentLoaded', () => {
           }]
         },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-      });
+        });
+      }
     }
 
     if (consumptionCanvas && state.weeklyConsumption) {
-      const labels = state.weeklyConsumption.map(item => item.key || item.Key || item[0]);
-      const values = state.weeklyConsumption.map(item => item.value || item.Value || item[1]);
+      const labels = state.weeklyConsumption.map(item => item.product || item.Product);
+      const pcs = state.weeklyConsumption.map(item => (item.units || item.Units) === 'pcs' ? item.value || item.Value : null);
+      const kg = state.weeklyConsumption.map(item => (item.units || item.Units) === 'kg' ? item.value || item.Value : null);
       if (window.consumptionChart) window.consumptionChart.destroy();
       window.consumptionChart = new Chart(consumptionCanvas, {
         type: 'bar',
-        data: {
-          labels,
-          datasets: [{ label: 'Units consumed', data: values, backgroundColor: '#60a5fa' }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+        data: { labels, datasets: [{ label: 'pcs', data: pcs, backgroundColor: '#2563eb' }, { label: 'kg', data: kg, backgroundColor: '#0f766e' }] },
+        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true } }, plugins: { legend: { display: true } } }
       });
     }
 
     if (depletionCanvas && state.activeAlerts && state.activeAlerts.length) {
       const criticalProduct = state.activeAlerts[0];
-      const labels = Array.from({ length: 14 }, (_, index) => `D${index + 1}`);
-      const trend = Array.from({ length: 14 }, (_, index) => Math.max(0, (criticalProduct.currentStock || criticalProduct.CurrentStock || 0) - ((index + 1) * 2)));
+      const labels = Array.from({ length: 7 }, (_, index) => `D${index + 1}`);
+      const stock = criticalProduct.currentStock ?? criticalProduct.CurrentStock ?? 0;
+      const forecast = criticalProduct.forecast ?? criticalProduct.Forecast ?? 0;
+      const trend = Array.from({ length: 7 }, (_, index) => Math.max(0, stock - ((index + 1) * forecast)));
       if (window.depletionChart) window.depletionChart.destroy();
       window.depletionChart = new Chart(depletionCanvas, {
         type: 'line',
@@ -106,6 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const stockFilter = document.getElementById('stockFilter');
+  const categoryFilter = document.getElementById('categoryFilter');
   const statusButtons = document.querySelectorAll('.chip');
   const stockRows = Array.from(document.querySelectorAll('#stockTableBody tr'));
   let activeStatus = 'All';
@@ -115,15 +141,27 @@ document.addEventListener('DOMContentLoaded', () => {
     stockRows.forEach(row => {
       const name = (row.dataset.name || '').toLowerCase();
       const status = row.dataset.status || '';
+      const category = row.dataset.category || '';
       const matchesText = !query || name.includes(query);
       const matchesStatus = activeStatus === 'All' || status === activeStatus;
-      row.style.display = matchesText && matchesStatus ? '' : 'none';
+      const matchesCategory = !categoryFilter || categoryFilter.value === 'All' || categoryFilter.value === category;
+      row.style.display = matchesText && matchesStatus && matchesCategory ? '' : 'none';
     });
   };
 
   if (stockFilter) {
     stockFilter.addEventListener('input', applyTableFilter);
   }
+  if (categoryFilter) {
+    categoryFilter.addEventListener('change', applyTableFilter);
+  }
+
+  document.querySelectorAll('.chart-mode').forEach(button => {
+    button.addEventListener('click', () => {
+      document.querySelectorAll('.chart-mode').forEach(item => item.classList.toggle('active', item === button));
+      renderCharts();
+    });
+  });
 
   statusButtons.forEach(button => {
     button.addEventListener('click', () => {
@@ -134,6 +172,19 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   const quickSaleForm = document.getElementById('quick-sale-form');
+  const productSelect = document.getElementById('productId');
+  const quantityInput = document.getElementById('quantity');
+  const updateQuantityStep = () => {
+    const unit = productSelect?.selectedOptions[0]?.dataset.unit;
+    if (!quantityInput) return;
+    quantityInput.step = unit === 'kg' ? '0.5' : '1';
+    quantityInput.value = unit === 'kg' ? '1' : String(Math.round(Number(quantityInput.value) || 1));
+  };
+  productSelect?.querySelectorAll('option').forEach((option, index) => {
+    option.dataset.unit = index === 0 ? 'pcs' : 'kg';
+  });
+  productSelect?.addEventListener('change', updateQuantityStep);
+  updateQuantityStep();
   if (quickSaleForm) {
     quickSaleForm.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -163,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
           toast.style.color = '#16a34a';
         }
 
-        await refreshDashboard();
+        window.location.reload();
       } catch (error) {
         const toast = document.getElementById('quick-sale-toast');
         if (toast) {

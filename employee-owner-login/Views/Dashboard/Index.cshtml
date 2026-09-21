@@ -16,12 +16,12 @@
 <section class="kpi-grid">
     <article class="kpi-card">
         <div class="kpi-label">Current Stock</div>
-        <div class="kpi-value">@Model.TotalUnits</div>
+        <div class="kpi-value kpi-lines"><span>@Model.WholeChickenStock.ToString("0.##") pcs whole chicken</span><span>@Model.CutsAndPartsStock.ToString("0.##") kg cuts &amp; parts</span></div>
         <div class="kpi-meta">@Model.ProductTypesCount product types</div>
     </article>
     <article class="kpi-card">
         <div class="kpi-label">Today's Sales</div>
-        <div class="kpi-value">@Model.TodaySalesUnits</div>
+        <div class="kpi-value kpi-lines"><span>@Model.WholeChickenTodaySales.ToString("0.##") pcs whole chicken</span><span>@Model.CutsAndPartsTodaySales.ToString("0.##") kg cuts &amp; parts</span></div>
         <div class="kpi-meta">@Model.TodaySalesChangePercent.ToString("0.0")% vs last week</div>
     </article>
     <article class="kpi-card">
@@ -38,18 +38,19 @@
 
 <section class="dashboard-grid two-up">
     <article class="panel chart-panel">
-        <div class="panel-header"><h2>Daily Sales Trend</h2></div>
+        <div class="panel-header"><h2>Daily Sales Trend</h2><div class="chart-toggle"><button class="chart-mode active" data-category="Whole Chicken" type="button">Whole Chicken</button><button class="chart-mode" data-category="Cuts &amp; Parts" type="button">Cuts &amp; Parts</button></div></div>
         <canvas id="dailySalesChart" height="220"></canvas>
     </article>
     <article class="panel chart-panel">
         <div class="panel-header"><h2>Low Stock Distribution</h2></div>
+        <div id="lowStockEmpty" class="empty-state hidden">All products are healthy</div>
         <canvas id="lowStockChart" height="220"></canvas>
     </article>
 </section>
 
 <section class="dashboard-grid two-up">
     <article class="panel chart-panel">
-        <div class="panel-header"><h2>Weekly Inventory Consumption</h2></div>
+        <div class="panel-header"><h2>Weekly Sales by Product</h2></div>
         <canvas id="consumptionChart" height="220"></canvas>
     </article>
     <article class="panel chart-panel">
@@ -74,12 +75,12 @@
                     <div class="alert-row">
                         <div>
                             <div class="alert-name">@Html.Encode(alert.ProductName)</div>
-                            <div class="alert-meta">Remaining stock: @alert.CurrentStock</div>
+                            <div class="alert-meta">Remaining stock: @alert.CurrentStock.ToString("0.##") @alert.Units</div>
                         </div>
                         <div class="alert-side">
                             <span class="status-badge status-@alert.Status.ToLowerInvariant()">@alert.Status</span>
-                            <small>@alert.DaysRemaining days left</small>
-                            <small>Reorder @alert.SuggestedReorderQuantity</small>
+                            <small>@alert.DaysRemaining.ToString("0.0") days left</small>
+                            <small>Reorder @alert.SuggestedReorderQuantity.ToString("0.##") @alert.Units</small>
                         </div>
                     </div>
                 }
@@ -102,7 +103,7 @@
             </label>
             <label>
                 Quantity
-                <input id="quantity" name="quantity" type="number" min="1" max="200" value="1" />
+                <input id="quantity" name="quantity" type="number" min="1" max="200" step="1" value="1" />
             </label>
             <button type="submit" class="primary-btn">Record Sale</button>
         </form>
@@ -115,6 +116,11 @@
         <h2>Stock Overview</h2>
         <div class="filter-row">
             <input id="stockFilter" type="text" placeholder="Filter by product" />
+            <select id="categoryFilter" aria-label="Filter by category">
+                <option value="All">All</option>
+                <option value="Whole Chicken">Whole Chicken</option>
+                <option value="Cuts &amp; Parts">Cuts &amp; Parts</option>
+            </select>
             <div class="status-filters">
                 <button class="chip active" data-status="All" type="button">All</button>
                 <button class="chip" data-status="Healthy" type="button">Healthy</button>
@@ -140,11 +146,11 @@
             <tbody id="stockTableBody">
                 @foreach (var row in Model.StockOverview)
                 {
-                    <tr data-status="@row.Status" data-name="@row.Product">
+                    <tr data-status="@row.Status" data-category="@row.Category" data-name="@row.Product">
                         <td>@Html.Encode(row.Product)</td>
                         <td>@Html.Encode(row.Category)</td>
-                        <td>@row.CurrentStock</td>
-                        <td>@row.WeeklyConsumption</td>
+                        <td>@row.CurrentStock.ToString("0.##")</td>
+                        <td>@row.WeeklyConsumption.ToString("0.##")</td>
                         <td>@Html.Encode(row.DaysRemaining)</td>
                         <td>@Html.Encode(row.PredictedDepletionDate)</td>
                         <td><span class="status-badge status-@row.Status.ToLowerInvariant()">@row.Status</span></td>

@@ -34,7 +34,7 @@ public class DashboardController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult QuickSale(int productId, int quantity)
+    public IActionResult QuickSale(int productId, decimal quantity)
     {
         try
         {

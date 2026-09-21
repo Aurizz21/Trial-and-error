@@ -1,4 +1,5 @@
 :root {
+  --sidebar-width: 260px;
   --bg: #f3f7fb;
   --panel: #ffffff;
   --panel-alt: #f8fbff;
@@ -24,7 +25,7 @@
 
 html, body {
   margin: 0;
-  min-height: 100%;
+  height: 100%;
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: var(--bg);
   color: var(--text);
@@ -40,22 +41,28 @@ button, input, select {
 }
 
 .dashboard-body {
-  min-height: 100vh;
+  height: 100%;
+  overflow: hidden;
 }
 
 .app-shell {
-  display: flex;
-  min-height: 100vh;
+  min-height: 100%;
 }
 
 .sidebar {
-  width: 280px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--sidebar-width);
+  height: 100vh;
+  height: 100dvh;
   background: var(--sidebar);
   color: white;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   padding: 22px 18px 20px;
+  z-index: 50;
+  overflow: hidden;
 }
 
 .sidebar-header {
@@ -87,10 +94,13 @@ button, input, select {
 }
 
 .sidebar-nav {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 8px;
   padding: 8px 8px 0;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .nav-group-label {
@@ -158,6 +168,8 @@ button, input, select {
 }
 
 .sidebar-footer {
+  margin-top: auto;
+  flex-shrink: 0;
   padding: 18px 10px 8px;
   border-top: 1px solid rgba(255,255,255,0.12);
 }
@@ -211,8 +223,18 @@ button, input, select {
 
 .main-panel {
   flex: 1;
+  min-width: 0;
+  height: 100vh;
+  height: 100dvh;
+  margin-left: var(--sidebar-width);
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.sidebar-overlay {
+  display: none;
 }
 
 .topbar {
@@ -369,6 +391,13 @@ button, input, select {
   margin-bottom: 6px;
 }
 
+.kpi-lines {
+  display: grid;
+  gap: 4px;
+  font-size: 1.05rem;
+  line-height: 1.25;
+}
+
 .kpi-meta {
   color: var(--muted);
   font-size: 0.82rem;
@@ -399,6 +428,28 @@ button, input, select {
 .panel-header h2 {
   margin: 0;
   font-size: 1.1rem;
+}
+
+.chart-toggle {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.chart-mode {
+  border: 1px solid var(--border);
+  background: white;
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.78rem;
+}
+
+.chart-mode.active {
+  background: var(--primary-soft);
+  border-color: rgba(37, 99, 235, 0.18);
+  color: var(--primary);
 }
 
 .chart-panel canvas {
@@ -540,6 +591,14 @@ button, input, select {
   width: 220px;
 }
 
+#categoryFilter {
+  width: 170px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: white;
+}
+
 .status-filters {
   display: flex;
   gap: 8px;
@@ -627,22 +686,48 @@ th {
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 768px) {
+  .dashboard-body {
+    height: auto;
+    min-height: 100%;
+    overflow: auto;
+  }
+
+  .dashboard-body.drawer-open {
+    overflow: hidden;
+  }
+
   .app-shell {
     display: block;
+    min-height: 100vh;
   }
 
   .sidebar {
-    position: fixed;
-    inset: 0 auto 0 0;
     width: min(78vw, 300px);
-    transform: translateX(-105%);
+    transform: translateX(-100%);
     transition: transform 0.25s ease;
-    z-index: 50;
   }
 
   .sidebar.open {
     transform: translateX(0);
+  }
+
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(15, 23, 42, 0.48);
+  }
+
+  .sidebar-overlay.open {
+    display: block;
+  }
+
+  .main-panel {
+    height: auto;
+    min-height: 100vh;
+    margin-left: 0;
+    overflow: visible;
   }
 
   .mobile-menu {

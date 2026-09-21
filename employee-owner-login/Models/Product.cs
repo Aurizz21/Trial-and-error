@@ -7,7 +7,7 @@ public sealed class Product
     public string Category { get; set; } = string.Empty;
     public string Units { get; set; } = string.Empty;
     public string Supplier { get; set; } = string.Empty;
-    public int CurrentStock { get; set; }
-    public int ReorderThreshold { get; set; }
-    public List<int> SalesHistory { get; set; } = new();
+    public decimal CurrentStock { get; set; }
+    public decimal ReorderThreshold { get; set; }
+    public List<decimal> SalesHistory { get; set; } = new();
 }
