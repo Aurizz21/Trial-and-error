@@ -1,0 +1,27 @@
+@{
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Sales Entry";
+}
+
+<div class="module-page">
+    <span class="preview-badge">UI Preview - no backend yet</span>
+    <header class="module-heading"><div><p class="greeting">Sales workspace</p><h1>Sales Entry</h1><p>Record today's outgoing stock with a quick, local preview.</p></div></header>
+    <div class="module-grid">
+        <div class="stack">
+            <section class="panel">
+                <div class="panel-header"><div><h2>New Sale Entry</h2><p class="panel-note">This form only changes the preview on this page.</p></div></div>
+                <form id="saleEntryForm" class="form-grid">
+                    <label class="field">Product<select id="saleProduct" required><option value="">Select product</option><option>Whole Chicken</option><option>Chicken Breast</option><option>Chicken Thigh</option><option>Chicken Wings</option><option>Chicken Feet</option></select></label>
+                    <label class="field">Quantity<div class="input-with-unit"><input id="saleQuantity" type="number" min="0.5" step="1" placeholder="0" required /><span id="saleUnit" class="unit-label">pcs</span></div></label>
+                    <label class="field">Date<input id="saleDate" type="date" required /></label>
+                    <label class="field full">Notes (optional)<textarea id="saleNotes" placeholder="Add any observations, e.g. reason for high consumption..."></textarea></label>
+                    <div class="button-row field full"><button id="recordSale" class="primary-btn" type="submit" disabled>Record Sale</button><button id="clearSale" class="secondary-btn" type="button">Clear</button></div>
+                </form>
+                <div id="saleToast" class="toast" aria-live="polite">Sale recorded (preview only)</div>
+            </section>
+            <section class="panel"><div class="panel-header"><h2>Today's Entries</h2><span class="panel-note">4 preview entries</span></div><div class="table-wrap"><table><thead><tr><th>Product</th><th>Quantity</th><th>Entered By</th><th>Notes</th></tr></thead><tbody id="entriesBody"><tr><td>Chicken Breast</td><td>12 kg</td><td>Maria</td><td>Lunch orders</td></tr><tr><td>Whole Chicken</td><td>18 pcs</td><td>Owner</td><td>Restaurant pickup</td></tr><tr><td>Chicken Wings</td><td>7 kg</td><td>Maria</td><td>Weekend prep</td></tr><tr><td>Chicken Feet</td><td>5 kg</td><td>Owner</td><td>-</td></tr></tbody></table></div></section>
+        </div>
+        <aside class="stack"><section class="panel"><div class="panel-header"><h2>Today's Summary</h2></div><dl class="summary-list"><div><dt>Total Units Sold</dt><dd>42.5 units</dd></div><div><dt>Entries</dt><dd id="entryCount">4</dd></div><div><dt>Products Affected</dt><dd>4 of 5</dd></div></dl></section><section class="panel"><div class="panel-header"><h2>Low Stock Products</h2></div><div class="mini-list"><div class="mini-row"><div><strong>Chicken Breast</strong><small>Remaining stock: 18 kg</small></div><span class="status-badge status-critical">Critical</span></div><div class="mini-row"><div><strong>Chicken Wings</strong><small>Remaining stock: 42 kg</small></div><span class="status-badge status-warning">Warning</span></div></div></section></aside>
+    </div>
+</div>
+<script src="~/js/sales.js" asp-append-version="true"></script>

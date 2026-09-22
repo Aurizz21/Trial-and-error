@@ -10,37 +10,35 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - PoultryOS</title>
+    <title>@ViewData["Title"] - Manok ni Rene</title>
     <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/modules.css" asp-append-version="true" />
 </head>
 <body class="dashboard-body">
     <div class="app-shell">
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <div class="logo-mark">P</div>
+                <div class="logo-mark">M</div>
                 <div>
-                    <div class="logo-text">PoultryOS</div>
+                    <div class="logo-text">Manok ni Rene</div>
                     <small>Inventory Platform</small>
                 </div>
             </div>
 
             <nav class="sidebar-nav" aria-label="Sidebar navigation">
                 <div class="nav-group-label">Main</div>
-                <a class="nav-link active" href="/Dashboard" aria-current="page">Dashboard</a>
-                <a class="nav-link coming-soon" href="#" title="Coming soon">Sales Entry</a>
-                <a class="nav-link coming-soon" href="#" title="Coming soon">
+                <a class="nav-link" href="/Dashboard/Index">Dashboard</a>
+                <a class="nav-link" href="/Sales/Entry">Sales Entry</a>
+                <a class="nav-link" href="/Stock/Alerts">
                     <span>Stock &amp; Alerts</span>
                     <span class="nav-badge badge-critical">@alertBadge</span>
                 </a>
-                <a class="nav-link coming-soon" href="#" title="Coming soon">Forecast</a>
+                <a class="nav-link" href="/Forecast/Index">Forecast</a>
 
-                @if (Context.User.IsInRole("Owner"))
-                {
-                    <div class="nav-group-label">Management</div>
-                    <a class="nav-link coming-soon" href="#" title="Coming soon">Product Management</a>
-                    <a class="nav-link coming-soon" href="#" title="Coming soon">Sales History</a>
-                    <a class="nav-link coming-soon" href="#" title="Coming soon">Audit Trail</a>
-                }
+                <div class="nav-group-label">Management</div>
+                <a class="nav-link owner-only" href="/Products/Index">Product Management</a>
+                <a class="nav-link" href="/Sales/History">Sales History</a>
+                <a class="nav-link owner-only" href="/Audit/Index">Audit Trail</a>
             </nav>
 
             <div class="sidebar-footer">

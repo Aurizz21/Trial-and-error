@@ -9,12 +9,36 @@
       "PackagePath": "staticwebassets\\css\\login.css"
     },
     {
+      "Id": "C:\\Users\\Aron Aure\\employee-owner-login\\wwwroot\\css\\modules.css",
+      "PackagePath": "staticwebassets\\css\\modules.css"
+    },
+    {
+      "Id": "C:\\Users\\Aron Aure\\employee-owner-login\\wwwroot\\js\\audit.js",
+      "PackagePath": "staticwebassets\\js\\audit.js"
+    },
+    {
       "Id": "C:\\Users\\Aron Aure\\employee-owner-login\\wwwroot\\js\\dashboard.js",
       "PackagePath": "staticwebassets\\js\\dashboard.js"
     },
     {
+      "Id": "C:\\Users\\Aron Aure\\employee-owner-login\\wwwroot\\js\\forecast.js",
+      "PackagePath": "staticwebassets\\js\\forecast.js"
+    },
+    {
       "Id": "C:\\Users\\Aron Aure\\employee-owner-login\\wwwroot\\js\\login.js",
       "PackagePath": "staticwebassets\\js\\login.js"
+    },
+    {
+      "Id": "C:\\Users\\Aron Aure\\employee-owner-login\\wwwroot\\js\\products.js",
+      "PackagePath": "staticwebassets\\js\\products.js"
+    },
+    {
+      "Id": "C:\\Users\\Aron Aure\\employee-owner-login\\wwwroot\\js\\sales.js",
+      "PackagePath": "staticwebassets\\js\\sales.js"
+    },
+    {
+      "Id": "C:\\Users\\Aron Aure\\employee-owner-login\\wwwroot\\js\\stock.js",
+      "PackagePath": "staticwebassets\\js\\stock.js"
     },
     {
       "Id": "C:\\Users\\Aron Aure\\employee-owner-login\\wwwroot\\lib\\chartjs\\chart.min.js",

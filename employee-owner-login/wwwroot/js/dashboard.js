@@ -1,4 +1,21 @@
+var currentRole = "Owner";
+
 document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.nav-link').forEach(link => {
+    const linkPath = new URL(link.href, window.location.origin).pathname.replace(/\/$/, '').toLowerCase();
+    const currentPath = window.location.pathname.replace(/\/$/, '').toLowerCase();
+    const isDashboard = linkPath === '/dashboard' && (currentPath === '' || currentPath === '/dashboard');
+    if (linkPath === currentPath || isDashboard) {
+      link.classList.add('active');
+      link.setAttribute('aria-current', 'page');
+    }
+  });
+
+  if (currentRole !== 'Owner') {
+    document.querySelectorAll('.owner-only').forEach(item => item.remove());
+    document.querySelectorAll('[data-owner-only]').forEach(item => item.remove());
+  }
+
   const state = window.dashboardState || {};
   const sidebar = document.getElementById('sidebar');
   const menuButton = document.querySelector('.mobile-menu');
@@ -243,6 +260,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  renderCharts();
-  setInterval(() => refreshDashboard(), 30000);
+  if (document.getElementById('dailySalesChart') || document.getElementById('stockTableBody')) {
+    renderCharts();
+    setInterval(() => refreshDashboard(), 30000);
+  }
 });
