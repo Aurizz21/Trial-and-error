@@ -7,11 +7,146 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('saleEntryForm');
   const record = document.getElementById('recordSale');
   const toast = document.getElementById('saleToast');
-  if (date) date.value = new Date().toISOString().slice(0, 10);
-  const syncUnit = () => { const selectedUnit = units[product?.value] || 'pcs'; if (unit) unit.textContent = selectedUnit; if (quantity) { quantity.step = selectedUnit === 'kg' ? '0.5' : '1'; quantity.min = selectedUnit === 'kg' ? '0.5' : '1'; if (selectedUnit === 'pcs' && quantity.value) quantity.value = Math.round(Number(quantity.value)); } if (record) record.disabled = !(product?.value && quantity?.value); };
-  product?.addEventListener('change', syncUnit); quantity?.addEventListener('input', syncUnit); syncUnit();
-  form?.addEventListener('submit', event => { event.preventDefault(); const selectedUnit = units[product.value]; const row = document.createElement('tr'); row.innerHTML = `<td>${product.value}</td><td>${quantity.value} ${selectedUnit}</td><td>Owner</td><td>${document.getElementById('saleNotes').value || '-'}</td>`; document.getElementById('entriesBody')?.prepend(row); const count = document.getElementById('entryCount'); if (count) count.textContent = String(Number(count.textContent) + 1); toast?.classList.add('show'); setTimeout(() => toast?.classList.remove('show'), 2200); form.reset(); date.value = new Date().toISOString().slice(0, 10); syncUnit(); });
-  document.getElementById('clearSale')?.addEventListener('click', () => { form.reset(); date.value = new Date().toISOString().slice(0, 10); syncUnit(); });
+  const quantityError = document.getElementById('quantityError');
+  let isSubmitting = false;
+  let toastTimer;
+  const localDate = () => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  };
+  const selectedUnit = () => product?.selectedOptions[0]?.dataset.unit || 'pcs';
+  const syncUnit = () => {
+    const currentUnit = selectedUnit();
+    if (unit) unit.textContent = currentUnit;
+    if (quantity) {
+      quantity.step = currentUnit === 'kg' ? '0.5' : '1';
+      quantity.min = currentUnit === 'kg' ? '0.5' : '1';
+      if (currentUnit === 'pcs' && quantity.value) quantity.value = Math.round(Number(quantity.value));
+    }
+    if (record) record.disabled = isSubmitting || !(product?.value && quantity?.value);
+  };
+  const showToast = (message, success) => {
+    if (!toast) return;
+    toast.textContent = message;
+    toast.style.backgroundColor = success ? '#166534' : '#b91c1c';
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+  };
+  const setQuantityError = message => {
+    if (!quantityError) return;
+    quantityError.textContent = message;
+    quantityError.hidden = !message;
+    quantityError.style.color = 'var(--critical)';
+  };
+  const appendTextCell = (row, value) => {
+    const cell = document.createElement('td');
+    cell.textContent = value;
+    row.append(cell);
+    return cell;
+  };
+  const renderEntry = entry => {
+    const body = document.getElementById('entriesBody');
+    if (!body) return;
+    if (body.querySelector('.empty-state')) body.replaceChildren();
+    const row = document.createElement('tr');
+    const productCell = appendTextCell(row, entry.productName);
+    const time = document.createElement('small');
+    time.textContent = new Date(entry.date).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    productCell.append(time);
+    appendTextCell(row, `${entry.quantity} ${entry.unit}`);
+    appendTextCell(row, entry.enteredBy);
+    appendTextCell(row, entry.notes || '-');
+    body.prepend(row);
+  };
+  const renderSummary = summary => {
+    const total = document.getElementById('todaysTotalUnits');
+    const entriesCount = document.getElementById('entryCount');
+    const productsAffected = document.getElementById('productsAffected');
+    const entriesLabel = document.getElementById('entriesCount');
+    if (total) total.textContent = summary.totalUnitsSold;
+    if (entriesCount) entriesCount.textContent = String(summary.entriesCount);
+    if (productsAffected) productsAffected.textContent = `${summary.productsAffectedCount} of ${summary.totalProducts}`;
+    if (entriesLabel) entriesLabel.textContent = `${summary.entriesCount} entries`;
+  };
+  const renderLowStock = products => {
+    const list = document.getElementById('lowStockList');
+    if (!list) return;
+    list.replaceChildren();
+    if (!products.length) {
+      const empty = document.createElement('p');
+      empty.className = 'empty-state';
+      empty.textContent = 'No products currently need attention.';
+      list.append(empty);
+      return;
+    }
+    products.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'mini-row';
+      const details = document.createElement('div');
+      const name = document.createElement('strong');
+      name.textContent = item.productName;
+      const remaining = document.createElement('small');
+      remaining.textContent = `Remaining stock: ${item.currentStock} ${item.units}`;
+      details.append(name, remaining);
+      const status = document.createElement('span');
+      status.className = `status-badge status-${item.status.toLowerCase()}`;
+      status.textContent = item.status;
+      row.append(details, status);
+      list.append(row);
+    });
+  };
+  const resetForm = () => {
+    form?.reset();
+    if (date) date.value = localDate();
+    setQuantityError('');
+    syncUnit();
+  };
+  if (date && !date.value) date.value = localDate();
+  product?.addEventListener('change', () => { setQuantityError(''); syncUnit(); });
+  quantity?.addEventListener('input', () => { setQuantityError(''); syncUnit(); });
+  syncUnit();
+  form?.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (isSubmitting || !form.reportValidity()) return;
+    isSubmitting = true;
+    const originalLabel = record?.textContent || 'Record Sale';
+    if (record) record.textContent = 'Recording...';
+    setQuantityError('');
+    syncUnit();
+    try {
+      const formData = new FormData(form);
+      const token = formData.get('__RequestVerificationToken')?.toString() || '';
+      const response = await fetch('/Sales/RecordSale', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'RequestVerificationToken': token,
+          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+        },
+        body: new URLSearchParams(formData).toString()
+      });
+      const data = await response.json().catch(() => ({ success: false, message: 'Unable to record the sale.' }));
+      if (!response.ok || !data.success) {
+        if (data.message?.toLowerCase().includes('exceeds current stock')) setQuantityError(data.message);
+        showToast(data.message || 'Sale could not be recorded.', false);
+        return;
+      }
+      renderEntry(data.newEntry);
+      renderSummary(data.todaysSummary);
+      renderLowStock(data.lowStockProducts);
+      const productName = data.newEntry.productName;
+      showToast(`Sale recorded: ${data.newEntry.quantity}${data.newEntry.unit} ${productName}`, true);
+      resetForm();
+    } catch (error) {
+      showToast(error.message || 'Sale could not be recorded.', false);
+    } finally {
+      isSubmitting = false;
+      if (record) record.textContent = originalLabel;
+      syncUnit();
+    }
+  });
+  document.getElementById('clearSale')?.addEventListener('click', resetForm);
 
   const historyBody = document.getElementById('historyBody');
   if (!historyBody) return;

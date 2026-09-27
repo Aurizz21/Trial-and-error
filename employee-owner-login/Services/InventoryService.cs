@@ -7,6 +7,7 @@ public sealed class InventoryService : IInventoryService
 {
     private const double ReorderCoverDays = 3d;
     private const double WarningDaysRemaining = 3d;
+    private readonly object syncRoot = new();
     private readonly List<Product> products = new();
     private readonly List<SaleRecord> sales = new();
     private readonly List<AuditEntry> auditEntries = new();
@@ -16,9 +17,61 @@ public sealed class InventoryService : IInventoryService
     {
         SeedProducts();
         SeedAuditTrail();
+        foreach (var alert in BuildAlerts())
+        {
+            activeAlertState[alert.ProductId] = alert.Status;
+        }
     }
 
     public DashboardSummaryViewModel GetSummary(string username, string role)
+    {
+        lock (syncRoot)
+        {
+            return BuildSummary(username, role);
+        }
+    }
+
+    public List<Product> GetProducts()
+    {
+        lock (syncRoot)
+        {
+            return products.ToList();
+        }
+    }
+
+    public SalesSummaryViewModel GetTodaysSalesSummary()
+    {
+        lock (syncRoot)
+        {
+            var entries = GetTodaysSales();
+            return new SalesSummaryViewModel
+            {
+                TotalPcsSold = entries.Where(sale => sale.Unit == "pcs").Sum(sale => sale.Quantity),
+                TotalKgSold = entries.Where(sale => sale.Unit == "kg").Sum(sale => sale.Quantity),
+                EntriesCount = entries.Count,
+                ProductsAffectedCount = entries.Select(sale => sale.ProductId).Distinct().Count(),
+                TotalProducts = products.Count
+            };
+        }
+    }
+
+    public List<SaleRecord> GetTodaysEntries()
+    {
+        lock (syncRoot)
+        {
+            return GetTodaysSales().OrderByDescending(sale => sale.Date).ToList();
+        }
+    }
+
+    public List<AlertItem> GetLowStockProducts()
+    {
+        lock (syncRoot)
+        {
+            return BuildAlerts();
+        }
+    }
+
+    private DashboardSummaryViewModel BuildSummary(string username, string role)
     {
         var now = DateTime.Now;
         var alerts = BuildAlerts();
@@ -58,51 +111,105 @@ public sealed class InventoryService : IInventoryService
 
     public DashboardSummaryViewModel RecordSale(int productId, decimal quantity, string username, string role)
     {
-        if (string.IsNullOrWhiteSpace(username))
+        var result = RecordSale(productId, quantity, username);
+        if (!result.Success)
         {
-            throw new InvalidOperationException("A username is required to record a sale.");
+            throw new InvalidOperationException(result.Message);
         }
 
-        var product = products.SingleOrDefault(p => p.Id == productId)
-            ?? throw new InvalidOperationException("The selected product was not found.");
-
-        if (quantity <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(quantity), "Sale quantity must be greater than zero.");
-        }
-
-        if (product.Units == "pcs" && quantity != decimal.Truncate(quantity))
-        {
-            throw new ArgumentException("Whole Chicken sales must use whole pcs.", nameof(quantity));
-        }
-
-        if (quantity > product.CurrentStock)
-        {
-            throw new InvalidOperationException("The requested quantity exceeds current stock.");
-        }
-
-        product.CurrentStock -= quantity;
-        product.SalesHistory[^1] += quantity;
-
-        sales.Add(new SaleRecord
-        {
-            Id = sales.Count + 1,
-            ProductId = product.Id,
-            ProductName = product.Name,
-            Quantity = quantity,
-            Timestamp = DateTime.Now
-        });
-
-        auditEntries.Add(new AuditEntry
-        {
-            Timestamp = DateTime.Now,
-            User = username,
-            ActionType = "Sale",
-            Description = $"Recorded sale of {quantity} {product.Units} for {product.Name}."
-        });
-
-        RegenerateAlerts();
         return GetSummary(username, role);
+    }
+
+    public RecordSaleResult RecordSale(int productId, decimal quantity, string username, string? notes = null, DateTime? date = null)
+    {
+        lock (syncRoot)
+        {
+            var product = products.SingleOrDefault(p => p.Id == productId);
+            if (product is null)
+            {
+                return new RecordSaleResult { Message = "Product not found." };
+            }
+
+            if (quantity <= 0)
+            {
+                return new RecordSaleResult { Message = "Quantity must be greater than zero." };
+            }
+
+            if (product.Units == "pcs" && quantity != decimal.Truncate(quantity))
+            {
+                return new RecordSaleResult { Message = "Quantity must be a whole number for pcs products." };
+            }
+
+            if (product.Units == "kg" && quantity * 2m != decimal.Truncate(quantity * 2m))
+            {
+                return new RecordSaleResult { Message = "Quantity must be in 0.5 kg increments." };
+            }
+
+            if (quantity > product.CurrentStock)
+            {
+                return new RecordSaleResult
+                {
+                    Message = $"Quantity exceeds current stock ({product.CurrentStock:0.##} {product.Units} available)."
+                };
+            }
+
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                return new RecordSaleResult { Message = "An authenticated username is required." };
+            }
+
+            var now = DateTime.Now;
+            var saleDate = (date ?? now).Date.Add(now.TimeOfDay);
+            product.CurrentStock -= quantity;
+            if (saleDate.Date == now.Date)
+            {
+                product.SalesHistory[^1] += quantity;
+            }
+
+            var entry = new SaleRecord
+            {
+                Id = sales.Count == 0 ? 1 : sales.Max(sale => sale.Id) + 1,
+                ProductId = product.Id,
+                ProductName = product.Name,
+                Quantity = quantity,
+                Unit = product.Units,
+                Date = saleDate,
+                EnteredBy = username,
+                Notes = notes ?? string.Empty
+            };
+            sales.Add(entry);
+
+            auditEntries.Add(new AuditEntry
+            {
+                Timestamp = now,
+                User = username,
+                ActionType = "Sale",
+                Description = $"Recorded sale of {quantity:0.##}{product.Units} {product.Name}"
+            });
+
+            RegenerateAlerts();
+            return new RecordSaleResult
+            {
+                Success = true,
+                UpdatedProduct = new Product
+                {
+                    Id = product.Id,
+                    Name = product.Name,
+                    Category = product.Category,
+                    Units = product.Units,
+                    Supplier = product.Supplier,
+                    CurrentStock = product.CurrentStock,
+                    ReorderThreshold = product.ReorderThreshold,
+                    SalesHistory = product.SalesHistory.ToList()
+                },
+                NewEntry = entry
+            };
+        }
+    }
+
+    private List<SaleRecord> GetTodaysSales()
+    {
+        return sales.Where(sale => sale.Date.Date == DateTime.Today).ToList();
     }
 
     private void SeedProducts()
