@@ -13,6 +13,7 @@
     <title>@ViewData["Title"] - Manok ni Rene</title>
     <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/modules.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/notifications.css" asp-append-version="true" />
 </head>
 <body class="dashboard-body">
     <div class="app-shell">
@@ -71,10 +72,20 @@
 
                 <div class="topbar-right">
                     <div class="date-pill">@DateTime.Now.ToString("ddd, MMM dd")</div>
-                    <button class="notification-btn" type="button" aria-label="Critical alerts">
+                    <div class="notification-area">
+                    <button id="notificationToggle" class="notification-btn" type="button" aria-label="Notifications" aria-expanded="false" aria-controls="notificationPanel">
                         🔔
-                        <span class="notification-badge">@alertBadge</span>
+                        <span id="notificationBadge" class="notification-badge" aria-live="polite" hidden></span>
                     </button>
+                    <section id="notificationPanel" class="notification-panel" aria-label="Notifications" hidden>
+                        <div class="notification-panel-header">
+                            <h2>Notifications</h2>
+                            <button id="markAllNotificationsRead" class="notification-text-button" type="button">Mark all as read</button>
+                        </div>
+                        <div id="notificationDropdownList" class="notification-list"></div>
+                        <a class="notification-panel-footer" href="/Notifications/Index">View all notifications</a>
+                    </section>
+                    </div>
                     <div class="user-profile">
                         <div class="avatar avatar-lg">@userName.Substring(0, 1).ToUpperInvariant()</div>
                         <div>
@@ -95,5 +106,6 @@
 
     <script src="~/lib/chartjs/chart.min.js" asp-append-version="true"></script>
     <script src="~/js/dashboard.js" asp-append-version="true"></script>
+    <script src="~/js/notifications.js" asp-append-version="true"></script>
 </body>
 </html>

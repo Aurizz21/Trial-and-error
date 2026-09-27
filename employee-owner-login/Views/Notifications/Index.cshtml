@@ -1,0 +1,25 @@
+@{
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Notifications";
+}
+
+<section class="notifications-page" aria-labelledby="notificationsTitle">
+    <header class="module-heading">
+        <div>
+            <p class="greeting">Sunrise Poultry Farm</p>
+            <h1 id="notificationsTitle">Notifications</h1>
+            <p>Inventory, sales, and forecast updates.</p>
+        </div>
+    </header>
+    <nav class="notification-filters" aria-label="Filter notifications">
+        <button class="notification-filter active" type="button" data-notification-filter="all" aria-pressed="true">All</button>
+        <button class="notification-filter" type="button" data-notification-filter="unread" aria-pressed="false">Unread</button>
+        <button class="notification-filter" type="button" data-notification-filter="critical" aria-pressed="false">Critical</button>
+        <button class="notification-filter" type="button" data-notification-filter="warning" aria-pressed="false">Warning</button>
+        <button class="notification-filter" type="button" data-notification-filter="info" aria-pressed="false">Info</button>
+    </nav>
+    <div id="notificationsPageList" class="notifications-page-list"></div>
+    <div id="notificationsPageEmpty" class="notification-page-empty" hidden>No notifications yet.</div>
+</section>
+
+<script>document.body.dataset.notificationsPage = 'true';</script>

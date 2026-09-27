@@ -21,6 +21,92 @@ document.addEventListener('DOMContentLoaded', () => {
   const menuButton = document.querySelector('.mobile-menu');
   const sidebarOverlay = document.getElementById('sidebarOverlay');
   const offlineBanner = document.getElementById('offlineBanner');
+  let dailySalesChartInstance;
+  let lowStockChartInstance;
+  let consumptionChartInstance;
+  let depletionChartInstance;
+  const dailySalesColors = ['#2563eb', '#0f766e', '#d97706', '#9333ea', '#64748b'];
+  const dailyCanvas = document.getElementById('dailySalesChart');
+  const lowStockCanvas = document.getElementById('lowStockChart');
+
+  const renderDailySalesChart = () => {
+    if (!dailyCanvas) return;
+    const selectedCategory = document.querySelector('.chart-mode.active')?.dataset.category || 'Whole Chicken';
+    const points = (state.dailySalesTrend || state.DailySalesTrend || [])
+      .filter(item => (item.category || item.Category) === selectedCategory);
+    const labels = [...new Set(points.map(item => item.label || item.Label))];
+    const products = [...new Set(points.map(item => item.product || item.Product))];
+    const datasets = products.map((product, index) => ({
+      label: product,
+      data: labels.map(label => {
+        const point = points.find(item => (item.product || item.Product) === product && (item.label || item.Label) === label);
+        return point?.value ?? point?.Value ?? 0;
+      }),
+      borderColor: dailySalesColors[index % dailySalesColors.length],
+      backgroundColor: 'transparent',
+      tension: 0.35,
+      pointRadius: 2
+    }));
+    if (!labels.length) return;
+
+    if (!dailySalesChartInstance) {
+      dailySalesChartInstance = new Chart(dailyCanvas, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          scales: { y: { beginAtZero: true, title: { display: true, text: selectedCategory === 'Whole Chicken' ? 'pcs' : 'kg' } } },
+          plugins: { legend: { display: datasets.length > 1 } }
+        }
+      });
+      return;
+    }
+
+    dailySalesChartInstance.data.labels = labels;
+    dailySalesChartInstance.data.datasets = datasets;
+    dailySalesChartInstance.options.scales.y.title.text = selectedCategory === 'Whole Chicken' ? 'pcs' : 'kg';
+    dailySalesChartInstance.options.plugins.legend.display = datasets.length > 1;
+    dailySalesChartInstance.update('none');
+  };
+
+  const renderLowStockChart = () => {
+    if (!lowStockCanvas) return;
+    const slices = state.lowStockDistribution || state.LowStockDistribution || [];
+    const healthy = slices.length === 0 || (slices.length === 1 && (slices[0].label || slices[0].Label) === 'All products are healthy');
+    const emptyState = document.getElementById('lowStockEmpty');
+    if (emptyState) emptyState.classList.toggle('hidden', !healthy);
+    lowStockCanvas.classList.toggle('hidden', healthy);
+
+    if (healthy) {
+      lowStockChartInstance?.destroy();
+      lowStockChartInstance = null;
+      return;
+    }
+
+    const labels = slices.map(item => item.label || item.Label);
+    const values = slices.map(item => item.value ?? item.Value ?? 0);
+    const colors = slices.map(item => item.color || item.Color || '#2563eb');
+    if (!lowStockChartInstance) {
+      lowStockChartInstance = new Chart(lowStockCanvas, {
+        type: 'doughnut',
+        data: { labels, datasets: [{ data: values, backgroundColor: colors }] },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          plugins: { legend: { position: 'bottom' } }
+        }
+      });
+      return;
+    }
+
+    lowStockChartInstance.data.labels = labels;
+    lowStockChartInstance.data.datasets[0].data = values;
+    lowStockChartInstance.data.datasets[0].backgroundColor = colors;
+    lowStockChartInstance.update('none');
+  };
 
   const closeDrawer = () => {
     sidebar?.classList.remove('open');
@@ -61,65 +147,31 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const renderCharts = () => {
-    // Polling keeps the dashboard live without a full page reload: fetch the latest summary, then re-render the charts in place.
-    const dailyCanvas = document.getElementById('dailySalesChart');
-    const lowStockCanvas = document.getElementById('lowStockChart');
+    // Refresh the chart data within their fixed plot areas.
     const consumptionCanvas = document.getElementById('consumptionChart');
     const depletionCanvas = document.getElementById('depletionChart');
-    const selectedCategory = document.querySelector('.chart-mode.active')?.dataset.category || 'Whole Chicken';
-
-    if (dailyCanvas && state.dailySalesTrend) {
-      const points = state.dailySalesTrend.filter(item => (item.category || item.Category) === selectedCategory);
-      const products = [...new Set(points.map(item => item.product || item.Product))];
-      const labels = [...new Set(points.map(item => item.label || item.Label))];
-      const datasets = products.map((product, index) => ({
-        label: product,
-        data: labels.map(label => points.find(item => (item.product || item.Product) === product && (item.label || item.Label) === label)?.value ?? 0),
-        borderColor: ['#2563eb', '#0f766e', '#d97706', '#9333ea'][index % 4],
-        backgroundColor: 'transparent',
-        tension: 0.35,
-        pointRadius: 2
-      }));
-      if (window.dailySalesChart) window.dailySalesChart.destroy();
-      window.dailySalesChart = new Chart(dailyCanvas, {
-        type: 'line',
-        data: { labels, datasets },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, title: { display: true, text: selectedCategory === 'Whole Chicken' ? 'pcs' : 'kg' } } }, plugins: { legend: { display: datasets.length > 1 } } }
-      });
-    }
-
-    if (lowStockCanvas && state.lowStockDistribution) {
-      const slices = state.lowStockDistribution;
-      const healthy = slices.length === 1 && (slices[0].label || slices[0].Label) === 'All products are healthy';
-      const emptyState = document.getElementById('lowStockEmpty');
-      if (emptyState) emptyState.classList.toggle('hidden', !healthy);
-      lowStockCanvas.classList.toggle('hidden', healthy);
-      if (window.lowStockChart) window.lowStockChart.destroy();
-      if (!healthy) {
-        window.lowStockChart = new Chart(lowStockCanvas, {
-        type: 'doughnut',
-        data: {
-          labels: slices.map(item => item.label || item.Label),
-          datasets: [{
-            data: slices.map(item => item.value || item.Value),
-            backgroundColor: slices.map(item => item.color || item.Color || '#2563eb')
-          }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-        });
-      }
-    }
+    renderDailySalesChart();
+    renderLowStockChart();
 
     if (consumptionCanvas && state.weeklyConsumption) {
       const labels = state.weeklyConsumption.map(item => item.product || item.Product);
       const pcs = state.weeklyConsumption.map(item => (item.units || item.Units) === 'pcs' ? item.value || item.Value : null);
       const kg = state.weeklyConsumption.map(item => (item.units || item.Units) === 'kg' ? item.value || item.Value : null);
-      if (window.consumptionChart) window.consumptionChart.destroy();
-      window.consumptionChart = new Chart(consumptionCanvas, {
-        type: 'bar',
-        data: { labels, datasets: [{ label: 'pcs', data: pcs, backgroundColor: '#2563eb' }, { label: 'kg', data: kg, backgroundColor: '#0f766e' }] },
-        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true } }, plugins: { legend: { display: true } } }
-      });
+      const datasets = [
+        { label: 'pcs', data: pcs, backgroundColor: '#2563eb', barThickness: 18 },
+        { label: 'kg', data: kg, backgroundColor: '#0f766e', barThickness: 18 }
+      ];
+      if (!consumptionChartInstance) {
+        consumptionChartInstance = new Chart(consumptionCanvas, {
+          type: 'bar',
+          data: { labels, datasets },
+          options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true } }, plugins: { legend: { display: true } } }
+        });
+      } else {
+        consumptionChartInstance.data.labels = labels;
+        consumptionChartInstance.data.datasets = datasets;
+        consumptionChartInstance.update();
+      }
     }
 
     if (depletionCanvas && state.activeAlerts && state.activeAlerts.length) {
@@ -128,8 +180,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const stock = criticalProduct.currentStock ?? criticalProduct.CurrentStock ?? 0;
       const forecast = criticalProduct.forecast ?? criticalProduct.Forecast ?? 0;
       const trend = Array.from({ length: 7 }, (_, index) => Math.max(0, stock - ((index + 1) * forecast)));
-      if (window.depletionChart) window.depletionChart.destroy();
-      window.depletionChart = new Chart(depletionCanvas, {
+      depletionChartInstance?.destroy();
+      depletionChartInstance = new Chart(depletionCanvas, {
         type: 'line',
         data: {
           labels,
@@ -176,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.chart-mode').forEach(button => {
     button.addEventListener('click', () => {
       document.querySelectorAll('.chart-mode').forEach(item => item.classList.toggle('active', item === button));
-      renderCharts();
+      renderDailySalesChart();
     });
   });
 

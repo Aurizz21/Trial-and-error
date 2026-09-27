@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "/C4vmbV787hwuYlfM5k7zsieETNAsKIZ1rFHBag2gGo=",
+  "Hash": "oKiLxbNtWAqs50/ab0Ckf6FmD1gunwrE0yck7oK25JI=",
   "Source": "PoultryOS",
   "BasePath": "_content/PoultryOS",
   "Mode": "Default",
@@ -72,6 +72,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\css\\modules.css"
+    },
+    {
+      "Identity": "C:\\Users\\Aron Aure\\employee-owner-login\\wwwroot\\css\\notifications.css",
+      "SourceId": "PoultryOS",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\Aron Aure\\employee-owner-login\\wwwroot\\",
+      "BasePath": "_content/PoultryOS",
+      "RelativePath": "css/notifications.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\css\\notifications.css"
     },
     {
       "Identity": "C:\\Users\\Aron Aure\\employee-owner-login\\wwwroot\\js\\audit.js",
@@ -148,6 +167,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\js\\login.js"
+    },
+    {
+      "Identity": "C:\\Users\\Aron Aure\\employee-owner-login\\wwwroot\\js\\notifications.js",
+      "SourceId": "PoultryOS",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\Aron Aure\\employee-owner-login\\wwwroot\\",
+      "BasePath": "_content/PoultryOS",
+      "RelativePath": "js/notifications.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\js\\notifications.js"
     },
     {
       "Identity": "C:\\Users\\Aron Aure\\employee-owner-login\\wwwroot\\js\\products.js",

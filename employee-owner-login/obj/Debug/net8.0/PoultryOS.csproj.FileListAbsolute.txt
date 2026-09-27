@@ -24,3 +24,8 @@ C:\Users\Aron Aure\employee-owner-login\obj\Debug\net8.0\refint\PoultryOS.dll
 C:\Users\Aron Aure\employee-owner-login\obj\Debug\net8.0\PoultryOS.pdb
 C:\Users\Aron Aure\employee-owner-login\obj\Debug\net8.0\PoultryOS.genruntimeconfig.cache
 C:\Users\Aron Aure\employee-owner-login\obj\Debug\net8.0\ref\PoultryOS.dll
+C:\PoultryOSValidation\PoultryOS.staticwebassets.runtime.json
+C:\PoultryOSValidation\PoultryOS.deps.json
+C:\PoultryOSValidation\PoultryOS.runtimeconfig.json
+C:\PoultryOSValidation\PoultryOS.dll
+C:\PoultryOSValidation\PoultryOS.pdb

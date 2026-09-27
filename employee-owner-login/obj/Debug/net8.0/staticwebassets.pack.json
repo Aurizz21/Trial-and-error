@@ -13,6 +13,10 @@
       "PackagePath": "staticwebassets\\css\\modules.css"
     },
     {
+      "Id": "C:\\Users\\Aron Aure\\employee-owner-login\\wwwroot\\css\\notifications.css",
+      "PackagePath": "staticwebassets\\css\\notifications.css"
+    },
+    {
       "Id": "C:\\Users\\Aron Aure\\employee-owner-login\\wwwroot\\js\\audit.js",
       "PackagePath": "staticwebassets\\js\\audit.js"
     },
@@ -27,6 +31,10 @@
     {
       "Id": "C:\\Users\\Aron Aure\\employee-owner-login\\wwwroot\\js\\login.js",
       "PackagePath": "staticwebassets\\js\\login.js"
+    },
+    {
+      "Id": "C:\\Users\\Aron Aure\\employee-owner-login\\wwwroot\\js\\notifications.js",
+      "PackagePath": "staticwebassets\\js\\notifications.js"
     },
     {
       "Id": "C:\\Users\\Aron Aure\\employee-owner-login\\wwwroot\\js\\products.js",
