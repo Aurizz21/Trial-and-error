@@ -1,9 +1,11 @@
 @using System.Security.Claims
+@using PoultryOS.Models
 @{
     var userName = Context.User.Identity?.Name ?? "User";
-    var role = Context.User.IsInRole("Owner") ? "Owner" : "Employee";
+    var role = RolePermissions.GetCurrentRole(Context.User);
     var criticalAlertCount = ViewData["CriticalAlertCount"] ?? 0;
     var alertBadge = criticalAlertCount is int c ? c : 0;
+    var isOwner = User.IsInRole(RolePermissions.Owner);
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -15,7 +17,7 @@
     <link rel="stylesheet" href="~/css/modules.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/notifications.css" asp-append-version="true" />
 </head>
-<body class="dashboard-body">
+<body class="dashboard-body" data-role="@User.FindFirst(ClaimTypes.Role)?.Value">
     <div class="app-shell">
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
@@ -30,16 +32,22 @@
                 <div class="nav-group-label">Main</div>
                 <a class="nav-link" href="/Dashboard/Index">Dashboard</a>
                 <a class="nav-link" href="/Sales/Entry">Sales Entry</a>
-                <a class="nav-link" href="/Stock/Alerts">
-                    <span>Stock &amp; Alerts</span>
-                    <span class="nav-badge badge-critical">@alertBadge</span>
-                </a>
+                @if (isOwner)
+                {
+                    <a class="nav-link" href="/Stock/Alerts">
+                        <span>Stock &amp; Alerts</span>
+                        <span class="nav-badge badge-critical">@alertBadge</span>
+                    </a>
+                }
                 <a class="nav-link" href="/Forecast/Index">Forecast</a>
 
-                <div class="nav-group-label">Management</div>
-                <a class="nav-link owner-only" href="/Products/Index">Product Management</a>
-                <a class="nav-link" href="/Sales/History">Sales History</a>
-                <a class="nav-link owner-only" href="/Audit/Index">Audit Trail</a>
+                @if (isOwner)
+                {
+                    <div class="nav-group-label">Management</div>
+                    <a class="nav-link" href="/Products/Index">Product Management</a>
+                    <a class="nav-link" href="/Sales/History">Sales History</a>
+                    <a class="nav-link" href="/Audit/Index">Audit Trail</a>
+                }
             </nav>
 
             <div class="sidebar-footer">
@@ -87,6 +95,7 @@
                     </section>
                     </div>
                     <div class="user-profile">
+                        <span class="role-tag">@role</span>
                         <div class="avatar avatar-lg">@userName.Substring(0, 1).ToUpperInvariant()</div>
                         <div>
                             <div class="profile-name">@userName</div>

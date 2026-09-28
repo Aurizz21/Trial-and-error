@@ -1,5 +1,3 @@
-var currentRole = "Owner";
-
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.nav-link').forEach(link => {
     const linkPath = new URL(link.href, window.location.origin).pathname.replace(/\/$/, '').toLowerCase();
@@ -10,11 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
       link.setAttribute('aria-current', 'page');
     }
   });
-
-  if (currentRole !== 'Owner') {
-    document.querySelectorAll('.owner-only').forEach(item => item.remove());
-    document.querySelectorAll('[data-owner-only]').forEach(item => item.remove());
-  }
 
   const state = window.dashboardState || {};
   const sidebar = document.getElementById('sidebar');

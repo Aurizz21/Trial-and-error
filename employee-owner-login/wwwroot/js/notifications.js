@@ -1,33 +1,32 @@
 (() => {
-  const storageKey = 'poultryos.notificationReadState.v1';
-  const notifications = [
-    { id: 'breast-critical', type: 'critical', title: 'Chicken Breast stock critical', message: '8 kg remaining, reorder 12 kg.', timestamp: new Date(Date.now() - 5 * 60000).toISOString(), isRead: false },
-    { id: 'wings-warning', type: 'warning', title: 'Chicken Wings approaching reorder threshold', message: 'Current stock is 18 kg; review the 20 kg reorder threshold.', timestamp: new Date(Date.now() - 42 * 60000).toISOString(), isRead: false },
-    { id: 'thigh-sale', type: 'info', title: 'Sale recorded: Chicken Thigh', message: '10 kg Chicken Thigh sold by the owner.', timestamp: new Date(Date.now() - 2 * 3600000).toISOString(), isRead: true },
-    { id: 'feet-threshold', type: 'info', title: 'Chicken Feet threshold updated', message: 'The reorder threshold is now 5 kg.', timestamp: new Date(Date.now() - 5 * 3600000).toISOString(), isRead: false },
-    { id: 'whole-stock', type: 'warning', title: 'Whole Chicken stock is trending down', message: '130 pcs remain after today\'s sales.', timestamp: new Date(Date.now() - 26 * 3600000).toISOString(), isRead: true },
-    { id: 'thigh-forecast', type: 'info', title: 'Chicken Thigh forecast updated', message: 'Projected stock remains healthy for the next 7 days.', timestamp: new Date(Date.now() - 3 * 86400000).toISOString(), isRead: true }
-  ];
+  const currentRole = document.body.dataset.role || 'Owner';
+  const notifications = [];
 
-  const readState = (() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
-      return saved && typeof saved === 'object' ? saved : {};
-    } catch {
-      return {};
+  const getAntiForgeryToken = () => {
+    const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+    return tokenInput ? tokenInput.value : '';
+  };
+
+  const requestJson = async (url, method = 'GET', body) => {
+    const headers = { 'X-Requested-With': 'XMLHttpRequest' };
+
+    if (method !== 'GET') {
+      headers['Content-Type'] = 'application/json';
+      headers['RequestVerificationToken'] = getAntiForgeryToken();
     }
-  })();
 
-  notifications.forEach(item => {
-    if (typeof readState[item.id] === 'boolean') item.isRead = readState[item.id];
-  });
+    const response = await fetch(url, {
+      method,
+      headers,
+      credentials: 'same-origin',
+      body: body ? JSON.stringify(body) : undefined
+    });
 
-  const persistReadState = () => {
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(Object.fromEntries(notifications.map(item => [item.id, item.isRead]))));
-    } catch {
-      // Keep notification state in memory when browser storage is unavailable.
+    if (!response.ok) {
+      throw new Error(`Request failed: ${response.status}`);
     }
+
+    return response.json();
   };
 
   const unreadCount = () => notifications.filter(item => !item.isRead).length;
@@ -124,18 +123,37 @@
     renderFullList();
   };
 
-  const markRead = id => {
-    const notification = notifications.find(item => item.id === id);
-    if (!notification || notification.isRead) return;
-    notification.isRead = true;
-    persistReadState();
-    render();
+  const fetchNotifications = async () => {
+    try {
+      const response = await requestJson('/Notifications/List');
+      notifications.splice(0, notifications.length, ...response.map(item => ({ ...item, type: (item.type || 'info').toLowerCase() })));
+      render();
+    } catch (error) {
+      console.error('Unable to load notifications from the server.', error);
+    }
   };
 
-  const markAllRead = () => {
-    notifications.forEach(item => { item.isRead = true; });
-    persistReadState();
-    render();
+  const markRead = async id => {
+    const notification = notifications.find(item => item.id === id);
+    if (!notification || notification.isRead) return;
+
+    try {
+      await requestJson('/Notifications/MarkRead', 'POST', { notificationId: id });
+      notification.isRead = true;
+      render();
+    } catch (error) {
+      console.error('Unable to mark notification as read.', error);
+    }
+  };
+
+  const markAllRead = async () => {
+    try {
+      await requestJson('/Notifications/MarkAllRead', 'POST', {});
+      notifications.forEach(item => { item.isRead = true; });
+      render();
+    } catch (error) {
+      console.error('Unable to mark notifications as read.', error);
+    }
   };
 
   const closePanel = () => {
@@ -167,7 +185,7 @@
     const row = event.target.closest('[data-notification-id]');
     if (row) markRead(row.dataset.notificationId);
   });
-  markAllButton?.addEventListener('click', markAllRead);
+  markAllButton?.addEventListener('click', () => markAllRead());
   filterButtons.forEach(button => button.addEventListener('click', () => {
     activeFilter = button.dataset.notificationFilter;
     filterButtons.forEach(filter => {
@@ -178,8 +196,11 @@
     renderFullList();
   }));
 
-  if (document.body.dataset.notificationsPage === 'true') markAllRead();
-  render();
+  if (document.body.dataset.notificationsPage === 'true') {
+    markAllRead();
+  }
+
+  fetchNotifications();
 
   window.PoultryNotifications = {
     getNotifications: () => notifications.map(item => ({ ...item })),

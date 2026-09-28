@@ -6,7 +6,7 @@ using PoultryOS.Services;
 
 namespace PoultryOS.Controllers;
 
-[Authorize]
+[Authorize(Roles = "Owner,Employee")]
 public class SalesController : Controller
 {
     private readonly IInventoryService inventoryService;
@@ -19,18 +19,24 @@ public class SalesController : Controller
     [HttpGet]
     public IActionResult Entry()
     {
+        var username = User.Identity?.Name ?? string.Empty;
+        var allEntries = inventoryService.GetTodaysEntries();
+
         ViewData["CriticalAlertCount"] = inventoryService.GetLowStockProducts().Count(alert => alert.Status == "Critical");
         return View(new SalesEntryViewModel
         {
             Products = inventoryService.GetProducts(),
             TodaysSummary = inventoryService.GetTodaysSalesSummary(),
-            TodaysEntries = inventoryService.GetTodaysEntries(),
+            TodaysEntries = User.IsInRole("Owner")
+                ? allEntries
+                : allEntries.Where(entry => string.Equals(entry.EnteredBy, username, StringComparison.OrdinalIgnoreCase)).ToList(),
             LowStockProducts = inventoryService.GetLowStockProducts()
         });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Owner,Employee")]
     public IActionResult RecordSale(RecordSaleRequest request)
     {
         if (!ModelState.IsValid)
@@ -71,5 +77,6 @@ public class SalesController : Controller
     }
 
     [HttpGet]
+    [Authorize(Roles = RolePermissions.Owner)]
     public IActionResult History() => View();
 }

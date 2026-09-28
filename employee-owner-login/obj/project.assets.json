@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Aron Aure\\employee-owner-login\\PoultryOS.csproj",
+      "projectUniqueName": "C:\\Users\\Aron Aure\\employee-owner-login\\Trial-and-error\\employee-owner-login\\PoultryOS.csproj",
       "projectName": "PoultryOS",
-      "projectPath": "C:\\Users\\Aron Aure\\employee-owner-login\\PoultryOS.csproj",
+      "projectPath": "C:\\Users\\Aron Aure\\employee-owner-login\\Trial-and-error\\employee-owner-login\\PoultryOS.csproj",
       "packagesPath": "C:\\Users\\Aron Aure\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Aron Aure\\employee-owner-login\\obj\\",
+      "outputPath": "C:\\Users\\Aron Aure\\employee-owner-login\\Trial-and-error\\employee-owner-login\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Aron Aure\\AppData\\Roaming\\NuGet\\NuGet.Config",
