@@ -3,10 +3,10 @@
     ViewData["Title"] = "Notifications";
 }
 
-<section class="notifications-page" aria-labelledby="notificationsTitle">
+<section class="module-page notifications-page" aria-labelledby="notificationsTitle">
     <header class="module-heading">
         <div>
-            <p class="greeting">Sunrise Poultry Farm</p>
+            <p class="greeting">Manok ni Rene</p>
             <h1 id="notificationsTitle">Notifications</h1>
             <p>Inventory, sales, and forecast updates.</p>
         </div>
@@ -19,7 +19,10 @@
         <button class="notification-filter" type="button" data-notification-filter="info" aria-pressed="false">Info</button>
     </nav>
     <div id="notificationsPageList" class="notifications-page-list"></div>
-    <div id="notificationsPageEmpty" class="notification-page-empty" hidden>No notifications yet.</div>
+    <div id="notificationsPageEmpty" class="notification-page-empty empty-state" hidden>
+        <strong>No notifications match this filter.</strong>
+        <span>Try another filter to see other shop updates.</span>
+    </div>
 </section>
 
 <script>document.body.dataset.notificationsPage = 'true';</script>

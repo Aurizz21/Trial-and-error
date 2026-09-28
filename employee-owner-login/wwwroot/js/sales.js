@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const showToast = (message, success) => {
     if (!toast) return;
     toast.textContent = message;
-    toast.style.backgroundColor = success ? '#166534' : '#b91c1c';
+    toast.style.backgroundColor = success ? 'var(--healthy)' : 'var(--critical)';
     toast.classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);

@@ -28,6 +28,9 @@ public class AccountController : Controller
         return View(new LoginViewModel());
     }
 
+    [HttpGet]
+    public IActionResult AccessDenied() => View();
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)

@@ -1,0 +1,62 @@
+@font-face {
+  font-family: "Nunito";
+  src: url("/fonts/Nunito-Variable.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 200 1000;
+  font-display: swap;
+}
+
+:root {
+  color-scheme: light;
+  --font-body: "Nunito", "Segoe UI", sans-serif;
+
+  --bg: #f3f3f3;
+  --panel: #ffffff;
+  --panel-alt: #f7f7f7;
+  --sidebar: #333333;
+  --sidebar-soft: #474747;
+  --primary: #2457a6;
+  --primary-hover: #1d4788;
+  --primary-soft: rgba(36, 87, 166, 0.1);
+  --primary-border: color-mix(in srgb, var(--primary) 18%, transparent);
+  --text: #292929;
+  --muted: #626262;
+  --border: #dedede;
+  --white: #ffffff;
+  --on-dark-muted: #dedede;
+  --scrim: rgba(41, 41, 41, 0.48);
+
+  --critical: #b42318;
+  --critical-soft: rgba(180, 35, 24, 0.1);
+  --warning: #8a4b08;
+  --warning-soft: rgba(138, 75, 8, 0.1);
+  --healthy: #176b3a;
+  --healthy-soft: rgba(23, 107, 58, 0.1);
+  --critical-border: color-mix(in srgb, var(--critical) 18%, transparent);
+  --warning-border: color-mix(in srgb, var(--warning) 18%, transparent);
+  --healthy-border: color-mix(in srgb, var(--healthy) 18%, transparent);
+  --info: #2457a6;
+  --info-soft: rgba(36, 87, 166, 0.1);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  --radius-control: 8px;
+  --radius-card: 14px;
+  --radius-pill: 999px;
+
+  --shadow: 0 2px 8px rgba(41, 41, 41, 0.06);
+  --shadow-raised: 0 8px 22px rgba(41, 41, 41, 0.1);
+  --focus-ring: 0 0 0 3px rgba(36, 87, 166, 0.2);
+}
+
+html {
+  font-family: var(--font-body);
+  color: var(--text);
+  background: var(--bg);
+}

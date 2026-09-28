@@ -25,7 +25,69 @@ document.addEventListener('DOMContentLoaded', () => {
   let lowStockChartInstance;
   let consumptionChartInstance;
   let depletionChartInstance;
-  const dailySalesColors = ['#2563eb', '#0f766e', '#d97706', '#9333ea', '#64748b'];
+  const chartRoot = getComputedStyle(document.documentElement);
+  const chartColor = token => chartRoot.getPropertyValue(token).trim();
+  const chartPalette = {
+    primary: chartColor('--chart-primary'),
+    secondary: chartColor('--chart-secondary'),
+    tertiary: chartColor('--chart-tertiary'),
+    quaternary: chartColor('--chart-quaternary'),
+    grid: chartColor('--chart-grid'),
+    critical: chartColor('--chart-critical'),
+    warning: chartColor('--chart-warning'),
+    healthy: chartColor('--chart-healthy'),
+    criticalFill: chartColor('--chart-critical-fill'),
+    text: chartColor('--text'),
+    muted: chartColor('--muted'),
+    white: chartColor('--white'),
+    border: chartColor('--border'),
+    font: chartColor('--font-body')
+  };
+  const salesSeriesColors = [chartPalette.primary, chartPalette.secondary, chartPalette.quaternary, chartPalette.tertiary];
+  const chartBaseOptions = scales => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    color: chartPalette.muted,
+    font: { family: chartPalette.font, size: 11 },
+    layout: { padding: { top: 4, right: 8, bottom: 0, left: 4 } },
+    scales,
+    plugins: {
+      legend: {
+        labels: {
+          color: chartPalette.muted,
+          font: { family: chartPalette.font, size: 11, weight: '600' },
+          boxWidth: 8,
+          boxHeight: 8,
+          usePointStyle: true,
+          pointStyle: 'circle',
+          padding: 16
+        }
+      },
+      tooltip: {
+        backgroundColor: chartPalette.text,
+        titleColor: chartPalette.white,
+        bodyColor: chartPalette.white,
+        borderColor: chartPalette.border,
+        borderWidth: 1,
+        cornerRadius: 8,
+        padding: 10,
+        displayColors: true,
+        titleFont: { family: chartPalette.font, weight: '700' },
+        bodyFont: { family: chartPalette.font }
+      }
+    }
+  });
+  const chartAxis = (showGrid = true) => ({
+    grid: { display: showGrid, color: chartPalette.grid, lineWidth: 0.75, drawTicks: false },
+    border: { display: false },
+    ticks: { color: chartPalette.muted, padding: 8, font: { family: chartPalette.font, size: 11 } }
+  });
+  const setChartEmpty = (canvas, empty) => {
+    if (!canvas) return;
+    canvas.classList.toggle('hidden', empty);
+    canvas.parentElement?.querySelector(`[data-chart-empty="${canvas.id}"]`)?.classList.toggle('hidden', !empty);
+  };
   const dailyCanvas = document.getElementById('dailySalesChart');
   const lowStockCanvas = document.getElementById('lowStockChart');
 
@@ -36,29 +98,38 @@ document.addEventListener('DOMContentLoaded', () => {
       .filter(item => (item.category || item.Category) === selectedCategory);
     const labels = [...new Set(points.map(item => item.label || item.Label))];
     const products = [...new Set(points.map(item => item.product || item.Product))];
+    if (!labels.length) {
+      setChartEmpty(dailyCanvas, true);
+      dailySalesChartInstance?.destroy();
+      dailySalesChartInstance = null;
+      return;
+    }
+    setChartEmpty(dailyCanvas, false);
     const datasets = products.map((product, index) => ({
       label: product,
       data: labels.map(label => {
         const point = points.find(item => (item.product || item.Product) === product && (item.label || item.Label) === label);
         return point?.value ?? point?.Value ?? 0;
       }),
-      borderColor: dailySalesColors[index % dailySalesColors.length],
+      borderColor: salesSeriesColors[index % salesSeriesColors.length],
       backgroundColor: 'transparent',
-      tension: 0.35,
-      pointRadius: 2
+      borderWidth: 2,
+      tension: 0.32,
+      pointRadius: 0,
+      pointHoverRadius: 4,
+      pointHoverBackgroundColor: salesSeriesColors[index % salesSeriesColors.length],
+      pointHoverBorderColor: chartPalette.white
     }));
-    if (!labels.length) return;
-
     if (!dailySalesChartInstance) {
       dailySalesChartInstance = new Chart(dailyCanvas, {
         type: 'line',
         data: { labels, datasets },
         options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: false,
-          scales: { y: { beginAtZero: true, title: { display: true, text: selectedCategory === 'Whole Chicken' ? 'pcs' : 'kg' } } },
-          plugins: { legend: { display: datasets.length > 1 } }
+          ...chartBaseOptions({
+            x: { ...chartAxis(false) },
+            y: { ...chartAxis(), beginAtZero: true, title: { display: true, text: selectedCategory === 'Whole Chicken' ? 'pcs' : 'kg', color: chartPalette.muted, font: { family: chartPalette.font, size: 11, weight: '600' } } }
+          }),
+          plugins: { ...chartBaseOptions().plugins, legend: { ...chartBaseOptions().plugins.legend, display: datasets.length > 1 } }
         }
       });
       return;
@@ -87,16 +158,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const labels = slices.map(item => item.label || item.Label);
     const values = slices.map(item => item.value ?? item.Value ?? 0);
-    const colors = slices.map(item => item.color || item.Color || '#2563eb');
+    const colors = slices.map((item, index) => {
+      const sourceColor = (item.color || item.Color || '').toLowerCase();
+      if (sourceColor === '#ef4444' || sourceColor === '#b42318') return chartPalette.critical;
+      if (sourceColor === '#f59e0b' || sourceColor === '#8a4b08') return chartPalette.warning;
+      if (sourceColor === '#10b981' || sourceColor === '#176b3a') return chartPalette.healthy;
+      return index % 2 === 0 ? chartPalette.primary : chartPalette.secondary;
+    });
     if (!lowStockChartInstance) {
       lowStockChartInstance = new Chart(lowStockCanvas, {
         type: 'doughnut',
         data: { labels, datasets: [{ data: values, backgroundColor: colors }] },
         options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: false,
-          plugins: { legend: { position: 'bottom' } }
+          ...chartBaseOptions(),
+          cutout: '72%',
+          radius: '88%',
+          plugins: { ...chartBaseOptions().plugins, legend: { ...chartBaseOptions().plugins.legend, position: 'bottom' } }
         }
       });
       return;
@@ -153,29 +230,45 @@ document.addEventListener('DOMContentLoaded', () => {
     renderDailySalesChart();
     renderLowStockChart();
 
-    if (consumptionCanvas && state.weeklyConsumption) {
-      const labels = state.weeklyConsumption.map(item => item.product || item.Product);
-      const pcs = state.weeklyConsumption.map(item => (item.units || item.Units) === 'pcs' ? item.value || item.Value : null);
-      const kg = state.weeklyConsumption.map(item => (item.units || item.Units) === 'kg' ? item.value || item.Value : null);
-      const datasets = [
-        { label: 'pcs', data: pcs, backgroundColor: '#2563eb', barThickness: 18 },
-        { label: 'kg', data: kg, backgroundColor: '#0f766e', barThickness: 18 }
-      ];
-      if (!consumptionChartInstance) {
-        consumptionChartInstance = new Chart(consumptionCanvas, {
-          type: 'bar',
-          data: { labels, datasets },
-          options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true } }, plugins: { legend: { display: true } } }
-        });
+    if (consumptionCanvas) {
+      const weeklyConsumption = state.weeklyConsumption || state.WeeklyConsumption || [];
+      setChartEmpty(consumptionCanvas, !weeklyConsumption.length);
+      if (!weeklyConsumption.length) {
+        consumptionChartInstance?.destroy();
+        consumptionChartInstance = null;
       } else {
-        consumptionChartInstance.data.labels = labels;
-        consumptionChartInstance.data.datasets = datasets;
-        consumptionChartInstance.update();
+        const labels = weeklyConsumption.map(item => item.product || item.Product);
+        const pcs = weeklyConsumption.map(item => (item.units || item.Units) === 'pcs' ? item.value || item.Value : null);
+        const kg = weeklyConsumption.map(item => (item.units || item.Units) === 'kg' ? item.value || item.Value : null);
+        const datasets = [
+          { label: 'pcs', data: pcs, backgroundColor: chartPalette.primary, borderRadius: 4, barThickness: 14, maxBarThickness: 16 },
+          { label: 'kg', data: kg, backgroundColor: chartPalette.quaternary, borderRadius: 4, barThickness: 14, maxBarThickness: 16 }
+        ];
+        if (!consumptionChartInstance) {
+          consumptionChartInstance = new Chart(consumptionCanvas, {
+            type: 'bar',
+            data: { labels, datasets },
+            options: {
+              ...chartBaseOptions({
+                x: { ...chartAxis(), beginAtZero: true },
+                y: { ...chartAxis(false) }
+              }),
+              indexAxis: 'y',
+              plugins: { ...chartBaseOptions().plugins, legend: { ...chartBaseOptions().plugins.legend, display: true } }
+            }
+          });
+        } else {
+          consumptionChartInstance.data.labels = labels;
+          consumptionChartInstance.data.datasets = datasets;
+          consumptionChartInstance.update();
+        }
       }
     }
 
-    if (depletionCanvas && state.activeAlerts && state.activeAlerts.length) {
-      const criticalProduct = state.activeAlerts[0];
+    const activeAlerts = state.activeAlerts || state.ActiveAlerts || [];
+    setChartEmpty(depletionCanvas, !activeAlerts.length);
+    if (depletionCanvas && activeAlerts.length) {
+      const criticalProduct = activeAlerts[0];
       const labels = Array.from({ length: 7 }, (_, index) => `D${index + 1}`);
       const stock = criticalProduct.currentStock ?? criticalProduct.CurrentStock ?? 0;
       const forecast = criticalProduct.forecast ?? criticalProduct.Forecast ?? 0;
@@ -188,14 +281,28 @@ document.addEventListener('DOMContentLoaded', () => {
           datasets: [{
             label: criticalProduct.productName || criticalProduct.ProductName,
             data: trend,
-            borderColor: '#dc2626',
-            backgroundColor: 'rgba(220, 38, 38, 0.12)',
+            borderColor: chartPalette.critical,
+            backgroundColor: chartPalette.criticalFill,
+            borderWidth: 2,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            pointHoverBackgroundColor: chartPalette.critical,
+            pointHoverBorderColor: chartPalette.white,
             fill: true,
-            tension: 0.4
+            tension: 0.32
           }]
         },
-        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+        options: {
+          ...chartBaseOptions({
+            x: { ...chartAxis(false) },
+            y: { ...chartAxis(), beginAtZero: true }
+          }),
+          plugins: { ...chartBaseOptions().plugins, legend: { ...chartBaseOptions().plugins.legend, display: false } }
+        }
       });
+    } else {
+      depletionChartInstance?.destroy();
+      depletionChartInstance = null;
     }
   };
 
@@ -280,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const toast = document.getElementById('quick-sale-toast');
         if (toast) {
           toast.textContent = 'Sale recorded successfully.';
-          toast.style.color = '#16a34a';
+          toast.style.color = 'var(--healthy)';
         }
 
         window.location.reload();
@@ -288,7 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const toast = document.getElementById('quick-sale-toast');
         if (toast) {
           toast.textContent = error.message || 'Sale could not be recorded.';
-          toast.style.color = '#dc2626';
+          toast.style.color = 'var(--critical)';
         }
       }
     });

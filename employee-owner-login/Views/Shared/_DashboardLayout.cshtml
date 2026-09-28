@@ -10,7 +10,9 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Poultry Farm</title>
+    <title>@ViewData["Title"] - Manok ni Rene</title>
+    <link rel="icon" type="image/svg+xml" href="~/images/logo.svg" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/tokens.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/modules.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/notifications.css" asp-append-version="true" />
@@ -19,15 +21,15 @@
     <div class="app-shell">
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <img class="logo-mark" src="/images/logo.png" alt="Poultry Farm logo" />
+                <img class="logo-mark" src="/images/logo.svg" alt="" />
                 <div>
-                    <div class="logo-text">Poultry Farm</div>
-                    <small>Inventory Platform</small>
+                    <div class="logo-text">Manok ni Rene</div>
+                    <small>Stock &amp; sales</small>
                 </div>
             </div>
 
             <nav class="sidebar-nav" aria-label="Sidebar navigation">
-                <div class="nav-group-label">Main</div>
+                <div class="nav-group-label">Shop</div>
                 <a class="nav-link" href="/Dashboard/Index">Dashboard</a>
                 <a class="nav-link" href="/Sales/Entry">Sales Entry</a>
                 <a class="nav-link" href="/Stock/Alerts">
@@ -36,17 +38,13 @@
                 </a>
                 <a class="nav-link" href="/Forecast/Index">Forecast</a>
 
-                <div class="nav-group-label">Management</div>
+                <div class="nav-group-label">Manage</div>
                 <a class="nav-link owner-only" href="/Products/Index">Product Management</a>
                 <a class="nav-link" href="/Sales/History">Sales History</a>
                 <a class="nav-link owner-only" href="/Audit/Index">Audit Trail</a>
             </nav>
 
             <div class="sidebar-footer">
-                <form asp-controller="Account" asp-action="Logout" method="post">
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="signout-link">Sign Out</button>
-                </form>
                 <div class="user-mini">
                     <div class="avatar">@userName.Substring(0, 1).ToUpperInvariant()</div>
                     <div>
@@ -54,6 +52,10 @@
                         <small>@role</small>
                     </div>
                 </div>
+                <form class="signout-form" asp-controller="Account" asp-action="Logout" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="signout-link">Sign out</button>
+                </form>
             </div>
         </aside>
         <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
@@ -61,12 +63,19 @@
         <div class="main-panel">
             <header class="topbar">
                 <div class="topbar-left">
-                    <button class="mobile-menu" type="button" aria-label="Open navigation">☰</button>
-                    <div class="farm-title">Sunrise Poultry Farm</div>
+                    <button class="mobile-menu" type="button" aria-label="Open navigation">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false">
+                            <path d="M4 7h16M4 12h16M4 17h16" />
+                        </svg>
+                    </button>
+                    <div class="farm-title">Manok ni Rene</div>
                 </div>
 
                 <div class="topbar-search">
-                    <span>⌕</span>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false">
+                        <circle cx="10.8" cy="10.8" r="6.3" />
+                        <path d="m15.5 15.5 4.2 4.2" />
+                    </svg>
                     <input type="search" placeholder="Search products, alerts, or sales" aria-label="Search" />
                 </div>
 
@@ -74,7 +83,9 @@
                     <div class="date-pill">@DateTime.Now.ToString("ddd, MMM dd")</div>
                     <div class="notification-area">
                     <button id="notificationToggle" class="notification-btn" type="button" aria-label="Notifications" aria-expanded="false" aria-controls="notificationPanel">
-                        🔔
+                        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                            <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" />
+                        </svg>
                         <span id="notificationBadge" class="notification-badge" aria-live="polite" hidden></span>
                     </button>
                     <section id="notificationPanel" class="notification-panel" aria-label="Notifications" hidden>

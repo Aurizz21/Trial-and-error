@@ -1,0 +1,23 @@
+@{
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Access denied";
+}
+
+<div class="module-page">
+    <header class="module-heading">
+        <div>
+            <p class="greeting">Account access</p>
+            <h1>Access denied</h1>
+            <p>Your account does not have permission to open that page.</p>
+        </div>
+    </header>
+    <section class="panel" aria-labelledby="accessDeniedMessage">
+        <div class="panel-header">
+            <div>
+                <h2 id="accessDeniedMessage">Need access?</h2>
+                <p class="panel-note">Ask the shop owner to check the permissions on your account.</p>
+            </div>
+        </div>
+        <a class="primary-btn" asp-controller="Dashboard" asp-action="Index">Back to dashboard</a>
+    </section>
+</div>

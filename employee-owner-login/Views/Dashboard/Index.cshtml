@@ -14,51 +14,67 @@
 </section>
 
 <section class="kpi-grid">
-    <article class="kpi-card">
-        <div class="kpi-label">Current Stock</div>
-        <div class="kpi-value kpi-lines"><span>@Model.WholeChickenStock.ToString("0.##") pcs whole chicken</span><span>@Model.CutsAndPartsStock.ToString("0.##") kg cuts &amp; parts</span></div>
-        <div class="kpi-meta">@Model.ProductTypesCount product types</div>
-    </article>
-    <article class="kpi-card">
-        <div class="kpi-label">Today's Sales</div>
-        <div class="kpi-value kpi-lines"><span>@Model.WholeChickenTodaySales.ToString("0.##") pcs whole chicken</span><span>@Model.CutsAndPartsTodaySales.ToString("0.##") kg cuts &amp; parts</span></div>
-        <div class="kpi-meta">@Model.TodaySalesChangePercent.ToString("0.0")% vs last week</div>
-    </article>
-    <article class="kpi-card">
+    <article class="kpi-card kpi-card--priority">
         <div class="kpi-label">Critical Alerts</div>
         <div class="kpi-value">@Model.CriticalAlertCount</div>
         <div class="kpi-meta">@Model.WarningAlertCount warning(s) active</div>
     </article>
-    <article class="kpi-card">
-        <div class="kpi-label">Forecast Accuracy</div>
-        <div class="kpi-value">@Model.ForecastAccuracy.ToString("0.0")%</div>
-        <div class="kpi-meta">7-Day WMA model</div>
-    </article>
+    <div class="kpi-supporting">
+        <article class="kpi-card">
+            <div class="kpi-label">Current Stock</div>
+            <div class="kpi-value kpi-lines"><span>@Model.WholeChickenStock.ToString("0.##") pcs whole chicken</span><span>@Model.CutsAndPartsStock.ToString("0.##") kg cuts &amp; parts</span></div>
+            <div class="kpi-meta">@Model.ProductTypesCount product types</div>
+        </article>
+        <article class="kpi-card">
+            <div class="kpi-label">Today's Sales</div>
+            <div class="kpi-value kpi-lines"><span>@Model.WholeChickenTodaySales.ToString("0.##") pcs whole chicken</span><span>@Model.CutsAndPartsTodaySales.ToString("0.##") kg cuts &amp; parts</span></div>
+            <div class="kpi-meta">@Model.TodaySalesChangePercent.ToString("0.0")% vs last week</div>
+        </article>
+        <article class="kpi-card">
+            <div class="kpi-label">Forecast Accuracy</div>
+            <div class="kpi-value">@Model.ForecastAccuracy.ToString("0.0")%</div>
+            <div class="kpi-meta">7-Day WMA model</div>
+        </article>
+    </div>
 </section>
 
-<section class="dashboard-grid two-up">
-    <article class="panel chart-panel chart-panel--fixed">
+<section class="dashboard-grid dashboard-chart-primary">
+    <article class="panel chart-panel chart-panel--primary">
         <div class="panel-header"><h2>Daily Sales Trend</h2><div class="chart-toggle"><button class="chart-mode active" data-category="Whole Chicken" type="button">Whole Chicken</button><button class="chart-mode" data-category="Cuts &amp; Parts" type="button">Cuts &amp; Parts</button></div></div>
-        <div class="chart-plot"><canvas id="dailySalesChart"></canvas></div>
+        <div class="chart-plot">
+            <div class="chart-empty hidden" data-chart-empty="dailySalesChart"><strong>No sales to chart yet</strong><span>Daily totals will appear here after a sale is recorded.</span></div>
+            <canvas id="dailySalesChart"></canvas>
+        </div>
     </article>
-    <article class="panel chart-panel chart-panel--fixed">
+    <article class="panel chart-panel chart-panel--secondary">
         <div class="panel-header"><h2>Low Stock Distribution</h2></div>
         <div class="chart-plot">
-            <div id="lowStockEmpty" class="empty-state hidden">All products are healthy</div>
+            <div id="lowStockEmpty" class="empty-state empty-state--healthy hidden">
+                <span class="empty-state-mark" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.2 4.2L19 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                </span>
+                <strong>All products are healthy</strong>
+                <span>No stock alerts need your attention right now.</span>
+            </div>
             <canvas id="lowStockChart"></canvas>
         </div>
     </article>
 </section>
 
-<section class="dashboard-grid two-up">
-    <article class="panel chart-panel chart-panel--fixed">
+<section class="dashboard-grid dashboard-chart-support">
+    <article class="panel chart-panel chart-panel--support">
         <div class="panel-header"><h2>Weekly Sales by Product</h2></div>
-        <div class="chart-plot"><canvas id="consumptionChart"></canvas></div>
+        <div class="chart-plot">
+            <div class="chart-empty hidden" data-chart-empty="consumptionChart"><strong>No weekly sales to chart</strong><span>Product totals will show here as sales are recorded.</span></div>
+            <canvas id="consumptionChart"></canvas>
+        </div>
     </article>
-    <article class="panel chart-panel chart-panel--fixed chart-panel--forecast-fixed">
+    <article class="panel chart-panel chart-panel--support">
         <div class="panel-header"><h2>Forecasted Stock Depletion</h2></div>
-        <div class="depletion-banner panel-banner">@Html.Encode(Model.DepletionBanner)</div>
-        <div class="chart-plot"><canvas id="depletionChart"></canvas></div>
+        <div class="chart-plot">
+            <div class="chart-empty hidden" data-chart-empty="depletionChart"><strong>No stock at risk</strong><span>There are no active alerts to forecast right now.</span></div>
+            <canvas id="depletionChart"></canvas>
+        </div>
     </article>
 </section>
 
@@ -68,7 +84,10 @@
         <div class="alert-list">
             @if (Model.ActiveAlerts.Count == 0)
             {
-                <div class="empty-state">No active alerts</div>
+                <div class="empty-state empty-state--inline">
+                    <strong>No active stock alerts</strong>
+                    <span>There’s nothing to reorder right now.</span>
+                </div>
             }
             else
             {

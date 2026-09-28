@@ -4,18 +4,18 @@
     ViewData["Title"] = "Sales Entry";
 }
 
-<div class="module-page">
+<div class="module-page sales-entry">
     <header class="module-heading"><div><p class="greeting">Sales workspace</p><h1>Sales Entry</h1><p>Record today's outgoing stock.</p></div></header>
     <div class="module-grid">
         <div class="stack">
             <section class="panel">
-                <div class="panel-header"><div><h2>New Sale Entry</h2><p class="panel-note">Record outgoing stock in the shared inventory.</p></div></div>
+                <div class="panel-header"><div><h2>New Sale Entry</h2><p class="panel-note">Choose a product and enter the amount sold.</p></div></div>
                 <form id="saleEntryForm" class="form-grid" action="/Sales/RecordSale" method="post">
                     @Html.AntiForgeryToken()
                     <label class="field">Product<select id="saleProduct" name="ProductId" required><option value="">Select product</option>@foreach (var product in Model.Products){<option value="@product.Id" data-unit="@product.Units">@product.Name</option>}</select></label>
-                    <label class="field">Quantity<div class="input-with-unit"><input id="saleQuantity" name="Quantity" type="number" min="1" step="1" placeholder="0" required /><span id="saleUnit" class="unit-label">pcs</span></div><small id="quantityError" role="alert" hidden></small></label>
-                    <label class="field">Date<input id="saleDate" name="Date" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" required /></label>
-                    <label class="field full">Notes (optional)<textarea id="saleNotes" name="Notes" placeholder="Add any observations, e.g. reason for high consumption..."></textarea></label>
+                    <label class="field">Quantity<div class="input-with-unit"><input id="saleQuantity" name="Quantity" type="number" inputmode="decimal" min="1" step="1" placeholder="1" aria-describedby="saleQuantityHelp quantityError" required /><span id="saleUnit" class="unit-label" aria-live="polite">pcs</span></div><small id="saleQuantityHelp" class="field-hint">Use the unit shown beside the quantity: pcs for whole chicken, kg for cuts and parts.</small><small id="quantityError" class="field-error" role="alert" hidden></small></label>
+                    <label class="field">Sale date<input id="saleDate" name="Date" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" required /></label>
+                    <label class="field full">Notes (optional)<textarea id="saleNotes" name="Notes" placeholder="Optional notes about this sale"></textarea></label>
                     <div class="button-row field full"><button id="recordSale" class="primary-btn" type="submit" disabled>Record Sale</button><button id="clearSale" class="secondary-btn" type="button">Clear</button></div>
                 </form>
                 <div id="saleToast" class="toast" aria-live="polite"></div>

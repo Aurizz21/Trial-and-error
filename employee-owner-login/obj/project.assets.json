@@ -8,24 +8,31 @@
     "net8.0": []
   },
   "packageFolders": {
-    "C:\\Users\\Jayy\\.nuget\\packages\\": {}
+    "C:\\Users\\Izuki\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Jayy\\Documents\\GitHub\\Trial-and-error\\employee-owner-login\\PoultryOS.csproj",
+      "projectUniqueName": "C:\\Users\\Izuki\\Documents\\GitHub\\Trial-and-error\\employee-owner-login\\PoultryOS.csproj",
       "projectName": "PoultryOS",
-      "projectPath": "C:\\Users\\Jayy\\Documents\\GitHub\\Trial-and-error\\employee-owner-login\\PoultryOS.csproj",
-      "packagesPath": "C:\\Users\\Jayy\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Jayy\\Documents\\GitHub\\Trial-and-error\\employee-owner-login\\obj\\",
+      "projectPath": "C:\\Users\\Izuki\\Documents\\GitHub\\Trial-and-error\\employee-owner-login\\PoultryOS.csproj",
+      "packagesPath": "C:\\Users\\Izuki\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Izuki\\Documents\\GitHub\\Trial-and-error\\employee-owner-login\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
       "configFilePaths": [
-        "C:\\Users\\Jayy\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\Izuki\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
         "net8.0"
       ],
       "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
