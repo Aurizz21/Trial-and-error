@@ -7,7 +7,7 @@ button, input { font: inherit; }
 .brand-panel::before { content: ""; position: absolute; width: 620px; height: 620px; right: -310px; bottom: -300px; border: 1px solid rgba(255,255,255,.18); border-radius: 50%; box-shadow: 0 0 0 46px rgba(255,255,255,.045), 0 0 0 92px rgba(255,255,255,.04), 0 0 0 138px rgba(255,255,255,.035); }
 .brand-content { position: relative; z-index: 1; width: min(100%, 570px); }
 .brand { display: inline-flex; align-items: center; gap: 11px; color: #fff; font-family: "Space Grotesk", sans-serif; font-size: 21px; font-weight: 700; text-decoration: none; }
-.brand-mark { display: grid; place-items: center; width: 39px; height: 39px; border: 1px solid rgba(255,255,255,.55); border-radius: 11px; font-size: 20px; }
+.brand-mark { display: block; flex: 0 0 44px; width: 44px; height: 44px; border-radius: 50%; object-fit: contain; transform: scale(1.4); }
 .product-label { margin: 17px 0 0; color: #b8e3e4; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
 .brand-panel h1 { max-width: 570px; margin: 39px 0 0; font-family: "Space Grotesk", sans-serif; font-size: clamp(38px, 4.35vw, 66px); letter-spacing: -.055em; line-height: 1.02; }
 .brand-panel h1 em { color: #b8e2db; font-style: normal; }

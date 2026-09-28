@@ -1,4 +1,4 @@
-# Manok ni Rene - Inventory & Forecast Platform
+# Poultry Farm - Inventory & Forecast Platform
 
 A database-free ASP.NET Core MVC login demo with two fixed accounts and cookie authentication.
 

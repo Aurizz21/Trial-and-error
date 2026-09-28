@@ -1,31 +1,30 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Aron Aure\\employee-owner-login\\PoultryOS.csproj": {}
+    "C:\\Users\\Jayy\\Documents\\GitHub\\Trial-and-error\\employee-owner-login\\PoultryOS.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Aron Aure\\employee-owner-login\\PoultryOS.csproj": {
+    "C:\\Users\\Jayy\\Documents\\GitHub\\Trial-and-error\\employee-owner-login\\PoultryOS.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Aron Aure\\employee-owner-login\\PoultryOS.csproj",
+        "projectUniqueName": "C:\\Users\\Jayy\\Documents\\GitHub\\Trial-and-error\\employee-owner-login\\PoultryOS.csproj",
         "projectName": "PoultryOS",
-        "projectPath": "C:\\Users\\Aron Aure\\employee-owner-login\\PoultryOS.csproj",
-        "packagesPath": "C:\\Users\\Aron Aure\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Aron Aure\\employee-owner-login\\obj\\",
+        "projectPath": "C:\\Users\\Jayy\\Documents\\GitHub\\Trial-and-error\\employee-owner-login\\PoultryOS.csproj",
+        "packagesPath": "C:\\Users\\Jayy\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Jayy\\Documents\\GitHub\\Trial-and-error\\employee-owner-login\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Aron Aure\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Users\\Jayy\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net8.0": {
+            "framework": "net8.0",
             "targetAlias": "net8.0",
             "projectReferences": {}
           }
@@ -39,10 +38,12 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        }
+        },
+        "SdkAnalysisLevel": "10.0.400"
       },
       "frameworks": {
         "net8.0": {
+          "framework": "net8.0",
           "targetAlias": "net8.0",
           "imports": [
             "net461",
@@ -63,7 +64,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.425/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.401/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

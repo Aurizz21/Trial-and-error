@@ -10,7 +10,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Manok ni Rene</title>
+    <title>@ViewData["Title"] - Poultry Farm</title>
     <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/modules.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/notifications.css" asp-append-version="true" />
@@ -19,9 +19,9 @@
     <div class="app-shell">
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <div class="logo-mark">M</div>
+                <img class="logo-mark" src="/images/logo.png" alt="Poultry Farm logo" />
                 <div>
-                    <div class="logo-text">Manok ni Rene</div>
+                    <div class="logo-text">Poultry Farm</div>
                     <small>Inventory Platform</small>
                 </div>
             </div>
@@ -85,13 +85,6 @@
                         <div id="notificationDropdownList" class="notification-list"></div>
                         <a class="notification-panel-footer" href="/Notifications/Index">View all notifications</a>
                     </section>
-                    </div>
-                    <div class="user-profile">
-                        <div class="avatar avatar-lg">@userName.Substring(0, 1).ToUpperInvariant()</div>
-                        <div>
-                            <div class="profile-name">@userName</div>
-                            <small>@role</small>
-                        </div>
                     </div>
                 </div>
             </header>
