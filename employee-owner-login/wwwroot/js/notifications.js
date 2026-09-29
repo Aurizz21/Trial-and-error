@@ -85,6 +85,7 @@
   const fullList = document.getElementById('notificationsPageList');
   const pageEmpty = document.getElementById('notificationsPageEmpty');
   const filterButtons = document.querySelectorAll('[data-notification-filter]');
+  const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
   let activeFilter = 'all';
 
   const renderBadge = () => {
@@ -94,7 +95,7 @@
     badge.hidden = count === 0;
   };
 
-  const renderDropdown = () => {
+  const renderDropdown = (animateChanges = false) => {
     if (!dropdownList) return;
     dropdownList.replaceChildren();
     if (notifications.length === 0) {
@@ -105,9 +106,12 @@
       return;
     }
     notifications.forEach(item => dropdownList.append(buildNotificationRow(item)));
+    if (animateChanges && !motionPreference.matches && typeof dropdownList.animate === 'function') {
+      dropdownList.animate([{ opacity: 0.65 }, { opacity: 1 }], { duration: 180, easing: 'ease-out' });
+    }
   };
 
-  const renderFullList = () => {
+  const renderFullList = (animateChanges = false) => {
     if (!fullList) return;
     const filtered = notifications.filter(item => {
       if (activeFilter === 'unread') return !item.isRead;
@@ -116,12 +120,20 @@
     fullList.replaceChildren();
     filtered.forEach(item => fullList.append(buildNotificationRow(item, true)));
     if (pageEmpty) pageEmpty.hidden = filtered.length !== 0;
+    if (animateChanges && !motionPreference.matches) {
+      if (typeof fullList.animate === 'function') {
+        fullList.animate([{ opacity: 0.65 }, { opacity: 1 }], { duration: 180, easing: 'ease-out' });
+      }
+      if (filtered.length === 0 && pageEmpty && typeof pageEmpty.animate === 'function') {
+        pageEmpty.animate([{ opacity: 0, transform: 'translateY(3px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 180, easing: 'ease-out' });
+      }
+    }
   };
 
-  const render = () => {
+  const render = (animateChanges = false) => {
     renderBadge();
-    renderDropdown();
-    renderFullList();
+    renderDropdown(animateChanges);
+    renderFullList(animateChanges);
   };
 
   const markRead = id => {
@@ -129,13 +141,13 @@
     if (!notification || notification.isRead) return;
     notification.isRead = true;
     persistReadState();
-    render();
+    render(true);
   };
 
-  const markAllRead = () => {
+  const markAllRead = (animateChanges = true) => {
     notifications.forEach(item => { item.isRead = true; });
     persistReadState();
-    render();
+    render(animateChanges);
   };
 
   const closePanel = () => {
@@ -167,7 +179,7 @@
     const row = event.target.closest('[data-notification-id]');
     if (row) markRead(row.dataset.notificationId);
   });
-  markAllButton?.addEventListener('click', markAllRead);
+  markAllButton?.addEventListener('click', () => markAllRead(true));
   filterButtons.forEach(button => button.addEventListener('click', () => {
     activeFilter = button.dataset.notificationFilter;
     filterButtons.forEach(filter => {
@@ -175,10 +187,10 @@
       filter.classList.toggle('active', active);
       filter.setAttribute('aria-pressed', String(active));
     });
-    renderFullList();
+    renderFullList(true);
   }));
 
-  if (document.body.dataset.notificationsPage === 'true') markAllRead();
+  if (document.body.dataset.notificationsPage === 'true') markAllRead(false);
   render();
 
   window.PoultryNotifications = {

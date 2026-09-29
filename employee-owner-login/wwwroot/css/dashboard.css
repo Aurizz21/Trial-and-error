@@ -594,6 +594,20 @@ button, input, select {
   line-height: 1.5;
 }
 
+.chart-empty > svg,
+.empty-state--inline > svg {
+  width: 36px;
+  height: 36px;
+  padding: var(--space-2);
+  border-radius: var(--radius-control);
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.empty-state--inline > svg {
+  margin-bottom: var(--space-1);
+}
+
 .chart-empty.hidden {
   display: none;
 }
@@ -867,6 +881,76 @@ th {
   height: 20px;
 }
 
+/* Motion is reserved for useful feedback: one calm page arrival, then quick
+   control responses while the live dashboard itself stays visually steady. */
+.content-area {
+  animation: dashboard-arrive 220ms ease-out both;
+}
+
+.panel,
+.kpi-card--priority,
+.alert-row {
+  transition: box-shadow 180ms ease-out, transform 180ms ease-out, border-color 180ms ease-out;
+}
+
+.alert-row:hover,
+.kpi-card--priority:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-raised);
+}
+
+.dashboard-body :is(button, .nav-link, .signout-link) {
+  transition: color 180ms ease-out, background-color 180ms ease-out,
+    border-color 180ms ease-out, box-shadow 180ms ease-out, transform 180ms ease-out,
+    opacity 180ms ease-out;
+}
+
+.dashboard-body :is(button, .nav-link, .signout-link):active {
+  transform: translateY(1px);
+}
+
+.dashboard-body :is(button, input, select, .nav-link, .signout-link):focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.quick-sale-panel :is(input, select),
+#stockFilter,
+.chart-mode,
+.chip {
+  transition: border-color 180ms ease-out, background-color 180ms ease-out,
+    box-shadow 180ms ease-out, color 180ms ease-out;
+}
+
+.quick-sale-panel :is(input, select):focus,
+#stockFilter:focus {
+  outline: none;
+  border-color: var(--primary-border);
+  box-shadow: var(--focus-ring);
+}
+
+@keyframes dashboard-arrive {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content-area {
+    animation: none;
+  }
+
+  .dashboard-body :is(button, input, select, .nav-link, .signout-link,
+    .panel, .kpi-card--priority, .alert-row, .chart-mode, .chip, #stockFilter) {
+    transition-duration: 0.01ms;
+  }
+
+  .alert-row:hover,
+  .kpi-card--priority:hover,
+  .dashboard-body :is(button, .nav-link, .signout-link):active {
+    transform: none;
+  }
+}
+
 @media (max-width: 980px) {
   .kpi-grid {
     grid-template-columns: minmax(170px, 0.65fr) minmax(0, 1.8fr);
@@ -1024,4 +1108,27 @@ th {
   .chart-panel--secondary .chart-plot { min-height: 240px; }
 
   .chart-panel--secondary .chart-plot canvas { height: 220px; }
+}
+
+/* Shared shell polish */
+.nav-link { transition: background-color 180ms ease-out, color 180ms ease-out, transform 180ms ease-out, box-shadow 180ms ease-out; }
+.nav-link:hover { transform: translateX(2px); }
+.nav-link.active { box-shadow: inset 2px 0 0 color-mix(in srgb, var(--white) 72%, transparent); }
+.topbar-search { transition: border-color 180ms ease-out, background-color 180ms ease-out, box-shadow 180ms ease-out; }
+.topbar-search:hover:not(:focus-within) { border-color: var(--border); background: var(--white); }
+.mobile-menu, .notification-btn { transition: background-color 180ms ease-out, color 180ms ease-out, border-color 180ms ease-out, transform 180ms ease-out, box-shadow 180ms ease-out; }
+.mobile-menu:active, .notification-btn:active { transform: scale(.96); }
+.notification-btn[aria-expanded="true"] { color: var(--primary); background: var(--primary-soft); }
+.avatar { transition: background-color 180ms ease-out, transform 180ms ease-out; }
+.user-mini:hover .avatar { transform: scale(1.04); background: var(--sidebar-soft); }
+.signout-link:focus-visible, .nav-link:focus-visible, .mobile-menu:focus-visible, .notification-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+@media (max-width: 768px) {
+  .sidebar { transition: transform 250ms ease-out; }
+  .sidebar-overlay.open { animation: sidebar-scrim-enter 180ms ease-out both; }
+}
+@keyframes sidebar-scrim-enter { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .nav-link, .topbar-search, .mobile-menu, .notification-btn, .avatar, .sidebar, .sidebar-overlay.open { transition-duration: 1ms; animation: none; }
+  .nav-link:hover, .mobile-menu:active, .notification-btn:active, .user-mini:hover .avatar { transform: none; }
 }

@@ -6,7 +6,27 @@ document.addEventListener('DOMContentLoaded', () => {
     'Chicken Wings': { unit: 'kg', avg: 8.7, date: 'Sep 27', reorder: 20, accuracy: '91%', critical: false },
     'Chicken Feet': { unit: 'kg', avg: 0, date: 'Insufficient Data', reorder: 30, accuracy: '-', critical: false }
   };
-  const product = document.getElementById('forecastProduct'); if (!product) return;
-  const draw = () => { const item = data[product.value]; document.getElementById('avgSales').textContent = item.avg ? `${item.avg} ${item.unit}` : 'Insufficient Data'; document.getElementById('depletionDate').textContent = item.date; document.getElementById('reorderQty').textContent = `${item.reorder} ${item.unit}`; document.getElementById('accuracyText').textContent = item.accuracy; const alert = document.getElementById('forecastWarning'); alert.textContent = item.critical ? 'Stock depletion in ~1 day. Reorder 25 kg immediately.' : ''; alert.classList.toggle('hidden', !item.critical); };
-  product.addEventListener('change', draw); draw();
+  const product = document.getElementById('forecastProduct');
+  if (!product) return;
+  const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const draw = (animateChanges = false) => {
+    const item = data[product.value];
+    const values = [
+      [document.getElementById('avgSales'), item.avg ? `${item.avg} ${item.unit}` : 'Insufficient Data'],
+      [document.getElementById('depletionDate'), item.date],
+      [document.getElementById('reorderQty'), `${item.reorder} ${item.unit}`],
+      [document.getElementById('accuracyText'), item.accuracy]
+    ];
+    values.forEach(([element, text]) => {
+      element.textContent = text;
+      if (animateChanges && !motionPreference.matches && typeof element.animate === 'function') {
+        element.animate([{ opacity: 0.55 }, { opacity: 1 }], { duration: 180, easing: 'ease-out' });
+      }
+    });
+    const alert = document.getElementById('forecastWarning');
+    alert.textContent = item.critical ? 'Stock depletion in ~1 day. Reorder 25 kg immediately.' : '';
+    alert.classList.toggle('hidden', !item.critical);
+  };
+  product.addEventListener('change', () => draw(true));
+  draw();
 });

@@ -113,6 +113,570 @@
 .sales-entry .button-row .secondary-btn { min-height: 50px; }
 .sales-entry #saleToast { right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); max-width: min(420px, calc(100vw - 32px)); overflow-wrap: anywhere; }
 
+/* A short arrival and clear control feedback keep sale entry brisk and calm. */
+.sales-entry {
+  animation: sales-entry-arrive 220ms ease-out both;
+}
+
+.sales-entry .field input,
+.sales-entry .field select,
+.sales-entry .field textarea,
+.sales-entry .primary-btn,
+.sales-entry .secondary-btn,
+.sales-entry .mini-row {
+  transition: border-color 180ms ease-out, background-color 180ms ease-out,
+    color 180ms ease-out, box-shadow 180ms ease-out, transform 180ms ease-out,
+    opacity 180ms ease-out;
+}
+
+.sales-entry .primary-btn:not(:disabled):hover,
+.sales-entry .secondary-btn:hover {
+  transform: translateY(-1px);
+}
+
+.sales-entry .primary-btn:not(:disabled):active,
+.sales-entry .secondary-btn:active {
+  transform: translateY(1px);
+}
+
+.sales-entry .primary-btn:not(:disabled):hover {
+  background: var(--primary-hover);
+  box-shadow: var(--shadow);
+}
+
+.sales-entry .secondary-btn:hover {
+  border-color: var(--primary-border);
+  background: var(--panel-alt);
+}
+
+.sales-entry .field :is(input, select, textarea):focus-visible,
+.sales-entry .button-row button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.sales-entry .mini-row:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+.sales-entry #recordSale[aria-busy="true"] {
+  gap: var(--space-2);
+  opacity: 0.9;
+  cursor: progress;
+}
+
+.sales-entry #recordSale[aria-busy="true"]::after {
+  width: 14px;
+  height: 14px;
+  border: 2px solid color-mix(in srgb, var(--white) 38%, transparent);
+  border-top-color: var(--white);
+  border-radius: 50%;
+  content: "";
+  animation: sale-spinner 700ms linear infinite;
+}
+
+.sales-entry #saleToast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  box-shadow: var(--shadow-raised);
+}
+
+.sales-entry #saleToast > svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+}
+
+@keyframes sales-entry-arrive {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sale-spinner {
+  to { transform: rotate(1turn); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sales-entry {
+    animation: none;
+  }
+
+  .sales-entry .field input,
+  .sales-entry .field select,
+  .sales-entry .field textarea,
+  .sales-entry .primary-btn,
+  .sales-entry .secondary-btn,
+  .sales-entry .mini-row,
+  .sales-entry #saleToast {
+    transition-duration: 0.01ms;
+  }
+
+  .sales-entry .primary-btn:not(:disabled):hover,
+  .sales-entry .primary-btn:not(:disabled):active,
+  .sales-entry .secondary-btn:hover,
+  .sales-entry .secondary-btn:active,
+  .sales-entry .mini-row:hover {
+    transform: none;
+  }
+
+  .sales-entry #recordSale[aria-busy="true"]::after {
+    animation: none;
+  }
+}
+
+/* Forecast uses a quiet placeholder until the underlying series is available. */
+.module-page:has(#forecastProduct) {
+  animation: forecast-arrive 220ms ease-out both;
+}
+
+.module-page:has(#forecastProduct) .chart-box,
+.module-page:has(#forecastProduct) .stat-strip .kpi-card,
+.module-page:has(#forecastProduct) .panel:not(.chart-box) {
+  transition: box-shadow 180ms ease-out, transform 180ms ease-out,
+    border-color 180ms ease-out, background-color 180ms ease-out;
+}
+
+.module-page:has(#forecastProduct) .chart-box:hover,
+.module-page:has(#forecastProduct) .stat-strip .kpi-card:hover,
+.module-page:has(#forecastProduct) .panel:not(.chart-box):hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-raised);
+}
+
+.module-page:has(#forecastProduct) #forecastProduct {
+  transition: border-color 180ms ease-out, background-color 180ms ease-out,
+    box-shadow 180ms ease-out;
+}
+
+.module-page:has(#forecastProduct) #forecastProduct:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.module-page:has(#forecastProduct) .forecast-placeholder {
+  align-content: center;
+  justify-items: center;
+  gap: var(--space-3);
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.module-page:has(#forecastProduct) .forecast-placeholder svg {
+  width: 40px;
+  height: 40px;
+  padding: var(--space-2);
+  border-radius: var(--radius-control);
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.module-page:has(#forecastProduct) .forecast-alert:not(.hidden) {
+  animation: forecast-warning-arrive 180ms ease-out both;
+}
+
+@keyframes forecast-arrive {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes forecast-warning-arrive {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .module-page:has(#forecastProduct) {
+    animation: none;
+  }
+
+  .module-page:has(#forecastProduct) .chart-box,
+  .module-page:has(#forecastProduct) .stat-strip .kpi-card,
+  .module-page:has(#forecastProduct) .panel:not(.chart-box),
+  .module-page:has(#forecastProduct) #forecastProduct {
+    transition-duration: 0.01ms;
+  }
+
+  .module-page:has(#forecastProduct) .chart-box:hover,
+  .module-page:has(#forecastProduct) .stat-strip .kpi-card:hover,
+  .module-page:has(#forecastProduct) .panel:not(.chart-box):hover {
+    transform: none;
+  }
+
+  .module-page:has(#forecastProduct) .forecast-alert:not(.hidden) {
+    animation: none;
+  }
+}
+
+/* Sales History filter feedback stays local to the results and controls. */
+.module-page:has(#historyBody) {
+  animation: sales-history-arrive 220ms ease-out both;
+}
+
+.module-page:has(#historyBody) .toolbar :is(input, select),
+.module-page:has(#historyBody) .toolbar :is(button, a) {
+  transition: border-color 180ms ease-out, background-color 180ms ease-out,
+    color 180ms ease-out, box-shadow 180ms ease-out, transform 180ms ease-out;
+}
+
+.module-page:has(#historyBody) .toolbar :is(input, select):focus-visible {
+  outline: none;
+  border-color: var(--primary-border);
+  box-shadow: var(--focus-ring);
+}
+
+.module-page:has(#historyBody) .toolbar :is(button, a):hover {
+  box-shadow: var(--shadow);
+}
+
+.module-page:has(#historyBody) .toolbar :is(button, a):active {
+  transform: translateY(1px);
+}
+
+.module-page:has(#historyBody) .table-wrap tbody tr:not(:has(.empty-state)) {
+  transition: background-color 150ms ease-out;
+}
+
+.module-page:has(#historyBody) .table-wrap tbody tr:not(:has(.empty-state)):hover {
+  background: var(--panel-alt);
+}
+
+.module-page:has(#historyBody) .empty-state {
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+}
+
+.module-page:has(#historyBody) .empty-state svg {
+  display: block;
+  width: 36px;
+  height: 36px;
+  margin: 0 auto var(--space-2);
+  padding: var(--space-2);
+  border-radius: var(--radius-control);
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.module-page:has(#historyBody) .empty-state span {
+  margin-top: var(--space-1);
+  color: var(--muted);
+}
+
+@keyframes sales-history-arrive {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .module-page:has(#historyBody) {
+    animation: none;
+  }
+
+  .module-page:has(#historyBody) .toolbar :is(input, select, button, a),
+  .module-page:has(#historyBody) .table-wrap tbody tr {
+    transition-duration: 0.01ms;
+  }
+}
+
 @media (max-width: 980px) { .module-grid { grid-template-columns: 1fr; }.stat-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) { .module-heading { align-items: flex-start; flex-direction: column; }.form-grid { grid-template-columns: 1fr; }.field.full { grid-column: auto; }.stat-strip { grid-template-columns: 1fr; }.alert-card { align-items: flex-start; flex-direction: column; }.alert-action { text-align: left; }.preview-badge { font-size: .65rem; }.pagination { align-items: flex-start; flex-direction: column; } }
 @media (max-width: 480px) { .sales-entry .module-grid > .stack > section:first-child { padding: 18px 16px; }.sales-entry .button-row { grid-template-columns: 1fr; }.sales-entry .button-row .primary-btn, .sales-entry .button-row .secondary-btn { width: 100%; min-height: 52px; } }
+
+/* Stock Alerts: restrained depth makes priority visible without changing the grid. */
+.module-page:has(.alert-cards) {
+  animation: stock-alerts-arrive 220ms ease-out both;
+}
+
+.module-page:has(.alert-cards) .alert-card,
+.module-page:has(.alert-cards) .stat-strip .kpi-card {
+  box-shadow: var(--shadow);
+  transition: box-shadow 180ms ease-out, transform 180ms ease-out,
+    border-color 180ms ease-out, background-color 180ms ease-out;
+}
+
+.module-page:has(.alert-cards) .alert-card:hover,
+.module-page:has(.alert-cards) .stat-strip .kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-raised);
+}
+
+.module-page:has(.alert-cards) .alert-card:has(.status-critical) {
+  border-inline-start: 3px solid var(--critical);
+}
+
+.module-page:has(.alert-cards) .alert-card:has(.status-warning) {
+  border-inline-start: 3px solid var(--warning);
+}
+
+.module-page:has(.alert-cards) .alert-card > div:first-child > strong > svg {
+  width: 18px;
+  height: 18px;
+  margin-inline-end: var(--space-2);
+  vertical-align: -0.2em;
+}
+
+.module-page:has(.alert-cards) .alert-card:has(.status-critical) > div:first-child > strong > svg {
+  color: var(--critical);
+}
+
+.module-page:has(.alert-cards) .alert-card:has(.status-warning) > div:first-child > strong > svg {
+  color: var(--warning);
+}
+
+.module-page:has(.alert-cards) :is(button, .chip, input, select) {
+  transition: color 180ms ease-out, background-color 180ms ease-out,
+    border-color 180ms ease-out, box-shadow 180ms ease-out, transform 180ms ease-out;
+}
+
+.module-page:has(.alert-cards) :is(button, .chip):hover:not(:disabled) {
+  box-shadow: var(--shadow);
+}
+
+.module-page:has(.alert-cards) :is(button, .chip):active {
+  transform: translateY(1px);
+}
+
+.module-page:has(.alert-cards) :is(button, .chip, input, select):focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+@keyframes stock-alerts-arrive {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .module-page:has(.alert-cards) {
+    animation: none;
+  }
+
+  .module-page:has(.alert-cards) .alert-card,
+  .module-page:has(.alert-cards) .stat-strip .kpi-card,
+  .module-page:has(.alert-cards) :is(button, .chip, input, select) {
+    transition-duration: 0.01ms;
+  }
+
+  .module-page:has(.alert-cards) .alert-card:hover,
+  .module-page:has(.alert-cards) .stat-strip .kpi-card:hover,
+  .module-page:has(.alert-cards) :is(button, .chip):active {
+    transform: none;
+  }
+}
+
+/* Products: keep tabs, table, and add-product dialog responsive and composed. */
+.module-page:has(#productsBody) {
+  animation: products-arrive 220ms ease-out both;
+}
+
+.module-page:has(#productsBody) .stat-strip .kpi-card {
+  transition: box-shadow 180ms ease-out, transform 180ms ease-out,
+    border-color 180ms ease-out, background-color 180ms ease-out;
+}
+
+.module-page:has(#productsBody) .stat-strip .kpi-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-raised);
+}
+
+.module-page:has(#productsBody) .tabs .tab-btn,
+.module-page:has(#productsBody) .toolbar :is(input, select),
+body:has(#productsBody) #productModalOverlay :is(button, input, select) {
+  transition: color 180ms ease-out, background-color 180ms ease-out,
+    border-color 180ms ease-out, box-shadow 180ms ease-out, transform 180ms ease-out;
+}
+
+.module-page:has(#productsBody) .tabs .tab-btn:hover {
+  color: var(--primary);
+  background: var(--panel-alt);
+}
+
+.module-page:has(#productsBody) button:hover:not(:disabled),
+body:has(#productsBody) #productModalOverlay button:hover:not(:disabled) {
+  box-shadow: var(--shadow);
+}
+
+.module-page:has(#productsBody) button:active,
+body:has(#productsBody) #productModalOverlay button:active {
+  transform: translateY(1px);
+}
+
+.module-page:has(#productsBody) .tabs .tab-btn:focus-visible,
+.module-page:has(#productsBody) .toolbar :is(input, select):focus-visible,
+body:has(#productsBody) #productModalOverlay :is(button, input, select):focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.module-page:has(#productsBody) .toolbar :is(input, select):focus-visible {
+  border-color: var(--primary-border);
+}
+
+.module-page:has(#productsBody) .tab-panel.active {
+  animation: product-panel-arrive 180ms ease-out both;
+}
+
+.module-page:has(#productsBody) #productsBody tr:not(:has(.empty-state)) {
+  transition: background-color 150ms ease-out;
+}
+
+.module-page:has(#productsBody) #productsBody tr:not(:has(.empty-state)):hover {
+  background: var(--panel-alt);
+}
+
+.module-page:has(#productsBody) #productsBody .empty-state {
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+}
+
+.module-page:has(#productsBody) #productsBody .empty-state svg {
+  display: block;
+  width: 36px;
+  height: 36px;
+  margin: 0 auto var(--space-2);
+  padding: var(--space-2);
+  border-radius: var(--radius-control);
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.module-page:has(#productsBody) #productsBody .empty-state span {
+  margin-top: var(--space-1);
+  color: var(--muted);
+}
+
+body:has(#productsBody) #productModalOverlay.is-open {
+  animation: product-backdrop-arrive 180ms ease-out both;
+}
+
+body:has(#productsBody) #productModalOverlay.is-open .modal {
+  animation: product-modal-arrive 200ms ease-out both;
+}
+
+body:has(#productsBody) #productToast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  box-shadow: var(--shadow-raised);
+}
+
+body:has(#productsBody) #productToast > svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+}
+
+@keyframes products-arrive {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes product-panel-arrive {
+  from { opacity: 0.65; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes product-backdrop-arrive {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes product-modal-arrive {
+  from { opacity: 0; transform: translateY(5px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .module-page:has(#productsBody),
+  .module-page:has(#productsBody) .tab-panel.active,
+  body:has(#productsBody) #productModalOverlay.is-open,
+  body:has(#productsBody) #productModalOverlay.is-open .modal {
+    animation: none;
+  }
+
+  .module-page:has(#productsBody) .stat-strip .kpi-card,
+  .module-page:has(#productsBody) .tabs .tab-btn,
+  .module-page:has(#productsBody) .toolbar :is(input, select),
+  body:has(#productsBody) #productModalOverlay :is(button, input, select),
+  body:has(#productsBody) #productToast {
+    transition-duration: 0.01ms;
+  }
+
+  .module-page:has(#productsBody) .stat-strip .kpi-card:hover {
+    transform: none;
+  }
+}
+
+/* Audit Trail keeps filter changes and event rows legible and composed. */
+.module-page:has(#auditBody) {
+  animation: audit-arrive 220ms ease-out both;
+}
+
+.module-page:has(#auditBody) .toolbar :is(input, select, button),
+.module-page:has(#auditBody) .pagination button {
+  transition: border-color 180ms ease-out, background-color 180ms ease-out,
+    color 180ms ease-out, box-shadow 180ms ease-out, transform 180ms ease-out;
+}
+
+.module-page:has(#auditBody) .toolbar :is(input, select):focus-visible {
+  outline: none;
+  border-color: var(--primary-border);
+  box-shadow: var(--focus-ring);
+}
+
+.module-page:has(#auditBody) :is(button):hover:not(:disabled) {
+  box-shadow: var(--shadow);
+}
+
+.module-page:has(#auditBody) button:active {
+  transform: translateY(1px);
+}
+
+.module-page:has(#auditBody) #auditBody tr:not(:has(.empty-state)) {
+  transition: background-color 150ms ease-out;
+}
+
+.module-page:has(#auditBody) #auditBody tr:not(:has(.empty-state)):hover {
+  background: var(--panel-alt);
+}
+
+.module-page:has(#auditBody) #auditBody .empty-state {
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+}
+
+.module-page:has(#auditBody) #auditBody .empty-state svg {
+  display: block;
+  width: 36px;
+  height: 36px;
+  margin: 0 auto var(--space-2);
+  padding: var(--space-2);
+  border-radius: var(--radius-control);
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.module-page:has(#auditBody) #auditBody .empty-state span {
+  margin-top: var(--space-1);
+  color: var(--muted);
+}
+
+@keyframes audit-arrive {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .module-page:has(#auditBody) {
+    animation: none;
+  }
+
+  .module-page:has(#auditBody) .toolbar :is(input, select, button),
+  .module-page:has(#auditBody) .pagination button,
+  .module-page:has(#auditBody) #auditBody tr {
+    transition-duration: 0.01ms;
+  }
+}

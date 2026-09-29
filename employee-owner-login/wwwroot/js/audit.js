@@ -1,1 +1,35 @@
-document.addEventListener('DOMContentLoaded', () => { const body = document.getElementById('auditBody'); if (!body) return; const actions = ['Login', 'Sale', 'Stock Change', 'Alert Generated', 'Product Update']; const descriptions = ['Owner signed in to the operations workspace.', 'Recorded 12 kg of Chicken Breast.', 'Adjusted Chicken Wings stock to 42 kg.', 'Critical alert generated for Chicken Breast.', 'Updated reorder threshold for Chicken Feet.']; const events = Array.from({ length: 14 }, (_, index) => { const date = new Date(Date.now() - index * 86400000); return { date: date.toISOString().slice(0, 10), timestamp: `${date.toISOString().slice(0, 10)} ${String(8 + index % 10).padStart(2, '0')}:${index % 2 ? '15' : '40'}`, user: index % 3 ? 'Employee' : 'Owner', action: actions[index % actions.length], description: descriptions[index % descriptions.length] }; }); const tag = { Login: 'tag-login', Sale: 'tag-sale', 'Stock Change': 'tag-stock', 'Alert Generated': 'tag-alert', 'Product Update': 'tag-update' }; const render = () => { const action = document.getElementById('auditAction').value; const user = document.getElementById('auditUser').value; const from = document.getElementById('auditFrom').value; const to = document.getElementById('auditTo').value; const rows = events.filter(item => (action === 'All actions' || item.action === action) && (user === 'Everyone' || item.user === user) && (!from || item.date >= from) && (!to || item.date <= to)); body.innerHTML = rows.map(item => `<tr><td>${item.timestamp}</td><td>${item.user}</td><td><span class="tag ${tag[item.action]}">${item.action}</span></td><td>${item.description}</td></tr>`).join('') || '<tr><td colspan="4" class="empty-state">No preview events match these filters.</td></tr>'; document.getElementById('auditCount').textContent = `Showing ${rows.length} preview events`; }; document.getElementById('applyAudit')?.addEventListener('click', render); render(); });
+document.addEventListener('DOMContentLoaded', () => {
+  const body = document.getElementById('auditBody');
+  if (!body) return;
+  const actions = ['Login', 'Sale', 'Stock Change', 'Alert Generated', 'Product Update'];
+  const descriptions = ['Owner signed in to the operations workspace.', 'Recorded 12 kg of Chicken Breast.', 'Adjusted Chicken Wings stock to 42 kg.', 'Critical alert generated for Chicken Breast.', 'Updated reorder threshold for Chicken Feet.'];
+  const events = Array.from({ length: 14 }, (_, index) => {
+    const date = new Date(Date.now() - index * 86400000);
+    return {
+      date: date.toISOString().slice(0, 10),
+      timestamp: `${date.toISOString().slice(0, 10)} ${String(8 + index % 10).padStart(2, '0')}:${index % 2 ? '15' : '40'}`,
+      user: index % 3 ? 'Employee' : 'Owner',
+      action: actions[index % actions.length],
+      description: descriptions[index % descriptions.length]
+    };
+  });
+  const tag = { Login: 'tag-login', Sale: 'tag-sale', 'Stock Change': 'tag-stock', 'Alert Generated': 'tag-alert', 'Product Update': 'tag-update' };
+  const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const render = (animateChanges = false) => {
+    const action = document.getElementById('auditAction').value;
+    const user = document.getElementById('auditUser').value;
+    const from = document.getElementById('auditFrom').value;
+    const to = document.getElementById('auditTo').value;
+    const rows = events.filter(item =>
+      (action === 'All actions' || item.action === action) &&
+      (user === 'Everyone' || item.user === user) &&
+      (!from || item.date >= from) && (!to || item.date <= to));
+    body.innerHTML = rows.map(item => `<tr><td>${item.timestamp}</td><td>${item.user}</td><td><span class="tag ${tag[item.action]}">${item.action}</span></td><td>${item.description}</td></tr>`).join('') || '<tr><td colspan="4" class="empty-state"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="5.75" stroke="currentColor" stroke-width="1.6"/><path d="m15 15 4 4M8 10.5h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><strong>No preview events match these filters</strong><span>Try a wider date range or another action.</span></td></tr>';
+    document.getElementById('auditCount').textContent = `Showing ${rows.length} preview events`;
+    if (animateChanges && !motionPreference.matches && typeof body.animate === 'function') {
+      body.animate([{ opacity: 0.55 }, { opacity: 1 }], { duration: 180, easing: 'ease-out' });
+    }
+  };
+  document.getElementById('applyAudit')?.addEventListener('click', () => render(true));
+  render();
+});

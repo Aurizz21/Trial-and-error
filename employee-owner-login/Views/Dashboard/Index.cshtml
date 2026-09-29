@@ -42,7 +42,7 @@
     <article class="panel chart-panel chart-panel--primary">
         <div class="panel-header"><h2>Daily Sales Trend</h2><div class="chart-toggle"><button class="chart-mode active" data-category="Whole Chicken" type="button">Whole Chicken</button><button class="chart-mode" data-category="Cuts &amp; Parts" type="button">Cuts &amp; Parts</button></div></div>
         <div class="chart-plot">
-            <div class="chart-empty hidden" data-chart-empty="dailySalesChart"><strong>No sales to chart yet</strong><span>Daily totals will appear here after a sale is recorded.</span></div>
+            <div class="chart-empty hidden" data-chart-empty="dailySalesChart"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 18.5h16M5.5 15l4-4 3.2 2.6 5.8-6.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="18.5" cy="7.5" r="1.2" fill="currentColor"/></svg><strong>No sales to chart yet</strong><span>Daily totals will appear here after a sale is recorded.</span></div>
             <canvas id="dailySalesChart"></canvas>
         </div>
     </article>
@@ -65,14 +65,14 @@
     <article class="panel chart-panel chart-panel--support">
         <div class="panel-header"><h2>Weekly Sales by Product</h2></div>
         <div class="chart-plot">
-            <div class="chart-empty hidden" data-chart-empty="consumptionChart"><strong>No weekly sales to chart</strong><span>Product totals will show here as sales are recorded.</span></div>
+            <div class="chart-empty hidden" data-chart-empty="consumptionChart"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 6.5h14M5 12h9M5 17.5h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="18" cy="12" r="2" stroke="currentColor" stroke-width="1.6"/></svg><strong>No weekly sales to chart</strong><span>Product totals will show here as sales are recorded.</span></div>
             <canvas id="consumptionChart"></canvas>
         </div>
     </article>
     <article class="panel chart-panel chart-panel--support">
         <div class="panel-header"><h2>Forecasted Stock Depletion</h2></div>
         <div class="chart-plot">
-            <div class="chart-empty hidden" data-chart-empty="depletionChart"><strong>No stock at risk</strong><span>There are no active alerts to forecast right now.</span></div>
+            <div class="chart-empty hidden" data-chart-empty="depletionChart"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4.5c-3.7 3.2-5.7 6.2-5.7 9a5.7 5.7 0 0 0 11.4 0c0-2.8-2-5.8-5.7-9Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9.5 14.2c.4 1.2 1.2 1.9 2.5 2.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><strong>No stock at risk</strong><span>There are no active alerts to forecast right now.</span></div>
             <canvas id="depletionChart"></canvas>
         </div>
     </article>
@@ -85,6 +85,7 @@
             @if (Model.ActiveAlerts.Count == 0)
             {
                 <div class="empty-state empty-state--inline">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4.5c-3.7 3.2-5.7 6.2-5.7 9a5.7 5.7 0 0 0 11.4 0c0-2.8-2-5.8-5.7-9Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9.5 14.2c.4 1.2 1.2 1.9 2.5 2.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
                     <strong>No active stock alerts</strong>
                     <span>There’s nothing to reorder right now.</span>
                 </div>

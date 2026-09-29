@@ -119,3 +119,9 @@ C:\Users\Izuki\Documents\GitHub\Trial-and-error\employee-owner-login\obj\Debug\n
 C:\Users\Izuki\Documents\GitHub\Trial-and-error\employee-owner-login\obj\Debug\net8.0\PoultryOS.pdb
 C:\Users\Izuki\Documents\GitHub\Trial-and-error\employee-owner-login\obj\Debug\net8.0\PoultryOS.genruntimeconfig.cache
 C:\Users\Izuki\Documents\GitHub\Trial-and-error\employee-owner-login\obj\Debug\net8.0\ref\PoultryOS.dll
+C:\Users\Izuki\Documents\GitHub\Trial-and-error\build-check\PoultryOS.staticwebassets.runtime.json
+C:\Users\Izuki\Documents\GitHub\Trial-and-error\build-check\PoultryOS.staticwebassets.endpoints.json
+C:\Users\Izuki\Documents\GitHub\Trial-and-error\build-check\PoultryOS.deps.json
+C:\Users\Izuki\Documents\GitHub\Trial-and-error\build-check\PoultryOS.runtimeconfig.json
+C:\Users\Izuki\Documents\GitHub\Trial-and-error\build-check\PoultryOS.dll
+C:\Users\Izuki\Documents\GitHub\Trial-and-error\build-check\PoultryOS.pdb

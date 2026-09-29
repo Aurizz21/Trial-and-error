@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const record = document.getElementById('recordSale');
   const toast = document.getElementById('saleToast');
   const quantityError = document.getElementById('quantityError');
+  const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
   let isSubmitting = false;
   let toastTimer;
   const localDate = () => {
@@ -27,7 +28,24 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   const showToast = (message, success) => {
     if (!toast) return;
-    toast.textContent = message;
+    toast.replaceChildren();
+    if (success) {
+      const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      icon.setAttribute('viewBox', '0 0 24 24');
+      icon.setAttribute('fill', 'none');
+      icon.setAttribute('aria-hidden', 'true');
+      const mark = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      mark.setAttribute('d', 'm5 12.5 4.2 4.2L19 7');
+      mark.setAttribute('stroke', 'currentColor');
+      mark.setAttribute('stroke-width', '2');
+      mark.setAttribute('stroke-linecap', 'round');
+      mark.setAttribute('stroke-linejoin', 'round');
+      icon.append(mark);
+      toast.append(icon);
+    }
+    const label = document.createElement('span');
+    label.textContent = message;
+    toast.append(label);
     toast.style.backgroundColor = success ? 'var(--healthy)' : 'var(--critical)';
     toast.classList.add('show');
     clearTimeout(toastTimer);
@@ -58,6 +76,9 @@ document.addEventListener('DOMContentLoaded', () => {
     appendTextCell(row, entry.enteredBy);
     appendTextCell(row, entry.notes || '-');
     body.prepend(row);
+    if (!motionPreference.matches && typeof row.animate === 'function') {
+      row.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 180, easing: 'ease-out' });
+    }
   };
   const renderSummary = summary => {
     const total = document.getElementById('todaysTotalUnits');
@@ -112,6 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
     isSubmitting = true;
     const originalLabel = record?.textContent || 'Record Sale';
     if (record) record.textContent = 'Recording...';
+    record?.setAttribute('aria-busy', 'true');
     setQuantityError('');
     syncUnit();
     try {
@@ -143,6 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } finally {
       isSubmitting = false;
       if (record) record.textContent = originalLabel;
+      record?.removeAttribute('aria-busy');
       syncUnit();
     }
   });
@@ -152,6 +175,28 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!historyBody) return;
   const products = ['Whole Chicken', 'Chicken Breast', 'Chicken Thigh', 'Chicken Wings', 'Chicken Feet'];
   const history = Array.from({ length: 14 }, (_, index) => ({ date: new Date(Date.now() - index * 86400000).toISOString().slice(0, 10), time: `${String(9 + index % 8).padStart(2, '0')}:${index % 2 ? '20' : '45'}`, product: products[index % products.length], quantity: index % 3 ? (index + 2) * 1.5 : index + 8, user: index % 3 ? 'Maria' : 'Owner', notes: index % 4 ? 'Routine sale' : 'Restaurant pickup' }));
-  const renderHistory = () => { const productFilter = document.getElementById('historyProduct').value; const userFilter = document.getElementById('historyUser').value; const from = document.getElementById('historyFrom').value; const to = document.getElementById('historyTo').value; const rows = history.filter(item => (productFilter === 'All products' || item.product === productFilter) && (userFilter === 'Everyone' || item.user === userFilter) && (!from || item.date >= from) && (!to || item.date <= to)); historyBody.innerHTML = rows.map(item => `<tr><td>${item.date}</td><td>${item.time}</td><td>${item.product}</td><td>${item.quantity} ${units[item.product]}</td><td>${item.user}</td><td>${item.notes}</td></tr>`).join('') || '<tr><td colspan="6" class="empty-state">No preview entries match these filters.</td></tr>'; document.getElementById('historyCount').textContent = `Showing ${rows.length} preview entries`; };
-  document.getElementById('applyHistory')?.addEventListener('click', renderHistory); document.getElementById('resetHistory')?.addEventListener('click', () => { document.querySelectorAll('#historyFrom, #historyTo').forEach(input => input.value = ''); document.getElementById('historyProduct').value = 'All products'; document.getElementById('historyUser').value = 'Everyone'; renderHistory(); }); renderHistory();
+  const historyMotionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const renderHistory = (animateChanges = false) => {
+    const productFilter = document.getElementById('historyProduct').value;
+    const userFilter = document.getElementById('historyUser').value;
+    const from = document.getElementById('historyFrom').value;
+    const to = document.getElementById('historyTo').value;
+    const rows = history.filter(item =>
+      (productFilter === 'All products' || item.product === productFilter) &&
+      (userFilter === 'Everyone' || item.user === userFilter) &&
+      (!from || item.date >= from) && (!to || item.date <= to));
+    historyBody.innerHTML = rows.map(item => `<tr><td>${item.date}</td><td>${item.time}</td><td>${item.product}</td><td>${item.quantity} ${units[item.product]}</td><td>${item.user}</td><td>${item.notes}</td></tr>`).join('') || '<tr><td colspan="6" class="empty-state"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.5" cy="10.5" r="5.75" stroke="currentColor" stroke-width="1.6"/><path d="m15 15 4 4M8 10.5h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><strong>No preview entries match these filters</strong><span>Try a wider date range or clear a filter.</span></td></tr>';
+    document.getElementById('historyCount').textContent = `Showing ${rows.length} preview entries`;
+    if (animateChanges && !historyMotionPreference.matches && typeof historyBody.animate === 'function') {
+      historyBody.animate([{ opacity: 0.55 }, { opacity: 1 }], { duration: 180, easing: 'ease-out' });
+    }
+  };
+  document.getElementById('applyHistory')?.addEventListener('click', () => renderHistory(true));
+  document.getElementById('resetHistory')?.addEventListener('click', () => {
+    document.querySelectorAll('#historyFrom, #historyTo').forEach(input => input.value = '');
+    document.getElementById('historyProduct').value = 'All products';
+    document.getElementById('historyUser').value = 'Everyone';
+    renderHistory(true);
+  });
+  renderHistory();
 });

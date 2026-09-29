@@ -8,12 +8,13 @@
 .notification-panel-header h2 { margin: 0; font-size: 1rem; }
 .notification-text-button { min-height: 44px; padding: 4px 8px; border: 0; color: var(--primary); background: transparent; cursor: pointer; font-size: .78rem; font-weight: 700; white-space: nowrap; }
 .notification-list { max-height: min(420px, calc(100dvh - 215px)); overflow-y: auto; overscroll-behavior: contain; }
-.notification-row { position: relative; display: grid; grid-template-columns: 9px minmax(0, 1fr) 8px; align-items: start; gap: 11px; width: 100%; padding: 13px 15px; border: 0; border-bottom: 1px solid var(--border); color: var(--text); background: var(--white); text-align: left; cursor: pointer; }
+.notification-row { position: relative; display: grid; grid-template-columns: 9px minmax(0, 1fr) 8px; align-items: start; gap: 11px; width: 100%; padding: 13px 15px; border: 0; border-bottom: 1px solid var(--border); color: var(--text); background: var(--white); text-align: left; cursor: pointer; transition: background-color 180ms ease-out, color 180ms ease-out, transform 180ms ease-out, opacity 180ms ease-out; }
 .notification-row:last-child { border-bottom: 0; }
 .notification-row:hover { background: var(--panel-alt); }
 .notification-row.is-unread { background: var(--info-soft); }
 .notification-row.is-unread:hover { background: var(--info-soft); }
 .notification-row.is-read { color: var(--muted); }
+.notification-row:active { transform: translateY(1px); }
 .notification-type-dot, .notification-unread-dot { width: 8px; height: 8px; margin-top: 5px; border-radius: 50%; background: var(--muted); }
 .notification-critical .notification-type-dot { background: var(--critical); }
 .notification-warning .notification-type-dot { background: var(--warning); }
@@ -47,4 +48,24 @@
   .notification-panel::before { display: none; }
   .notification-list { max-height: calc(100dvh - 195px); }
   .notifications-page-list .notification-row { padding: 14px 12px; }
+}
+
+/* Notifications polish */
+.notification-text-button { border-radius: var(--radius-small); transition: background-color 180ms ease-out, opacity 180ms ease-out, transform 180ms ease-out; }
+.notification-text-button:hover { background: var(--panel-alt); }
+.notification-text-button:active, .notification-filter:active { transform: translateY(1px); }
+.notification-filter { transition: border-color 180ms ease-out, color 180ms ease-out, background-color 180ms ease-out, transform 180ms ease-out; }
+.notification-filter:hover { border-color: var(--primary); color: var(--primary); }
+.notification-filter:focus-visible, .notification-text-button:focus-visible, .notification-row:focus-visible, .notification-panel-footer:focus-visible { outline-color: var(--focus-ring); }
+.notification-panel:not([hidden]) { animation: notification-panel-enter 180ms ease-out both; }
+@keyframes notification-panel-enter { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+.notification-page-empty svg { display: block; width: 34px; height: 34px; margin: 0 auto 12px; color: var(--primary); }
+.notification-page-empty strong, .notification-page-empty span { display: block; }
+.notification-page-empty strong { margin-bottom: 5px; color: var(--text); }
+.notifications-page-list, .notification-page-empty { animation: notifications-content-enter 220ms ease-out both; }
+@keyframes notifications-content-enter { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .notification-panel:not([hidden]), .notifications-page-list, .notification-page-empty { animation: none; }
+  .notification-row, .notification-text-button, .notification-filter { transition-duration: 1ms; }
+  .notification-row:active, .notification-text-button:active, .notification-filter:active { transform: none; }
 }

@@ -25,6 +25,39 @@ document.addEventListener('DOMContentLoaded', () => {
   let lowStockChartInstance;
   let consumptionChartInstance;
   let depletionChartInstance;
+  const animatedCharts = new Set();
+  const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const animateKpiValues = () => {
+    if (motionPreference.matches) return;
+    document.querySelectorAll('.kpi-value').forEach(value => {
+      const walker = document.createTreeWalker(value, NodeFilter.SHOW_TEXT);
+      const textNodes = [];
+      while (walker.nextNode()) textNodes.push(walker.currentNode);
+      textNodes.forEach(node => {
+        const original = node.nodeValue;
+        if (!/\d/.test(original)) return;
+        const start = performance.now();
+        const duration = 520;
+        const tick = now => {
+          const progress = Math.min((now - start) / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 4);
+          node.nodeValue = original.replace(/\d[\d,]*(?:\.\d+)?%?/g, token => {
+            const digits = token.endsWith('%') ? token.slice(0, -1) : token;
+            const numericValue = Number(digits.replace(/,/g, ''));
+            const decimals = (digits.split('.')[1] || '').length;
+            const current = (numericValue * eased).toFixed(decimals);
+            return `${Number(current).toLocaleString(undefined, {
+              minimumFractionDigits: decimals,
+              maximumFractionDigits: decimals
+            })}${token.endsWith('%') ? '%' : ''}`;
+          });
+          if (progress < 1) requestAnimationFrame(tick);
+          else node.nodeValue = original;
+        };
+        requestAnimationFrame(tick);
+      });
+    });
+  };
   const chartRoot = getComputedStyle(document.documentElement);
   const chartColor = token => chartRoot.getPropertyValue(token).trim();
   const chartPalette = {
@@ -44,10 +77,12 @@ document.addEventListener('DOMContentLoaded', () => {
     font: chartColor('--font-body')
   };
   const salesSeriesColors = [chartPalette.primary, chartPalette.secondary, chartPalette.quaternary, chartPalette.tertiary];
-  const chartBaseOptions = scales => ({
+  const chartBaseOptions = (scales, chartId) => ({
     responsive: true,
     maintainAspectRatio: false,
-    animation: false,
+    animation: motionPreference.matches || (chartId && animatedCharts.has(chartId))
+      ? false
+      : { duration: 620, easing: 'easeOutQuart' },
     color: chartPalette.muted,
     font: { family: chartPalette.font, size: 11 },
     layout: { padding: { top: 4, right: 8, bottom: 0, left: 4 } },
@@ -128,10 +163,11 @@ document.addEventListener('DOMContentLoaded', () => {
           ...chartBaseOptions({
             x: { ...chartAxis(false) },
             y: { ...chartAxis(), beginAtZero: true, title: { display: true, text: selectedCategory === 'Whole Chicken' ? 'pcs' : 'kg', color: chartPalette.muted, font: { family: chartPalette.font, size: 11, weight: '600' } } }
-          }),
+          }, 'dailySalesChart'),
           plugins: { ...chartBaseOptions().plugins, legend: { ...chartBaseOptions().plugins.legend, display: datasets.length > 1 } }
         }
       });
+      animatedCharts.add('dailySalesChart');
       return;
     }
 
@@ -170,12 +206,13 @@ document.addEventListener('DOMContentLoaded', () => {
         type: 'doughnut',
         data: { labels, datasets: [{ data: values, backgroundColor: colors }] },
         options: {
-          ...chartBaseOptions(),
+          ...chartBaseOptions(undefined, 'lowStockChart'),
           cutout: '72%',
           radius: '88%',
           plugins: { ...chartBaseOptions().plugins, legend: { ...chartBaseOptions().plugins.legend, position: 'bottom' } }
         }
       });
+      animatedCharts.add('lowStockChart');
       return;
     }
 
@@ -252,15 +289,16 @@ document.addEventListener('DOMContentLoaded', () => {
               ...chartBaseOptions({
                 x: { ...chartAxis(), beginAtZero: true },
                 y: { ...chartAxis(false) }
-              }),
+              }, 'consumptionChart'),
               indexAxis: 'y',
               plugins: { ...chartBaseOptions().plugins, legend: { ...chartBaseOptions().plugins.legend, display: true } }
             }
           });
+          animatedCharts.add('consumptionChart');
         } else {
           consumptionChartInstance.data.labels = labels;
           consumptionChartInstance.data.datasets = datasets;
-          consumptionChartInstance.update();
+          consumptionChartInstance.update('none');
         }
       }
     }
@@ -273,12 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const stock = criticalProduct.currentStock ?? criticalProduct.CurrentStock ?? 0;
       const forecast = criticalProduct.forecast ?? criticalProduct.Forecast ?? 0;
       const trend = Array.from({ length: 7 }, (_, index) => Math.max(0, stock - ((index + 1) * forecast)));
-      depletionChartInstance?.destroy();
-      depletionChartInstance = new Chart(depletionCanvas, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [{
+      const dataset = {
             label: criticalProduct.productName || criticalProduct.ProductName,
             data: trend,
             borderColor: chartPalette.critical,
@@ -290,16 +323,25 @@ document.addEventListener('DOMContentLoaded', () => {
             pointHoverBorderColor: chartPalette.white,
             fill: true,
             tension: 0.32
-          }]
-        },
-        options: {
+          };
+      if (depletionChartInstance) {
+        depletionChartInstance.data.labels = labels;
+        depletionChartInstance.data.datasets = [dataset];
+        depletionChartInstance.update('none');
+      } else {
+        depletionChartInstance = new Chart(depletionCanvas, {
+          type: 'line',
+          data: { labels, datasets: [dataset] },
+          options: {
           ...chartBaseOptions({
             x: { ...chartAxis(false) },
             y: { ...chartAxis(), beginAtZero: true }
-          }),
+          }, 'depletionChart'),
           plugins: { ...chartBaseOptions().plugins, legend: { ...chartBaseOptions().plugins.legend, display: false } }
-        }
-      });
+          }
+        });
+        animatedCharts.add('depletionChart');
+      }
     } else {
       depletionChartInstance?.destroy();
       depletionChartInstance = null;
@@ -321,7 +363,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const matchesText = !query || name.includes(query);
       const matchesStatus = activeStatus === 'All' || status === activeStatus;
       const matchesCategory = !categoryFilter || categoryFilter.value === 'All' || categoryFilter.value === category;
-      row.style.display = matchesText && matchesStatus && matchesCategory ? '' : 'none';
+      const isVisible = matchesText && matchesStatus && matchesCategory;
+      row.style.display = isVisible ? '' : 'none';
+      if (isVisible && !motionPreference.matches && typeof row.animate === 'function') {
+        row.animate([{ opacity: 0.72 }, { opacity: 1 }], { duration: 150, easing: 'ease-out' });
+      }
     });
   };
 
@@ -420,6 +466,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (document.getElementById('dailySalesChart') || document.getElementById('stockTableBody')) {
+    animateKpiValues();
     renderCharts();
     setInterval(() => refreshDashboard(), 30000);
   }

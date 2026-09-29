@@ -52,3 +52,27 @@ input::placeholder { color: var(--muted); opacity: 1; }
   .form-panel { padding-right: 24px; padding-left: 24px; }
   .form-options { align-items: flex-start; flex-direction: column; gap: 13px; }
 }
+
+/* Login polish */
+.login-shell { animation: login-shell-enter 220ms ease-out both; }
+@keyframes login-shell-enter { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+input[type="text"], input[type="password"] { transition: border-color 180ms ease-out, box-shadow 180ms ease-out, background-color 180ms ease-out; }
+input[type="text"]:hover, input[type="password"]:hover { border-color: color-mix(in srgb, var(--primary) 35%, var(--border)); }
+.password-toggle { min-width: 44px; min-height: 44px; border-radius: var(--radius-control); cursor: pointer; transition: background-color 180ms ease-out, opacity 180ms ease-out; }
+.password-toggle:hover { background: var(--primary-soft); }
+.password-toggle:active { opacity: .75; }
+.password-toggle:focus-visible, .submit-button:focus-visible, .remember-label input:focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
+.remember-label { transition: color 180ms ease-out; cursor: pointer; }
+.remember-label:hover { color: var(--text); }
+.remember-label input { transition: transform 180ms ease-out; }
+.remember-label input:active { transform: scale(.92); }
+.submit-button { cursor: pointer; transition: background-color 180ms ease-out, transform 180ms ease-out, box-shadow 180ms ease-out, opacity 180ms ease-out; }
+.submit-button:active:not(:disabled) { transform: translateY(1px); }
+.button-arrow { transition: transform 180ms ease-out; }
+.submit-button:hover:not(:disabled) .button-arrow { transform: translateX(3px); }
+@media (prefers-reduced-motion: reduce) {
+  .login-shell { animation: none; }
+  input[type="text"], input[type="password"], .password-toggle, .remember-label, .remember-label input, .submit-button, .button-arrow { transition-duration: 1ms; }
+  .submit-button:active:not(:disabled), .remember-label input:active { transform: none; }
+  .is-loading .button-arrow { animation: none; }
+}
