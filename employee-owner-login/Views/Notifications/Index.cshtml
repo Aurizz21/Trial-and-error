@@ -1,29 +1,83 @@
+@using PoultryOS.Models
+@model NotificationsPageViewModel
 @{
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
     ViewData["Title"] = "Notifications";
 }
-
-<section class="module-page notifications-page" aria-labelledby="notificationsTitle">
+<div class="module-page">
     <header class="module-heading">
         <div>
-            <p class="greeting">Manok ni Rene</p>
-            <h1 id="notificationsTitle">Notifications</h1>
-            <p>Inventory, sales, and forecast updates.</p>
+            <p class="greeting">System workspace</p>
+            <h1>Notifications</h1>
+            <p>Alerts, warnings, and updates from across the system.</p>
         </div>
     </header>
-    <nav class="notification-filters" aria-label="Filter notifications">
-        <button class="notification-filter active" type="button" data-notification-filter="all" aria-pressed="true">All</button>
-        <button class="notification-filter" type="button" data-notification-filter="unread" aria-pressed="false">Unread</button>
-        <button class="notification-filter" type="button" data-notification-filter="critical" aria-pressed="false">Critical</button>
-        <button class="notification-filter" type="button" data-notification-filter="warning" aria-pressed="false">Warning</button>
-        <button class="notification-filter" type="button" data-notification-filter="info" aria-pressed="false">Info</button>
-    </nav>
-    <div id="notificationsPageList" class="notifications-page-list"></div>
-    <div id="notificationsPageEmpty" class="notification-page-empty empty-state" hidden>
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <strong>No notifications match this filter.</strong>
-        <span>Try another filter to see other shop updates.</span>
-    </div>
-</section>
 
-<script>document.body.dataset.notificationsPage = 'true';</script>
+    <section class="stat-strip">
+        <article class="kpi-card">
+            <div class="kpi-label">Total</div>
+            <div class="kpi-value">@Model.TotalCount</div>
+        </article>
+        <article class="kpi-card">
+            <div class="kpi-label">Unread</div>
+            <div class="kpi-value">@Model.UnreadCount</div>
+        </article>
+        <article class="kpi-card">
+            <div class="kpi-label">Critical</div>
+            <div class="kpi-value status-critical">@Model.CriticalCount</div>
+        </article>
+        <article class="kpi-card">
+            <div class="kpi-label">Warning</div>
+            <div class="kpi-value status-warning">@Model.WarningCount</div>
+        </article>
+    </section>
+
+    <section class="panel">
+        <div class="toolbar">
+            <label class="field">Filter
+                <select onchange="location.href='/Notifications?type=' + this.value">
+                    <option value="All" selected="@(Model.TypeFilter == "All")">All</option>
+                    <option value="Unread" selected="@(Model.TypeFilter == "Unread")">Unread</option>
+                    <option value="Critical" selected="@(Model.TypeFilter == "Critical")">Critical</option>
+                    <option value="Warning" selected="@(Model.TypeFilter == "Warning")">Warning</option>
+                    <option value="Info" selected="@(Model.TypeFilter == "Info")">Info</option>
+                </select>
+            </label>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Title</th>
+                        <th>Message</th>
+                        <th>Created</th>
+                        <th>Read</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var n in Model.Notifications)
+                    {
+                        <tr class="@(n.IsRead ? "" : "unread-row")">
+                            <td><span class="status-badge status-@n.Type.ToLowerInvariant()">@n.Type</span></td>
+                            <td>@n.Title</td>
+                            <td>@n.Message</td>
+                            <td>@n.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@(n.IsRead ? "✓" : "—")</td>
+                        </tr>
+                    }
+                    @if (!Model.Notifications.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="empty-state">
+                                <strong>No notifications</strong>
+                                <span>You're all caught up.</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>

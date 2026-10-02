@@ -1,9 +1,182 @@
-@{ Layout = "~/Views/Shared/_DashboardLayout.cshtml"; ViewData["Title"] = "Forecast"; }
-<div class="module-page"><span class="preview-badge">UI Preview - no backend yet</span><header class="module-heading"><div><p class="greeting">Planning view</p><h1>Forecast</h1><p>Preview demand direction and projected stock depletion.</p></div><label class="field">Product<select id="forecastProduct"><option>Whole Chicken</option><option>Chicken Breast</option><option>Chicken Thigh</option><option>Chicken Wings</option><option>Chicken Feet</option></select></label></header>
-<section class="stat-strip"><article class="kpi-card"><div class="kpi-label">Avg Daily Sales</div><div id="avgSales" class="kpi-value">12 pcs</div><div class="kpi-meta">7-day weighted average</div></article><article class="kpi-card"><div class="kpi-label">Expected Depletion</div><div id="depletionDate" class="kpi-value">Oct 02</div><div class="kpi-meta">At current sales rate</div></article><article class="kpi-card"><div class="kpi-label">Reorder Quantity</div><div id="reorderQty" class="kpi-value">80 pcs</div><div class="kpi-meta">Suggested replenishment</div></article></section>
-<!-- "How We Forecast" info box hidden from users for now; kept in markup so it can be re-enabled later by removing the is-hidden class. -->
-<section class="info-box is-hidden"><h3>How We Forecast: 7-Day Weighted Moving Average (WMA)</h3><div>Recent sales receive more weight, so the forecast responds to the latest demand pattern while smoothing one-off spikes.</div><div class="formula">WMA = (7 x D1 + 6 x D2 + 5 x D3 + 4 x D4 + 3 x D5 + 2 x D6 + 1 x D7) / 28</div></section>
-<section class="dashboard-grid two-up"><article class="panel chart-box"><div class="panel-header"><h2>Historical Sales vs WMA</h2></div><div class="forecast-placeholder"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M5 25.5h22M6.5 21l6-6 4.2 3.5L25 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="25" cy="9" r="1.8" fill="currentColor"/></svg><span>Forecast chart coming soon</span></div><div id="forecastWarning" class="forecast-alert hidden"></div></article><article class="panel chart-box"><div class="panel-header"><h2>Predicted Stock Depletion</h2></div><div class="forecast-placeholder"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M7 6.5v19h19M12 12h3v10h-3zM18 8h3v14h-3zM24 15h3v7h-3z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Forecast chart coming soon</span></div></article></section>
-<section class="dashboard-grid two-up"><article class="panel"><div class="panel-header"><h2>Forecast Accuracy</h2></div><div class="accuracy"><div><p class="panel-note">Average across products</p><strong id="accuracyText" class="accuracy-value">94.2%</strong></div><span class="status-badge status-healthy">Reliable</span></div></article><article class="panel"><div class="panel-header"><h2>Model Notes</h2></div><p class="panel-note">Forecasts use the local seven-day preview series. One product intentionally has insufficient history.</p></article></section>
-<section class="panel"><div class="panel-header"><h2>Per-Product Forecast Summary</h2></div><div class="table-wrap"><table><thead><tr><th>Product</th><th>Avg Daily Sales</th><th>Depletion Date</th><th>Accuracy</th></tr></thead><tbody><tr><td>Whole Chicken</td><td>12 pcs</td><td>Oct 02</td><td>96%</td></tr><tr><td>Chicken Breast</td><td>15 kg</td><td>Sep 24</td><td>92%</td></tr><tr><td>Chicken Thigh</td><td>7 kg</td><td>Oct 08</td><td>95%</td></tr><tr><td>Chicken Wings</td><td>8.7 kg</td><td>Sep 27</td><td>91%</td></tr><tr><td>Chicken Feet</td><td class="insufficient">Insufficient Data</td><td class="insufficient">Insufficient Data</td><td class="insufficient">-</td></tr></tbody></table></div></section></div>
-<script src="~/js/forecast.js" asp-append-version="true"></script>
+@using PoultryOS.Models
+@model ForecastPageViewModel
+@{
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Forecast";
+}
+<div class="module-page">
+    <header class="module-heading">
+        <div>
+            <p class="greeting">Analytics workspace</p>
+            <h1>Sales Forecast</h1>
+            <p>7-day weighted moving average per product, computed from real sales history.</p>
+        </div>
+    </header>
+
+    <section class="stat-strip">
+        <article class="kpi-card">
+            <div class="kpi-label">Products</div>
+            <div class="kpi-value">@Model.TotalProducts</div>
+        </article>
+        <article class="kpi-card">
+            <div class="kpi-label">Critical</div>
+            <div class="kpi-value status-critical">@Model.CriticalCount</div>
+        </article>
+        <article class="kpi-card">
+            <div class="kpi-label">Warning</div>
+            <div class="kpi-value status-warning">@Model.WarningCount</div>
+        </article>
+        <article class="kpi-card">
+            <div class="kpi-label">Avg Accuracy</div>
+            <div class="kpi-value">@Model.AverageAccuracy.ToString("0.0")%</div>
+        </article>
+    </section>
+
+    <section class="panel">
+        <div class="panel-header">
+            <h2>Actual vs Forecast (Last 7 Days vs Next 7 Days)</h2>
+            <p class="panel-note">Model: @Model.Model · Generated: @Model.GeneratedAt</p>
+        </div>
+        <div class="chart-plot" style="min-height:320px;">
+            <canvas id="forecastChart"></canvas>
+        </div>
+    </section>
+
+    <section class="panel">
+        <div class="panel-header">
+            <h2>Forecast by Product</h2>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Current Stock</th>
+                        <th>Last 7 Days</th>
+                        <th>Daily WMA</th>
+                        <th>Next 7 Forecast</th>
+                        <th>Days Left</th>
+                        <th>Predicted Depletion</th>
+                        <th>Reorder</th>
+                        <th>Accuracy</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model.Rows)
+                    {
+                        <tr>
+                            <td>@r.ProductName</td>
+                            <td>@r.Category</td>
+                            <td>@r.CurrentStock.ToString("0.##") @r.Units</td>
+                            <td>@r.Last7DaysSales.ToString("0.##") @r.Units</td>
+                            <td>@r.WeightedMovingAverage.ToString("0.##")</td>
+                            <td>@r.ForecastNext7Days.ToString("0.##") @r.Units</td>
+                            <td>@r.DaysRemaining.ToString("0.0")</td>
+                            <td>@r.PredictedDepletionDate</td>
+                            <td>@r.SuggestedReorderQuantity.ToString("0.##") @r.Units</td>
+                            <td>
+                                @if (r.ForecastAccuracy.HasValue)
+                                {
+                                    @r.ForecastAccuracy.Value.ToString("0.0")<text>%</text>
+                                }
+                                else
+                                {
+                                    <span class="muted">—</span>
+                                }
+                            </td>
+                            <td><span class="status-badge status-@r.Status.ToLowerInvariant()">@r.Status</span></td>
+                        </tr>
+                    }
+                    @if (!Model.Rows.Any())
+                    {
+                        <tr>
+                            <td colspan="11" class="empty-state">
+                                <strong>No products to forecast</strong>
+                                <span>Add products and record sales to see predictions.</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<script>
+    window.forecastState = {
+        chartData: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ChartData))
+    };
+</script>
+<script>
+    (function () {
+        function drawChart() {
+            const canvas = document.getElementById('forecastChart');
+            if (!canvas) return;
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js not loaded yet, retrying...');
+                setTimeout(drawChart, 100);
+                return;
+            }
+
+            const data = (window.forecastState && window.forecastState.chartData) || [];
+            if (!data.length) {
+                canvas.parentElement.innerHTML = '<p class="empty-state"><strong>No data to chart</strong></p>';
+                return;
+            }
+
+            const labels = data.map(d => d.product || d.Product);
+            const actual = data.map(d => d.last7DaysActual ?? d.Last7DaysActual ?? 0);
+            const forecast = data.map(d => d.next7DaysForecast ?? d.Next7DaysForecast ?? 0);
+
+            const root = getComputedStyle(document.documentElement);
+            const primary = root.getPropertyValue('--chart-primary').trim() || '#2563eb';
+            const warning = root.getPropertyValue('--chart-warning').trim() || '#f59e0b';
+            const muted = root.getPropertyValue('--muted').trim() || '#6b7280';
+            const grid = root.getPropertyValue('--chart-grid').trim() || 'rgba(0,0,0,0.06)';
+
+            new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Last 7 Days (actual)',
+                            data: actual,
+                            backgroundColor: primary,
+                            borderRadius: 4,
+                            maxBarThickness: 24
+                        },
+                        {
+                            label: 'Next 7 Days (forecast)',
+                            data: forecast,
+                            backgroundColor: warning,
+                            borderRadius: 4,
+                            maxBarThickness: 24
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: muted } },
+                        y: { beginAtZero: true, grid: { color: grid }, ticks: { color: muted } }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: { color: muted, usePointStyle: true, pointStyle: 'circle' }
+                        }
+                    }
+                }
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', drawChart);
+        } else {
+            drawChart();
+        }
+    })();
+</script>

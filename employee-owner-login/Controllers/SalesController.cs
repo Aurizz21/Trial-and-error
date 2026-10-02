@@ -9,29 +9,26 @@ namespace PoultryOS.Controllers;
 [Authorize]
 public class SalesController : Controller
 {
-    private readonly IInventoryService inventoryService;
+            private readonly ISalesEntryService _salesEntry;
+    private readonly ISalesHistoryService _salesHistory;
 
-    public SalesController(IInventoryService inventoryService)
+    public SalesController(ISalesEntryService salesEntry, ISalesHistoryService salesHistory)
     {
-        this.inventoryService = inventoryService;
+        _salesEntry = salesEntry;
+        _salesHistory = salesHistory;
     }
 
-    [HttpGet]
-    public IActionResult Entry()
+        [HttpGet]
+    public async Task<IActionResult> Entry()
     {
-        ViewData["CriticalAlertCount"] = inventoryService.GetLowStockProducts().Count(alert => alert.Status == "Critical");
-        return View(new SalesEntryViewModel
-        {
-            Products = inventoryService.GetProducts(),
-            TodaysSummary = inventoryService.GetTodaysSalesSummary(),
-            TodaysEntries = inventoryService.GetTodaysEntries(),
-            LowStockProducts = inventoryService.GetLowStockProducts()
-        });
+        var model = await _salesEntry.GetEntryPageAsync();
+        ViewData["CriticalAlertCount"] = model.LowStockProducts.Count(a => a.Status == "Critical");
+        return View(model);
     }
 
-    [HttpPost]
+        [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult RecordSale(RecordSaleRequest request)
+    public async Task<IActionResult> RecordSale(RecordSaleRequest request)
     {
         if (!ModelState.IsValid)
         {
@@ -48,7 +45,7 @@ public class SalesController : Controller
             return Unauthorized(new { success = false, message = "An authenticated username is required." });
         }
 
-        var result = inventoryService.RecordSale(
+        var result = await _salesEntry.RecordSaleAsync(
             request.ProductId!.Value,
             request.Quantity,
             username,
@@ -60,16 +57,65 @@ public class SalesController : Controller
             return BadRequest(new { success = false, message = result.Message });
         }
 
+        // Reload the page state for the JS to update the UI
+        var page = await _salesEntry.GetEntryPageAsync();
+
         return Ok(new
         {
             success = true,
+            message = result.Message,
             updatedProduct = result.UpdatedProduct,
             newEntry = result.NewEntry,
-            todaysSummary = inventoryService.GetTodaysSalesSummary(),
-            lowStockProducts = inventoryService.GetLowStockProducts()
+            todaysSummary = page.TodaysSummary,
+            lowStockProducts = page.LowStockProducts
         });
     }
 
-    [HttpGet]
+        [HttpGet]
     public IActionResult History() => View();
+
+    // JSON endpoint the History page calls via fetch() when applying filters or paging.
+    [HttpGet]
+    public async Task<IActionResult> HistoryData(
+        DateTime? from,
+        DateTime? to,
+        int? productId,
+        string? enteredBy,
+        int page = 1,
+        int pageSize = 50)
+    {
+        var filter = new SalesHistoryFilter
+        {
+            From = from,
+            To = to,
+            ProductId = productId,
+            EnteredBy = enteredBy,
+            Page = page,
+            PageSize = pageSize
+        };
+
+        var data = await _salesHistory.GetPageAsync(filter);
+
+        return Ok(new
+        {
+            success = true,
+            rows = data.Rows.Select(r => new
+            {
+                id = r.Id,
+                soldAt = r.SoldAt.ToString("yyyy-MM-dd"),
+                time = r.SoldAt.ToString("HH:mm"),
+                productName = r.ProductName,
+                units = r.Units,
+                quantity = r.Quantity,
+                enteredBy = r.EnteredBy,
+                notes = r.Notes
+            }),
+            totalCount = data.TotalCount,
+            page = data.Page,
+            pageSize = data.PageSize,
+            totalPages = data.TotalPages,
+            products = data.Products.Select(p => new { id = p.Id, name = p.Name }),
+            users = data.Users.Select(u => u.Username)
+        });
+    }
 }

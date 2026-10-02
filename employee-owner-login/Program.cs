@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;                    // ← NEW
+using PoultryOS.Data;                                   // ← NEW
 using PoultryOS.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +9,18 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<AuthService>();
 builder.Services.AddSingleton<IInventoryService, InventoryService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ISalesHistoryService, SalesHistoryService>();
+builder.Services.AddScoped<IStockAlertsService, StockAlertsService>();
+builder.Services.AddScoped<INotificationsService, NotificationsService>();
+builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<ISalesEntryService, SalesEntryService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IForecastService, ForecastService>();
+
+// Register the EF Core DbContext against SQL Server.   // ← NEW
+builder.Services.AddDbContext<AppDbContext>(options =>  // ← NEW
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));  // ← NEW
 
 // Use a secure cookie for the authenticated session.
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -26,6 +40,12 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    SeedData.Initialize(db);
+}
 
 if (!app.Environment.IsDevelopment())
 {

@@ -7,45 +7,28 @@ namespace PoultryOS.Controllers;
 [Authorize]
 public class DashboardController : Controller
 {
-    private readonly IInventoryService inventoryService;
+    private readonly IDashboardService _dashboard;
 
-    public DashboardController(IInventoryService inventoryService)
+    public DashboardController(IDashboardService dashboard)
     {
-        this.inventoryService = inventoryService;
+        _dashboard = dashboard;
     }
 
     [HttpGet]
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
         var username = User.Identity?.Name ?? "owner";
         var role = User.IsInRole("Owner") ? "Owner" : "Employee";
-        var summary = inventoryService.GetSummary(username, role);
+        var summary = await _dashboard.GetSummaryAsync(username, role);
         return View(summary);
     }
 
     [HttpGet]
-    public IActionResult Summary()
+    public async Task<IActionResult> Summary()
     {
         var username = User.Identity?.Name ?? "owner";
         var role = User.IsInRole("Owner") ? "Owner" : "Employee";
-        var summary = inventoryService.GetSummary(username, role);
+        var summary = await _dashboard.GetSummaryAsync(username, role);
         return Json(summary);
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public IActionResult QuickSale(int productId, decimal quantity)
-    {
-        try
-        {
-            var username = User.Identity?.Name ?? "system";
-            var role = User.IsInRole("Owner") ? "Owner" : "Employee";
-            var summary = inventoryService.RecordSale(productId, quantity, username, role);
-            return Json(summary);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
     }
 }

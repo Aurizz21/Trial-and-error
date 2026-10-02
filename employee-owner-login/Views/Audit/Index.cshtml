@@ -1,4 +1,114 @@
-@{ Layout = "~/Views/Shared/_DashboardLayout.cshtml"; ViewData["Title"] = "Audit Trail"; }
-<div class="module-page" data-owner-only><span class="preview-badge">UI Preview - no backend yet</span><header class="module-heading"><div><p class="greeting">Owner workspace</p><h1>Audit Trail</h1><p>A clear history of activity across the preview workspace.</p></div></header>
-<section class="panel"><div class="toolbar"><label class="field">From<input id="auditFrom" type="date"></label><label class="field">To<input id="auditTo" type="date"></label><label class="field">Action type<select id="auditAction"><option>All actions</option><option>Login</option><option>Sale</option><option>Stock Change</option><option>Alert Generated</option><option>Product Update</option></select></label><label class="field">User<select id="auditUser"><option>Everyone</option><option>Owner</option><option>Employee</option></select></label><button id="applyAudit" class="primary-btn" type="button">Apply</button></div><div class="table-wrap"><table><thead><tr><th>Timestamp</th><th>User</th><th>Action Type</th><th>Description</th></tr></thead><tbody id="auditBody"></tbody></table></div><div class="pagination"><span id="auditCount">Showing 12 preview events</span><span>Page 1 of 2 <button class="small-btn" type="button">Next</button></span></div></section></div>
-<script src="~/js/audit.js" asp-append-version="true"></script>
+@using PoultryOS.Models
+@model AuditPageViewModel
+@{
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Audit Trail";
+
+    string PageUrl(int p) => $"/Audit?actionType={Model.ActionTypeFilter}&user={Model.UserFilter}&page={p}";
+}
+<div class="module-page">
+    <header class="module-heading">
+        <div>
+            <p class="greeting">Owner workspace</p>
+            <h1>Audit Trail</h1>
+            <p>Every important event: logins, sales, product changes, and system actions.</p>
+        </div>
+    </header>
+
+    <section class="panel">
+        <div class="toolbar">
+            <form method="get" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;width:100%;">
+                <label class="field">Action Type
+                    <select name="actionType">
+                        <option value="All" selected="@(Model.ActionTypeFilter == "All")">All</option>
+                        @foreach (var t in Model.ActionTypes)
+                        {
+                            <option value="@t" selected="@(Model.ActionTypeFilter == t)">@t</option>
+                        }
+                    </select>
+                </label>
+                <label class="field">User
+                    <select name="user">
+                        <option value="All" selected="@(Model.UserFilter == "All")">Everyone</option>
+                        <option value="System" selected="@(Model.UserFilter == "System")">System</option>
+                        @foreach (var u in Model.Usernames)
+                        {
+                            <option value="@u" selected="@(Model.UserFilter == u)">@u</option>
+                        }
+                    </select>
+                </label>
+                <div style="display:flex;flex-direction:row;gap:8px;align-items:flex-end;">
+                    <button type="submit" class="primary-btn">Apply</button>
+                    <a href="/Audit" class="secondary-btn">Reset</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Action</th>
+                        <th>User</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model.Rows)
+                    {
+                        <tr>
+                            <td>@r.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                            <td><span class="status-badge status-info">@r.ActionType</span></td>
+                            <td>@r.Username</td>
+                            <td>@r.Description</td>
+                        </tr>
+                    }
+                    @if (!Model.Rows.Any())
+                    {
+                        <tr>
+                            <td colspan="4" class="empty-state">
+                                <strong>No audit entries match your filters</strong>
+                                <span>Try widening the filters or reset.</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination">
+            <span>
+                @if (Model.TotalCount == 0)
+                {
+                    <text>No entries</text>
+                }
+                else
+                {
+                    var start = (Model.Page - 1) * Model.PageSize + 1;
+                    var end = Math.Min(Model.Page * Model.PageSize, Model.TotalCount);
+                    <text>Showing @start–@end of @Model.TotalCount</text>
+                }
+            </span>
+            <span>
+                @if (Model.Page > 1)
+                {
+                    <a href="@PageUrl(Model.Page - 1)" class="small-btn">Previous</a>
+                }
+                else
+                {
+                    <button class="small-btn" type="button" disabled>Previous</button>
+                }
+                <span>Page @Model.Page of @Model.TotalPages</span>
+                @if (Model.Page < Model.TotalPages)
+                {
+                    <a href="@PageUrl(Model.Page + 1)" class="small-btn">Next</a>
+                }
+                else
+                {
+                    <button class="small-btn" type="button" disabled>Next</button>
+                }
+            </span>
+        </div>
+    </section>
+</div>

@@ -7,10 +7,10 @@
 
 <section class="page-header">
     <div>
-        <p class="greeting">@Model.PageGreeting, @Html.Encode(Model.Username)</p>
-        <h1>@Html.Encode(Model.FullDate)</h1>
+        <p class="greeting">@Model.PageGreeting, @Model.Username</p>
+        <h1>@Model.FullDate</h1>
     </div>
-    <div class="depletion-banner">@Html.Encode(Model.DepletionBanner)</div>
+    <div class="depletion-banner">@Model.DepletionBanner</div>
 </section>
 
 <section class="kpi-grid">
@@ -87,7 +87,7 @@
                 <div class="empty-state empty-state--inline">
                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4.5c-3.7 3.2-5.7 6.2-5.7 9a5.7 5.7 0 0 0 11.4 0c0-2.8-2-5.8-5.7-9Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9.5 14.2c.4 1.2 1.2 1.9 2.5 2.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
                     <strong>No active stock alerts</strong>
-                    <span>There’s nothing to reorder right now.</span>
+                    <span>There's nothing to reorder right now.</span>
                 </div>
             }
             else
@@ -96,7 +96,7 @@
                 {
                     <div class="alert-row">
                         <div>
-                            <div class="alert-name">@Html.Encode(alert.ProductName)</div>
+                            <div class="alert-name">@alert.ProductName</div>
                             <div class="alert-meta">Remaining stock: @alert.CurrentStock.ToString("0.##") @alert.Units</div>
                         </div>
                         <div class="alert-side">
@@ -112,14 +112,14 @@
 
     <article class="panel quick-sale-panel" id="quickSaleCard">
         <div class="panel-header"><h2>Quick Sale</h2></div>
-        <form id="quick-sale-form" method="post">
+        <form id="quick-sale-form" method="post" asp-controller="Sales" asp-action="RecordSale">
             @Html.AntiForgeryToken()
             <label>
                 Product
                 <select id="productId" name="productId">
                     @foreach (var product in Model.Products)
                     {
-                        <option value="@product.Id">@Html.Encode(product.Name)</option>
+                        <option value="@product.Id">@product.Name</option>
                     }
                 </select>
             </label>
@@ -127,6 +127,7 @@
                 Quantity
                 <input id="quantity" name="quantity" type="number" min="1" max="200" step="1" value="1" />
             </label>
+            <input type="hidden" name="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" />
             <button type="submit" class="primary-btn">Record Sale</button>
         </form>
         <div id="quick-sale-toast" class="toast" aria-live="polite"></div>
@@ -169,12 +170,12 @@
                 @foreach (var row in Model.StockOverview)
                 {
                     <tr data-status="@row.Status" data-category="@row.Category" data-name="@row.Product">
-                        <td>@Html.Encode(row.Product)</td>
-                        <td>@Html.Encode(row.Category)</td>
+                        <td>@row.Product</td>
+                        <td>@row.Category</td>
                         <td>@row.CurrentStock.ToString("0.##")</td>
                         <td>@row.WeeklyConsumption.ToString("0.##")</td>
-                        <td>@Html.Encode(row.DaysRemaining)</td>
-                        <td>@Html.Encode(row.PredictedDepletionDate)</td>
+                        <td>@row.DaysRemaining</td>
+                        <td>@row.PredictedDepletionDate</td>
                         <td><span class="status-badge status-@row.Status.ToLowerInvariant()">@row.Status</span></td>
                     </tr>
                 }
@@ -192,9 +193,9 @@
             {
                 <li>
                     <span>@entry.Timestamp.ToString("HH:mm")</span>
-                    <strong>@Html.Encode(entry.User)</strong>
-                    <span>@Html.Encode(entry.ActionType)</span>
-                    <small>@Html.Encode(entry.Description)</small>
+                    <strong>@entry.User</strong>
+                    <span>@entry.ActionType</span>
+                    <small>@entry.Description</small>
                 </li>
             }
         </ul>
