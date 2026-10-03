@@ -55,6 +55,46 @@
   --focus-ring: 0 0 0 3px rgba(36, 87, 166, 0.2);
 }
 
+/* Dark application palette is scoped to authenticated pages through the shared layout body class. */
+.dashboard-body {
+  color-scheme: dark;
+
+  --bg: #17191D;
+  --panel: #24272D;
+  --panel-alt: #2E3239;
+  --sidebar: #111318;
+  --sidebar-soft: #1B2028;
+
+  --primary: #6A9FF0;
+  --primary-hover: #82B1F5;
+  --primary-soft: #6A9FF029;
+  --primary-border: #6A9FF052;
+  --on-primary: #142033;
+
+  --text: #F3F4F6;
+  --muted: #B4BCC8;
+  --border: #78818F;
+  --white: #FFFFFF;
+  --on-dark-muted: #D1D7E0;
+  --scrim: #080A0DB8;
+
+  --critical: #FF7670;
+  --critical-soft: #FF76701F;
+  --warning: #FFC768;
+  --warning-soft: #FFC7681F;
+  --healthy: #61D394;
+  --healthy-soft: #61D3941F;
+  --critical-border: #FF767052;
+  --warning-border: #FFC76852;
+  --healthy-border: #61D39452;
+  --info: #74A7F3;
+  --info-soft: #74A7F329;
+
+  --shadow: 0 2px 8px #00000066;
+  --shadow-raised: 0 8px 22px #00000099;
+  --focus-ring: 0 0 0 3px #82B1F5B3;
+}
+
 html {
   font-family: var(--font-body);
   color: var(--text);

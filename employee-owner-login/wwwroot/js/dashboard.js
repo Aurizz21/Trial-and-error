@@ -467,6 +467,50 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  const dashboardTabs = Array.from(
+    document.querySelectorAll("[data-dashboard-tab]"),
+  );
+  const dashboardPanels = Array.from(
+    document.querySelectorAll("[data-dashboard-panel]"),
+  );
+  const chartByDashboardTab = {
+    "daily-sales": () => dailySalesChartInstance,
+    "low-stock": () => lowStockChartInstance,
+    "weekly-sales": () => consumptionChartInstance,
+    depletion: () => depletionChartInstance,
+  };
+  const activateDashboardTab = (tab, moveFocus = false) => {
+    if (!tab) return;
+    const selectedKey = tab.dataset.dashboardTab;
+    dashboardTabs.forEach((item) => {
+      const selected = item === tab;
+      item.classList.toggle("active", selected);
+      item.setAttribute("aria-selected", String(selected));
+      item.tabIndex = selected ? 0 : -1;
+    });
+    dashboardPanels.forEach((panel) => {
+      panel.hidden = panel.dataset.dashboardPanel !== selectedKey;
+    });
+    if (moveFocus) tab.focus();
+
+    const chart = chartByDashboardTab[selectedKey]?.();
+    if (chart) requestAnimationFrame(() => chart.resize());
+  };
+
+  dashboardTabs.forEach((tab, index) => {
+    tab.addEventListener("click", () => activateDashboardTab(tab));
+    tab.addEventListener("keydown", (event) => {
+      let nextIndex = index;
+      if (event.key === "ArrowRight") nextIndex = (index + 1) % dashboardTabs.length;
+      else if (event.key === "ArrowLeft") nextIndex = (index - 1 + dashboardTabs.length) % dashboardTabs.length;
+      else if (event.key === "Home") nextIndex = 0;
+      else if (event.key === "End") nextIndex = dashboardTabs.length - 1;
+      else return;
+      event.preventDefault();
+      activateDashboardTab(dashboardTabs[nextIndex], true);
+    });
+  });
+
   const stockFilter = document.getElementById("stockFilter");
   const categoryFilter = document.getElementById("categoryFilter");
   const statusButtons = document.querySelectorAll(".chip");

@@ -1,0 +1,85 @@
+@model PoultryOS.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Sign in";
+    var returnUrl = ViewData["ReturnUrl"] as string;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manok ni Rene | Sign in</title>
+    <link rel="icon" type="image/svg+xml" href="~/images/logo.svg" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/tokens.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/login-video-background.css" asp-append-version="true" />
+</head>
+<body>
+    <main class="login-shell">
+        <video class="brand-video" muted loop playsinline preload="none" aria-hidden="true" tabindex="-1">
+            <source src="@Url.Content("~/videos/login-video.mp4")" type="video/mp4" />
+        </video>
+        <div class="login-content">
+            <header class="brand-content">
+                <img class="brand-logo" src="~/images/logo.svg" alt="" asp-append-version="true" />
+                <a class="brand" href="@Url.Action("Login", "Account")">Manok ni Rene</a>
+                <p class="tagline">A steady hand for the busy days at the shop.</p>
+            </header>
+        <section class="form-panel">
+            <div class="login-card">
+                <div class="form-heading">
+                    <p class="eyebrow">Owner and employee sign-in</p>
+                    <h2>Welcome back</h2>
+                    <p>Check stock, record sales, and see what’s ahead.</p>
+                </div>
+
+                <form asp-controller="Account" asp-action="Login" method="post" id="login-form" novalidate>
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="returnUrl" value="@returnUrl" />
+                    <div asp-validation-summary="ModelOnly" class="validation-summary" role="alert"></div>
+                    <div class="field-group">
+                        <label asp-for="Username"></label>
+                        <input asp-for="Username" autocomplete="username" placeholder="Enter your username" autofocus />
+                        <span asp-validation-for="Username" class="field-error"></span>
+                    </div>
+                    <div class="field-group">
+                        <label asp-for="Password"></label>
+                        <div class="password-wrap">
+                            <input asp-for="Password" autocomplete="current-password" placeholder="Enter your password" />
+                            <button type="button" class="password-toggle" id="password-toggle" aria-label="Show password">Show</button>
+                        </div>
+                        <span asp-validation-for="Password" class="field-error"></span>
+                    </div>
+                    <div class="form-options">
+                        <label class="remember-label"><input asp-for="RememberMe" /><span>Remember me</span></label>
+                        <span class="secure-label"><span>&#10003;</span> Secure sign in</span>
+                    </div>
+                    <button class="submit-button" type="submit" id="submit-button"><span class="button-label">Sign in</span><span class="button-arrow" aria-hidden="true">&#8594;</span></button>
+                </form>
+                <p class="access-note">Use your Manok ni Rene account credentials to continue.</p>
+            </div>
+        </section>
+            <p class="copyright">Manok ni Rene &copy; 2026 &nbsp;&bull;&nbsp; Built for better decisions</p>
+        </div>
+    </main>
+    <script>
+        (() => {
+            const video = document.querySelector('.brand-video');
+            if (!video) return;
+            const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+            const desktopViewport = window.matchMedia('(min-width: 701px)');
+            const syncPlayback = () => {
+                if (motionPreference.matches || !desktopViewport.matches) {
+                    video.pause();
+                    return;
+                }
+                const playback = video.play();
+                if (playback && typeof playback.catch === 'function') playback.catch(() => {});
+            };
+            syncPlayback();
+            motionPreference.addEventListener?.('change', syncPlayback);
+            desktopViewport.addEventListener?.('change', syncPlayback);
+        })();
+    </script>
+    <script src="~/js/login.js" asp-append-version="true"></script>
+</body>
+</html>

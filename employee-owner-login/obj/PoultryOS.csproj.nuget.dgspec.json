@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\dev\\Trial-and-error\\employee-owner-login\\PoultryOS.csproj": {}
+    "C:\\Users\\Izuki\\Documents\\GitHub\\Trial-and-error\\employee-owner-login\\PoultryOS.csproj": {}
   },
   "projects": {
-    "C:\\dev\\Trial-and-error\\employee-owner-login\\PoultryOS.csproj": {
+    "C:\\Users\\Izuki\\Documents\\GitHub\\Trial-and-error\\employee-owner-login\\PoultryOS.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\dev\\Trial-and-error\\employee-owner-login\\PoultryOS.csproj",
+        "projectUniqueName": "C:\\Users\\Izuki\\Documents\\GitHub\\Trial-and-error\\employee-owner-login\\PoultryOS.csproj",
         "projectName": "PoultryOS",
-        "projectPath": "C:\\dev\\Trial-and-error\\employee-owner-login\\PoultryOS.csproj",
-        "packagesPath": "C:\\Users\\ronie\\.nuget\\packages\\",
-        "outputPath": "C:\\dev\\Trial-and-error\\employee-owner-login\\obj\\",
+        "projectPath": "C:\\Users\\Izuki\\Documents\\GitHub\\Trial-and-error\\employee-owner-login\\PoultryOS.csproj",
+        "packagesPath": "C:\\Users\\Izuki\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Izuki\\Documents\\GitHub\\Trial-and-error\\employee-owner-login\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\ronie\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Izuki\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -84,24 +84,6 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
-          "downloadDependencies": [
-            {
-              "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[8.0.31, 8.0.31]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Host.win-x64",
-              "version": "[8.0.31, 8.0.31]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Ref",
-              "version": "[8.0.31, 8.0.31]"
-            },
-            {
-              "name": "Microsoft.WindowsDesktop.App.Ref",
-              "version": "[8.0.31, 8.0.31]"
-            }
-          ],
           "frameworkReferences": {
             "Microsoft.AspNetCore.App": {
               "privateAssets": "none"

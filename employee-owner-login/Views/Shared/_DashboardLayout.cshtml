@@ -71,12 +71,42 @@
                     <div class="farm-title">Manok ni Rene</div>
                 </div>
 
-                <div class="topbar-search">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false">
-                        <circle cx="10.8" cy="10.8" r="6.3" />
-                        <path d="m15.5 15.5 4.2 4.2" />
-                    </svg>
-                    <input type="search" placeholder="Search products, alerts, or sales" aria-label="Search" />
+                <div class="topbar-search global-search" id="globalSearch">
+                    <button class="global-search-trigger" type="button" aria-label="Open search" aria-controls="globalSearchResults">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false">
+                            <circle cx="10.8" cy="10.8" r="6.3" />
+                            <path d="m15.5 15.5 4.2 4.2" />
+                        </svg>
+                    </button>
+                    <input id="globalSearchInput" type="search" placeholder="Search products, alerts, or sales…" aria-label="Search products, alerts, or sales" autocomplete="off" aria-expanded="false" aria-controls="globalSearchResults" />
+                    <div id="globalSearchResults" class="global-search-results" role="region" aria-label="Search results" hidden>
+                        <div class="global-search-filters">
+                            <span>Limit sales by date</span>
+                            <label>From <input id="globalSearchFrom" type="date" /></label>
+                            <label>To <input id="globalSearchTo" type="date" /></label>
+                        </div>
+                        <div class="global-search-suggestions" role="group" aria-label="Try searching for" hidden>
+                            <span>Try searching for…</span>
+                            <div class="global-search-chips">
+                                @if (role == "Owner")
+                                {
+                                    <button type="button" data-search-term="Critical">Critical alerts</button>
+                                    <button type="button" data-search-term="Chicken Breast">Chicken Breast</button>
+                                    <button type="button" data-search-term="Whole Chicken">Whole Chicken</button>
+                                    <button type="button" data-search-term="Chicken Wings">Chicken Wings</button>
+                                }
+                                else
+                                {
+                                    <button type="button" data-search-term="Critical">Critical alerts</button>
+                                    <button type="button" data-search-term="Chicken Breast">Chicken Breast sales</button>
+                                    <button type="button" data-search-term="Whole Chicken">Whole Chicken sales</button>
+                                    <button type="button" data-search-term="Chicken Wings">Chicken Wings sales</button>
+                                }
+                            </div>
+                        </div>
+                        <p class="global-search-status" role="status" aria-live="polite"></p>
+                        <div class="global-search-groups"></div>
+                    </div>
                 </div>
 
                 <div class="topbar-right">
@@ -111,5 +141,6 @@
     <script src="~/lib/chartjs/chart.min.js" asp-append-version="true"></script>
     <script src="~/js/dashboard.js" asp-append-version="true"></script>
     <script src="~/js/notifications.js" asp-append-version="true"></script>
+    <script src="~/js/global-search.js" asp-append-version="true"></script>
 </body>
 </html>

@@ -38,46 +38,6 @@
     </div>
 </section>
 
-<section class="dashboard-grid dashboard-chart-primary">
-    <article class="panel chart-panel chart-panel--primary">
-        <div class="panel-header"><h2>Daily Sales Trend</h2><div class="chart-toggle"><button class="chart-mode active" data-category="Whole Chicken" type="button">Whole Chicken</button><button class="chart-mode" data-category="Cuts &amp; Parts" type="button">Cuts &amp; Parts</button></div></div>
-        <div class="chart-plot">
-            <div class="chart-empty hidden" data-chart-empty="dailySalesChart"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 18.5h16M5.5 15l4-4 3.2 2.6 5.8-6.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="18.5" cy="7.5" r="1.2" fill="currentColor"/></svg><strong>No sales to chart yet</strong><span>Daily totals will appear here after a sale is recorded.</span></div>
-            <canvas id="dailySalesChart"></canvas>
-        </div>
-    </article>
-    <article class="panel chart-panel chart-panel--secondary">
-        <div class="panel-header"><h2>Low Stock Distribution</h2></div>
-        <div class="chart-plot">
-            <div id="lowStockEmpty" class="empty-state empty-state--healthy hidden">
-                <span class="empty-state-mark" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.2 4.2L19 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
-                </span>
-                <strong>All products are healthy</strong>
-                <span>No stock alerts need your attention right now.</span>
-            </div>
-            <canvas id="lowStockChart"></canvas>
-        </div>
-    </article>
-</section>
-
-<section class="dashboard-grid dashboard-chart-support">
-    <article class="panel chart-panel chart-panel--support">
-        <div class="panel-header"><h2>Weekly Sales by Product</h2></div>
-        <div class="chart-plot">
-            <div class="chart-empty hidden" data-chart-empty="consumptionChart"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 6.5h14M5 12h9M5 17.5h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="18" cy="12" r="2" stroke="currentColor" stroke-width="1.6"/></svg><strong>No weekly sales to chart</strong><span>Product totals will show here as sales are recorded.</span></div>
-            <canvas id="consumptionChart"></canvas>
-        </div>
-    </article>
-    <article class="panel chart-panel chart-panel--support">
-        <div class="panel-header"><h2>Forecasted Stock Depletion</h2></div>
-        <div class="chart-plot">
-            <div class="chart-empty hidden" data-chart-empty="depletionChart"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4.5c-3.7 3.2-5.7 6.2-5.7 9a5.7 5.7 0 0 0 11.4 0c0-2.8-2-5.8-5.7-9Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9.5 14.2c.4 1.2 1.2 1.9 2.5 2.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><strong>No stock at risk</strong><span>There are no active alerts to forecast right now.</span></div>
-            <canvas id="depletionChart"></canvas>
-        </div>
-    </article>
-</section>
-
 <section class="dashboard-grid two-up">
     <article class="panel alert-panel">
         <div class="panel-header"><h2>Active Alerts</h2></div>
@@ -134,6 +94,20 @@
     </article>
 </section>
 
+<section class="dashboard-tabs" aria-label="Dashboard panels">
+    <div class="dashboard-tab-list" role="tablist" aria-label="Dashboard views">
+        <button class="dashboard-tab active" id="tab-stock-overview" type="button" role="tab" aria-selected="true" aria-controls="panel-stock-overview" tabindex="0" data-dashboard-tab="stock-overview">Stock Overview</button>
+        <button class="dashboard-tab" id="tab-daily-sales" type="button" role="tab" aria-selected="false" aria-controls="panel-daily-sales" tabindex="-1" data-dashboard-tab="daily-sales">Daily Sales Trend</button>
+        <button class="dashboard-tab" id="tab-low-stock" type="button" role="tab" aria-selected="false" aria-controls="panel-low-stock" tabindex="-1" data-dashboard-tab="low-stock">Low Stock Distribution</button>
+        <button class="dashboard-tab" id="tab-depletion" type="button" role="tab" aria-selected="false" aria-controls="panel-depletion" tabindex="-1" data-dashboard-tab="depletion">Forecasted Stock Depletion</button>
+        <button class="dashboard-tab" id="tab-weekly-sales" type="button" role="tab" aria-selected="false" aria-controls="panel-weekly-sales" tabindex="-1" data-dashboard-tab="weekly-sales">Weekly Sales by Product</button>
+        @if (Model.IsOwner)
+        {
+            <button class="dashboard-tab" id="tab-recent-activity" type="button" role="tab" aria-selected="false" aria-controls="panel-recent-activity" tabindex="-1" data-dashboard-tab="recent-activity">Recent Activity</button>
+        }
+    </div>
+
+    <div class="dashboard-tab-panel" id="panel-stock-overview" role="tabpanel" aria-labelledby="tab-stock-overview" data-dashboard-panel="stock-overview">
 <section class="panel stock-panel">
     <div class="panel-header split-header">
         <h2>Stock Overview</h2>
@@ -170,7 +144,18 @@
                 @foreach (var row in Model.StockOverview)
                 {
                     <tr data-status="@row.Status" data-category="@row.Category" data-name="@row.Product">
-                        <td>@row.Product</td>
+                        <td>
+                            <span>@row.Product</span>
+                            <details class="stock-mobile-details">
+                                <summary>More details</summary>
+                                <dl>
+                                    <div><dt>Category</dt><dd>@row.Category</dd></div>
+                                    <div><dt>Weekly consumption</dt><dd>@row.WeeklyConsumption.ToString("0.##")</dd></div>
+                                    <div><dt>Days remaining</dt><dd>@row.DaysRemaining</dd></div>
+                                    <div><dt>Predicted depletion</dt><dd>@row.PredictedDepletionDate</dd></div>
+                                </dl>
+                            </details>
+                        </td>
                         <td>@row.Category</td>
                         <td>@row.CurrentStock.ToString("0.##")</td>
                         <td>@row.WeeklyConsumption.ToString("0.##")</td>
@@ -183,9 +168,56 @@
         </table>
     </div>
 </section>
+    </div>
+
+    <div class="dashboard-tab-panel" id="panel-daily-sales" role="tabpanel" aria-labelledby="tab-daily-sales" data-dashboard-panel="daily-sales" hidden>
+    <article class="panel chart-panel chart-panel--primary">
+        <div class="panel-header"><h2>Daily Sales Trend</h2><div class="chart-toggle"><button class="chart-mode active" data-category="Whole Chicken" type="button">Whole Chicken</button><button class="chart-mode" data-category="Cuts &amp; Parts" type="button">Cuts &amp; Parts</button></div></div>
+        <div class="chart-plot">
+            <div class="chart-empty hidden" data-chart-empty="dailySalesChart"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 18.5h16M5.5 15l4-4 3.2 2.6 5.8-6.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="18.5" cy="7.5" r="1.2" fill="currentColor"/></svg><strong>No sales to chart yet</strong><span>Daily totals will appear here after a sale is recorded.</span></div>
+            <canvas id="dailySalesChart"></canvas>
+        </div>
+    </article>
+    </div>
+
+    <div class="dashboard-tab-panel" id="panel-low-stock" role="tabpanel" aria-labelledby="tab-low-stock" data-dashboard-panel="low-stock" hidden>
+    <article class="panel chart-panel chart-panel--secondary">
+        <div class="panel-header"><h2>Low Stock Distribution</h2></div>
+        <div class="chart-plot">
+            <div id="lowStockEmpty" class="empty-state empty-state--healthy hidden">
+                <span class="empty-state-mark" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.2 4.2L19 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                </span>
+                <strong>All products are healthy</strong>
+                <span>No stock alerts need your attention right now.</span>
+            </div>
+            <canvas id="lowStockChart"></canvas>
+        </div>
+    </article>
+    </div>
+
+<div class="dashboard-tab-panel" id="panel-weekly-sales" role="tabpanel" aria-labelledby="tab-weekly-sales" data-dashboard-panel="weekly-sales" hidden>
+    <article class="panel chart-panel chart-panel--support">
+        <div class="panel-header"><h2>Weekly Sales by Product</h2></div>
+        <div class="chart-plot">
+            <div class="chart-empty hidden" data-chart-empty="consumptionChart"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 6.5h14M5 12h9M5 17.5h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="18" cy="12" r="2" stroke="currentColor" stroke-width="1.6"/></svg><strong>No weekly sales to chart</strong><span>Product totals will show here as sales are recorded.</span></div>
+            <canvas id="consumptionChart"></canvas>
+        </div>
+    </article>
+</div>
+<div class="dashboard-tab-panel" id="panel-depletion" role="tabpanel" aria-labelledby="tab-depletion" data-dashboard-panel="depletion" hidden>
+    <article class="panel chart-panel chart-panel--support">
+        <div class="panel-header"><h2>Forecasted Stock Depletion</h2></div>
+        <div class="chart-plot">
+            <div class="chart-empty hidden" data-chart-empty="depletionChart"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4.5c-3.7 3.2-5.7 6.2-5.7 9a5.7 5.7 0 0 0 11.4 0c0-2.8-2-5.8-5.7-9Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9.5 14.2c.4 1.2 1.2 1.9 2.5 2.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><strong>No stock at risk</strong><span>There are no active alerts to forecast right now.</span></div>
+            <canvas id="depletionChart"></canvas>
+        </div>
+    </article>
+</div>
 
 @if (Model.IsOwner)
 {
+<div class="dashboard-tab-panel" id="panel-recent-activity" role="tabpanel" aria-labelledby="tab-recent-activity" data-dashboard-panel="recent-activity" hidden>
     <aside class="panel recent-activity-panel">
         <div class="panel-header"><h2>Recent Activity</h2></div>
         <ul class="activity-list">
@@ -200,7 +232,9 @@
             }
         </ul>
     </aside>
+    </div>
 }
+</section>
 
 <script>
     window.dashboardState = {

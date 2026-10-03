@@ -18,9 +18,9 @@ add a new page or component, read this first.
 
 ## Brand
 
-- **Name used throughout the UI:** [confirm and fill in — the conversation
-  flagged a conflict between "Manok ni Rene", "Sunrise Poultry Farm", and the
-  logo's "Poultry Farm" caption; pick the one that matches the real signage]
+- **Name used throughout the UI: "Manok ni Rene."** Confirmed — replaces
+  "Sunrise Poultry Farm" everywhere. The logo's own "Poultry Farm" caption is
+  treated as generic and not used as the displayed brand name.
 - **Logo:** a soft, rounded, grayscale chicken illustration. It is the source
   of the neutral palette. **Do not recolor, stretch, redraw, or add effects
   to the logo artwork.**
@@ -32,23 +32,41 @@ add a new page or component, read this first.
 
 ## Palette
 
-- **Neutrals** derived from the logo: charcoal, soft gray, white.
-- **One accent color**, chosen to *not* overlap red / amber / green.
-- **Status colors — red, amber, green — are reserved for stock/alert
-  meaning only.** Never reuse them for ordinary buttons, links, or
-  decoration; that's what breaks their signal value.
-- All colors are defined as CSS variables in one place and consumed by
-  `dashboard.css`, `login.css`, and `modules.css` — no page defines its own
-  one-off hex values.
+All color values live in `wwwroot/css/tokens.css` as CSS variables and are
+consumed by every other stylesheet — no page defines its own one-off hex
+value. Current tokens:
+
+- **Neutrals (from the logo):** `--bg: #f3f3f3`, `--panel: #ffffff`,
+  `--panel-alt: #f7f7f7`, `--sidebar: #333333`, `--sidebar-soft: #474747`,
+  `--text: #292929`, `--muted: #626262`, `--border: #dedede`.
+- **Accent:** `--primary: #2457a6` (a blue — sometimes called "indigo" in
+  conversation, but it's this one token, `var(--primary)`, not a separate
+  color). Variants: `--primary-hover: #1d4788`, `--primary-soft`,
+  `--primary-border`, `--focus-ring`.
+- **Status colors — reserved for stock/alert meaning only, never reused for
+  ordinary buttons, links, or decoration:** `--critical: #b42318` (+
+  `-soft`/`-border`), `--warning: #8a4b08` (+ `-soft`/`-border`),
+  `--healthy: #176b3a` (+ `-soft`/`-border`). `--info` currently equals
+  `--primary` (`#2457a6`).
+- **Spacing:** `--space-1` through `--space-8` (4px–32px scale).
+- **Radius:** `--radius-control: 8px`, `--radius-card: 14px`,
+  `--radius-pill: 999px`.
+- **Shadow:** `--shadow` (resting), `--shadow-raised` (hover/lift).
+
+If a future change needs a new accent or status color, add it as a token in
+`tokens.css` first and update this file — don't hardcode a new color in a
+page-level stylesheet.
 
 ## Typography
 
-- One font pairing (max two families), loaded consistently on **both** the
-  login page and `_DashboardLayout.cshtml` — this replaced the earlier split
-  where the dashboard silently fell back to system fonts while login used
-  Google-Fonts-hosted DM Sans/Space Grotesk.
-- Self-hosted in `wwwroot/fonts` where possible, so the app still looks right
-  offline.
+- Single typeface: **Nunito** (variable font), self-hosted at
+  `wwwroot/fonts/Nunito-Variable.ttf`, loaded via `@font-face` in
+  `tokens.css` and used on **both** login and the dashboard shell — this
+  replaced the earlier split where the dashboard silently fell back to
+  system fonts while login used Google-Fonts-hosted DM Sans/Space Grotesk.
+  Fallback stack: `"Nunito", "Segoe UI", sans-serif`.
+- Avoid tiny uppercase letter-spaced "eyebrow" labels — replaced with
+  readable mixed-case text (first cleaned up on the Login page).
 
 ## Layout & components
 
@@ -60,6 +78,15 @@ add a new page or component, read this first.
   others secondary) instead of a uniform 2×2 grid of equal-weight cards.
 - Empty states are designed (small inline illustration + message), not just
   bare text.
+- **Login page** uses an asymmetric two-column layout: a spacious left brand
+  column (logo, large "Manok ni Rene" wordmark, a short human line about the
+  shop) paired with a quiet, easy-to-scan form on the right — not a centered
+  box on a plain background. On narrow screens (≤360px) the brand column
+  collapses into a compact header above the full-width form.
+- Login's left column has a muted, looping, grayscale background video
+  (`wwwroot/videos/login-video.mp4`) beneath the logo/wordmark. It pauses on
+  phone widths and when `prefers-reduced-motion` is set; the original still
+  background remains as the fallback/poster.
 - Avoid, unless a future brief deliberately revisits it: purple/blue
   gradients, decorative concentric circles, tiny uppercase letter-spaced
   "eyebrow" labels, cards nested in cards, cream backgrounds by default —
@@ -108,3 +135,20 @@ whitespace check is **not** the same as this:
   verification or install an unverified bundle; retry later, and in the
   meantime apply the skill's guidance by having the agent read the project
   files directly.
+- Considering a "DESIGN.md library" skill (several near-identical repos
+  exist, e.g. `VoltAgent/awesome-claude-design`, `rohitg00/awesome-claude-design`)
+  to borrow layout/type direction from an established brand for a broader
+  visual refresh. If used: review whatever file is pasted into agent context
+  before applying it, and treat it as a *reference for layout rhythm and
+  type scale only* — the brand, palette, and tokens in this file stay as the
+  source of truth, they are not replaced wholesale by an imported system.
+
+## Open items
+
+- A broader visual refresh (module/panel positions, overall layout, page
+  backgrounds) is under discussion but no specific reference direction has
+  been chosen yet — do not apply a full-system import until one is picked
+  and approved.
+- `wwwroot/videos/login-video.mp4`: confirm the filename no longer has a
+  space (an earlier version was `login video.mp4`) and that `Login.cshtml`'s
+  reference matches.

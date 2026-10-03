@@ -9,16 +9,18 @@
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
 .field { display: grid; gap: var(--space-2); color: var(--muted); font-size: .83rem; font-weight: 700; }
 .field.full { grid-column: 1 / -1; }
-.field input, .field select, .field textarea, .toolbar input, .toolbar select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-control); outline: none; color: var(--text); background: var(--white); }
+.field input, .field select, .field textarea, .toolbar input, .toolbar select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-control); outline: none; color: var(--text); background-color: var(--panel-alt); }
+.field select, .toolbar select, .field select option, .toolbar select option { color: var(--text); background-color: var(--panel-alt); color-scheme: dark; }
+.field input[type="date"], .toolbar input[type="date"] { color-scheme: dark; }
 .field textarea { min-height: 100px; resize: vertical; }
 .field input:focus, .field select:focus, .field textarea:focus, .toolbar input:focus, .toolbar select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
 .input-with-unit { display: flex; align-items: center; gap: var(--space-2); }
 .input-with-unit input { min-width: 0; flex: 1; }
 .unit-label { min-width: 30px; color: var(--muted); font-weight: 800; }
 .primary-btn, .secondary-btn, .danger-btn, .small-btn { border: 1px solid transparent; border-radius: var(--radius-control); padding: 10px 14px; cursor: pointer; font-weight: 800; }
-.primary-btn { color: var(--white); background: var(--primary); }
+.primary-btn { color: var(--on-primary); background: var(--primary); }
 .primary-btn:disabled { cursor: not-allowed; opacity: .45; }
-.secondary-btn, .small-btn { border-color: var(--border); color: var(--text); background: var(--white); }
+.secondary-btn, .small-btn { border-color: var(--border); color: var(--text); background: var(--panel-alt); }
 .danger-btn { border-color: color-mix(in srgb,var(--critical) 20%,transparent); color: var(--critical); background: var(--critical-soft); }
 .small-btn { padding: 7px 10px; font-size: .78rem; }
 .panel h2 { margin: 0; font-size: 1.1rem; }
@@ -65,13 +67,13 @@
 .toggle { position: relative; width: 48px; height: 44px; flex: 0 0 48px; }
 .toggle input { opacity: 0; width: 0; height: 0; }
 .toggle span { position: absolute; inset: 9px 0; border-radius: var(--radius-pill); background: var(--border); cursor: pointer; transition: .2s; }
-.toggle span::before { content: ""; position: absolute; width: 19px; height: 19px; left: 3px; top: 3px; border-radius: 50%; background: var(--white); transition: .2s; }
+.toggle span::before { content: ""; position: absolute; width: 19px; height: 19px; left: 3px; top: 3px; border-radius: 50%; background: var(--panel-alt); transition: .2s; }
 .toggle input:checked + span { background: var(--healthy); }
 .toggle input:checked + span::before { transform: translateX(20px); }
 .toggle input:focus-visible + span { outline: 3px solid var(--primary); outline-offset: 3px; }
 .modal-backdrop { position: fixed; inset: 0; z-index: 60; display: none; place-items: center; padding: 18px; background: var(--scrim); }
 .modal-backdrop.is-open { display: grid; }
-.modal { width: min(560px, 100%); max-height: 90vh; overflow-y: auto; padding: 22px; border-radius: var(--radius-card); background: var(--white); box-shadow: var(--shadow-raised); }
+.modal { width: min(560px, 100%); max-height: 90vh; overflow-y: auto; padding: 22px; border-radius: var(--radius-card); color: var(--text); background: var(--panel); box-shadow: var(--shadow-raised); }
 .modal-open { overflow: hidden; }
 .modal-header { display: flex; justify-content: space-between; gap: var(--space-4); margin-bottom: 18px; }
 .modal-close { min-width: 44px; min-height: 44px; border: 0; border-radius: var(--radius-control); color: var(--muted); background: transparent; cursor: pointer; font-size: 1.4rem; }
@@ -99,7 +101,7 @@
 .sales-entry .field { gap: var(--space-2); color: var(--text); font-size: .94rem; font-weight: 800; }
 .sales-entry .field input,
 .sales-entry .field select,
-.sales-entry .field textarea { min-height: 52px; padding: 12px 14px; border-radius: var(--radius-control); color: var(--text); background: var(--white); font-size: 1rem; }
+.sales-entry .field textarea { min-height: 52px; padding: 12px 14px; border-radius: var(--radius-control); color: var(--text); background-color: var(--panel-alt); font-size: 1rem; }
 .sales-entry .field textarea { min-height: 112px; resize: vertical; }
 .sales-entry .field input:focus-visible,
 .sales-entry .field select:focus-visible,
