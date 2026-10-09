@@ -59,8 +59,11 @@ public class ForecastService : IForecastService
             var days = historyByProduct[product.Id];
 
             var last7 = days.Skip(days.Count - WmaWindow).Take(WmaWindow).ToList();
-            var last7Sum = last7.Sum();
-            var wma = CalculateWma(last7);
+            var sellingDays = last7.Where(d => d > 0).ToList();
+            var last7Sum = last7.Sum();                    // total still counts all 7 days
+            var wma = sellingDays.Count >= 3
+                ? CalculateWma(sellingDays)                // use only days with sales
+                : 0d;                                       // too few selling days → no forecast
             var forecast7 = (decimal)wma * WmaWindow;
 
             var daysRemaining = wma > 0 ? (double)product.CurrentStock / (double)wma : 0d;
@@ -78,10 +81,12 @@ public class ForecastService : IForecastService
             if (days.Count >= WmaWindow + 1)
             {
                 var prior7 = days.Skip(days.Count - WmaWindow - 1).Take(WmaWindow).ToList();
+                var priorSelling = prior7.Where(d => d > 0).ToList();
                 var actual = days[days.Count - 1];
-                if (prior7.Sum() > 0)
+
+                if (priorSelling.Count >= 3)
                 {
-                    var predicted = CalculateWma(prior7);
+                    var predicted = CalculateWma(priorSelling);
                     if (predicted > 0)
                     {
                         var error = actual == 0

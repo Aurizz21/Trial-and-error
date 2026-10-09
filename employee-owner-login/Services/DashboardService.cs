@@ -169,7 +169,7 @@ public class DashboardService : IDashboardService
     //  KPIs
     // ==============================================================
 
-    private static double CalculateForecastAccuracy(
+        private static double CalculateForecastAccuracy(
         List<Product> products,
         Dictionary<int, List<decimal>> history)
     {
@@ -180,11 +180,11 @@ public class DashboardService : IDashboardService
             if (!history.TryGetValue(product.Id, out var days) || days.Count < WmaWindow + 1)
                 continue;
 
-            // Use the first 7 of the last 8 days to forecast day 8 (which we know).
             var prior7 = days.Skip(days.Count - WmaWindow - 1).Take(WmaWindow).ToList();
             var actual = days[days.Count - 1];
 
-            if (prior7.Sum() == 0) continue;
+            // Skip if there weren't enough selling days to make a real forecast.
+            if (prior7.Count(d => d > 0) < 3) continue;
 
             var forecast = CalculateWma(prior7);
             if (forecast <= 0) continue;
@@ -374,18 +374,22 @@ public class DashboardService : IDashboardService
     //  MATH + RULES
     // ==============================================================
 
-    private static double CalculateWma(IReadOnlyList<decimal> sales)
+        private static double CalculateWma(IReadOnlyList<decimal> sales)
     {
-        if (sales.Count < WmaWindow) return 0;
+        // Skip zero-sales days so a quiet day doesn't drag the forecast down.
+        var selling = sales.Where(d => d > 0).TakeLast(WmaWindow).ToList();
 
-        var trailing = sales.TakeLast(WmaWindow).ToList();
+        if (selling.Count < 3) return 0;    // too few data points for a meaningful WMA
+
         var weightedTotal = 0d;
-        for (var i = 0; i < trailing.Count; i++)
+        for (var i = 0; i < selling.Count; i++)
         {
-            weightedTotal += (i + 1) * (double)trailing[i];
+            weightedTotal += (i + 1) * (double)selling[i];
         }
 
-        return weightedTotal / 28d;
+        // Divisor is the sum of weights: for n days, sum = n*(n+1)/2.
+        var divisor = (double)selling.Count * (selling.Count + 1) / 2d;
+        return weightedTotal / divisor;
     }
 
     private static string DetermineStatus(Product product, decimal weeklyConsumption, double daysRemaining)

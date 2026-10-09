@@ -57,34 +57,61 @@ public static class SeedData
         db.SaveChanges();
 
         // ---------------------------------------------------------------
-        // 3. Sales — ~500 rows spread over the last 100 days
+        // 3. Sales — realistic pattern over the last 100 days.
+        //    Each product sells most days with a slight upward trend and weekend spikes.
         // ---------------------------------------------------------------
         var sales = new List<Sale>();
         var today = DateTime.Today;
         var startDay = today.AddDays(-100);
+        var totalDays = 101; // inclusive of today
 
-        for (var day = startDay; day <= today; day = day.AddDays(1))
+        for (var dayIndex = 0; dayIndex < totalDays; dayIndex++)
         {
+            var day = startDay.AddDays(dayIndex);
             var isWeekend = day.DayOfWeek == DayOfWeek.Saturday || day.DayOfWeek == DayOfWeek.Sunday;
-            var salesToday = isWeekend ? rng.Next(6, 13) : rng.Next(3, 6);
 
-            for (var i = 0; i < salesToday; i++)
+            foreach (var product in products)
             {
-                var product = products[rng.Next(products.Count)];
-                var quantity = Math.Round((decimal)(rng.Next(1, 11) + rng.NextDouble()), 2);
+                // Baseline daily sales per product.
+                // Whole Chicken sells more by volume; cuts sell less.
+                var baseDaily = product.Category == "Whole Chicken" ? 6.0 : 4.0;
+
+                // Slight upward trend over 100 days (+30% growth across the window).
+                var trend = baseDaily * (1.0 + 0.3 * (dayIndex / (double)totalDays));
+
+                // Weekend bump: +60%
+                var weekendMultiplier = isWeekend ? 1.6 : 1.0;
+
+                // Small realistic noise: ±15%
+                var noise = 1.0 + (rng.NextDouble() * 0.3 - 0.15);
+
+                var quantity = Math.Round((decimal)Math.Max(1.0, trend * weekendMultiplier * noise), 2);
 
                 var hour = rng.Next(7, 19);
                 var minute = rng.Next(0, 60);
-                var soldAt = day.AddHours(hour).AddMinutes(minute);
 
                 sales.Add(new Sale
                 {
                     ProductId = product.Id,
                     UserId = rng.Next(2) == 0 ? owner.Id : employee.Id,
                     Quantity = quantity,
-                    SoldAt = soldAt,
+                    SoldAt = day.AddHours(hour).AddMinutes(minute),
                     Notes = null
                 });
+
+                // Small chance of an extra sale for variety (25% of product-days)
+                if (rng.NextDouble() < 0.25)
+                {
+                    var extraQty = Math.Round((decimal)Math.Max(1.0, baseDaily * 0.5 * (1 + rng.NextDouble() * 0.5)), 2);
+                    sales.Add(new Sale
+                    {
+                        ProductId = product.Id,
+                        UserId = rng.Next(2) == 0 ? owner.Id : employee.Id,
+                        Quantity = extraQty,
+                        SoldAt = day.AddHours(rng.Next(7, 19)).AddMinutes(rng.Next(0, 60)),
+                        Notes = null
+                    });
+                }
             }
         }
 
