@@ -2,239 +2,254 @@
 @{
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
     ViewData["Title"] = "Dashboard";
+    ViewData["BodyClass"] = "dashboard-page";
     ViewData["CriticalAlertCount"] = Model.CriticalAlertCount;
 }
 
-<section class="page-header">
-    <div>
-        <p class="greeting">@Model.PageGreeting, @Model.Username</p>
-        <h1>@Model.FullDate</h1>
-    </div>
-    <div class="depletion-banner">@Model.DepletionBanner</div>
-</section>
-
-<section class="kpi-grid">
-    <article class="kpi-card kpi-card--priority">
-        <div class="kpi-label">Critical Alerts</div>
-        <div class="kpi-value">@Model.CriticalAlertCount</div>
-        <div class="kpi-meta">@Model.WarningAlertCount warning(s) active</div>
-    </article>
-    <div class="kpi-supporting">
-        <article class="kpi-card">
-            <div class="kpi-label">Current Stock</div>
-            <div class="kpi-value kpi-lines"><span>@Model.WholeChickenStock.ToString("0.##") pcs whole chicken</span><span>@Model.CutsAndPartsStock.ToString("0.##") kg cuts &amp; parts</span></div>
-            <div class="kpi-meta">@Model.ProductTypesCount product types</div>
-        </article>
-        <article class="kpi-card">
-            <div class="kpi-label">Today's Sales</div>
-            <div class="kpi-value kpi-lines"><span>@Model.WholeChickenTodaySales.ToString("0.##") pcs whole chicken</span><span>@Model.CutsAndPartsTodaySales.ToString("0.##") kg cuts &amp; parts</span></div>
-            <div class="kpi-meta">@Model.TodaySalesChangePercent.ToString("0.0")% vs last week</div>
-        </article>
-        <article class="kpi-card">
-            <div class="kpi-label">Forecast Accuracy</div>
-            <div class="kpi-value">@Model.ForecastAccuracy.ToString("0.0")%</div>
-            <div class="kpi-meta">7-Day WMA model</div>
-        </article>
-    </div>
-</section>
-
-<section class="dashboard-grid two-up">
-    <article class="panel alert-panel">
-        <div class="panel-header"><h2>Active Alerts</h2></div>
-        <div class="alert-list">
-            @if (Model.ActiveAlerts.Count == 0)
-            {
-                <div class="empty-state empty-state--inline">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4.5c-3.7 3.2-5.7 6.2-5.7 9a5.7 5.7 0 0 0 11.4 0c0-2.8-2-5.8-5.7-9Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9.5 14.2c.4 1.2 1.2 1.9 2.5 2.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-                    <strong>No active stock alerts</strong>
-                    <span>There's nothing to reorder right now.</span>
+<div class="dash-layout">
+    <div class="dash-column">
+        <section class="dash-charts">
+            <article class="glass-card dash-chart-card">
+                <div class="dash-card-head">
+                    <h2>Daily Sales Trend</h2>
                 </div>
-            }
-            else
-            {
-                foreach (var alert in Model.ActiveAlerts)
+                <div class="chart-plot">
+                    <div class="chart-empty hidden" data-chart-empty="dailySalesChart"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 18.5h16M5.5 15l4-4 3.2 2.6 5.8-6.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="18.5" cy="7.5" r="1.2" fill="currentColor"/></svg><strong>No sales to chart yet</strong><span>Daily totals will appear here after a sale is recorded.</span></div>
+                    <canvas id="dailySalesChart"></canvas>
+                </div>
+                <div class="chart-toggle">
+                    <button class="chart-mode active" data-category="Whole Chicken" type="button">Whole Chicken</button>
+                    <button class="chart-mode" data-category="Cuts &amp; Parts" type="button">Cuts &amp; Parts</button>
+                </div>
+            </article>
+
+            <article class="glass-card dash-chart-card">
+                <div class="dash-card-head">
+                    <h2>Low Stock Distribution</h2>
+                </div>
+                <div class="chart-plot">
+                    <div id="lowStockEmpty" class="empty-state empty-state--healthy hidden">
+                        <span class="empty-state-mark" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.2 4.2L19 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                        </span>
+                        <strong>All products are healthy</strong>
+                        <span>No stock alerts need your attention right now.</span>
+                    </div>
+                    <canvas id="lowStockChart"></canvas>
+                </div>
+            </article>
+        </section>
+
+        <section class="dashboard-tabs" aria-label="Dashboard panels">
+            <div class="dashboard-tab-list" role="tablist" aria-label="Dashboard views">
+                <button class="dashboard-tab active" id="tab-overview" type="button" role="tab" aria-selected="true" aria-controls="panel-overview" tabindex="0" data-dashboard-tab="overview">Overview</button>
+                <button class="dashboard-tab" id="tab-depletion" type="button" role="tab" aria-selected="false" aria-controls="panel-depletion" tabindex="-1" data-dashboard-tab="depletion">Forecasted Stock Depletion</button>
+                <button class="dashboard-tab" id="tab-weekly-sales" type="button" role="tab" aria-selected="false" aria-controls="panel-weekly-sales" tabindex="-1" data-dashboard-tab="weekly-sales">Weekly Sales by Product</button>
+                <button class="dashboard-tab" id="tab-stock-overview" type="button" role="tab" aria-selected="false" aria-controls="panel-stock-overview" tabindex="-1" data-dashboard-tab="stock-overview">Stock Overview</button>
+                @if (Model.IsOwner)
                 {
-                    <div class="alert-row">
-                        <div>
-                            <div class="alert-name">@alert.ProductName</div>
-                            <div class="alert-meta">Remaining stock: @alert.CurrentStock.ToString("0.##") @alert.Units</div>
-                        </div>
-                        <div class="alert-side">
-                            <span class="status-badge status-@alert.Status.ToLowerInvariant()">@alert.Status</span>
-                            <small>@alert.DaysRemaining.ToString("0.0") days left</small>
-                            <small>Reorder @alert.SuggestedReorderQuantity.ToString("0.##") @alert.Units</small>
+                    <button class="dashboard-tab" id="tab-recent-activity" type="button" role="tab" aria-selected="false" aria-controls="panel-recent-activity" tabindex="-1" data-dashboard-tab="recent-activity">Recent Activity</button>
+                }
+            </div>
+
+            <div class="dash-sheet">
+                <div class="dash-sheet-inner">
+                    <div class="dashboard-tab-panel" id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" data-dashboard-panel="overview">
+                        <div class="dash-overview">
+                            <div class="dash-kpi-row">
+                                <article class="dash-kpi">
+                                    <div class="kpi-label">Today's Sales</div>
+                                    <div class="kpi-value kpi-lines"><span>@Model.WholeChickenTodaySales.ToString("0.##") pcs whole chicken</span><span>@Model.CutsAndPartsTodaySales.ToString("0.##") kg cuts &amp; parts</span></div>
+                                    <div class="kpi-meta">@Model.TodaySalesChangePercent.ToString("0.0")% vs last week</div>
+                                </article>
+                                <article class="dash-kpi">
+                                    <div class="kpi-label">Forecast Accuracy</div>
+                                    <div class="kpi-value">@Model.ForecastAccuracy.ToString("0.0")%</div>
+                                    <div class="kpi-meta">7-Day WMA model</div>
+                                </article>
+                            </div>
+
+                            <div class="dash-overview-alerts">
+                                @if (!string.IsNullOrWhiteSpace(Model.DepletionBanner))
+                                {
+                                    <div class="depletion-banner">@Model.DepletionBanner</div>
+                                }
+
+                                <div class="panel-header"><h2>Active Alerts</h2></div>
+                                <div class="alert-list">
+                                    @if (Model.ActiveAlerts.Count == 0)
+                                    {
+                                        <div class="empty-state empty-state--inline">
+                                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4.5c-3.7 3.2-5.7 6.2-5.7 9a5.7 5.7 0 0 0 11.4 0c0-2.8-2-5.8-5.7-9Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9.5 14.2c.4 1.2 1.2 1.9 2.5 2.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                                            <strong>No active stock alerts</strong>
+                                            <span>There's nothing to reorder right now.</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        foreach (var alert in Model.ActiveAlerts)
+                                        {
+                                            <div class="alert-row">
+                                                <div>
+                                                    <div class="alert-name">@alert.ProductName</div>
+                                                    <div class="alert-meta">Remaining stock: @alert.CurrentStock.ToString("0.##") @alert.Units</div>
+                                                </div>
+                                                <div class="alert-side">
+                                                    <span class="status-badge status-@alert.Status.ToLowerInvariant()">@alert.Status</span>
+                                                    <small>@alert.DaysRemaining.ToString("0.0") days left</small>
+                                                    <small>Reorder @alert.SuggestedReorderQuantity.ToString("0.##") @alert.Units</small>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            </div>
                         </div>
                     </div>
-                }
-            }
-        </div>
-    </article>
 
-    <article class="panel quick-sale-panel" id="quickSaleCard">
-        <div class="panel-header"><h2>Quick Sale</h2></div>
-        <form id="quick-sale-form" method="post" asp-controller="Sales" asp-action="RecordSale">
-            @Html.AntiForgeryToken()
-            <label>
-                Product
-                <select id="productId" name="productId">
-                    @foreach (var product in Model.Products)
+                    <div class="dashboard-tab-panel" id="panel-depletion" role="tabpanel" aria-labelledby="tab-depletion" data-dashboard-panel="depletion" hidden>
+                        <div class="chart-plot">
+                            <div class="chart-empty hidden" data-chart-empty="depletionChart"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4.5c-3.7 3.2-5.7 6.2-5.7 9a5.7 5.7 0 0 0 11.4 0c0-2.8-2-5.8-5.7-9Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9.5 14.2c.4 1.2 1.2 1.9 2.5 2.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><strong>No stock at risk</strong><span>There are no active alerts to forecast right now.</span></div>
+                            <canvas id="depletionChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-tab-panel" id="panel-weekly-sales" role="tabpanel" aria-labelledby="tab-weekly-sales" data-dashboard-panel="weekly-sales" hidden>
+                        <div class="chart-plot">
+                            <div class="chart-empty hidden" data-chart-empty="consumptionChart"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 6.5h14M5 12h9M5 17.5h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="18" cy="12" r="2" stroke="currentColor" stroke-width="1.6"/></svg><strong>No weekly sales to chart</strong><span>Product totals will show here as sales are recorded.</span></div>
+                            <canvas id="consumptionChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-tab-panel" id="panel-stock-overview" role="tabpanel" aria-labelledby="tab-stock-overview" data-dashboard-panel="stock-overview" hidden>
+                        <section class="panel stock-panel">
+                            <div class="panel-header split-header">
+                                <h2>Stock Overview</h2>
+                                <div class="filter-row">
+                                    <input id="stockFilter" type="text" placeholder="Filter by product" />
+                                    <select id="categoryFilter" aria-label="Filter by category">
+                                        <option value="All">All</option>
+                                        <option value="Whole Chicken">Whole Chicken</option>
+                                        <option value="Cuts &amp; Parts">Cuts &amp; Parts</option>
+                                    </select>
+                                    <div class="status-filters">
+                                        <button class="chip active" data-status="All" type="button">All</button>
+                                        <button class="chip" data-status="Healthy" type="button">Healthy</button>
+                                        <button class="chip" data-status="Warning" type="button">Warning</button>
+                                        <button class="chip" data-status="Critical" type="button">Critical</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="table-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Category</th>
+                                            <th>Current Stock</th>
+                                            <th>Weekly Consumption</th>
+                                            <th>Days Remaining</th>
+                                            <th>Predicted Depletion Date</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="stockTableBody">
+                                        @foreach (var row in Model.StockOverview)
+                                        {
+                                            <tr data-status="@row.Status" data-category="@row.Category" data-name="@row.Product">
+                                                <td>
+                                                    <span>@row.Product</span>
+                                                    <details class="stock-mobile-details">
+                                                        <summary>More details</summary>
+                                                        <dl>
+                                                            <div><dt>Category</dt><dd>@row.Category</dd></div>
+                                                            <div><dt>Weekly consumption</dt><dd>@row.WeeklyConsumption.ToString("0.##")</dd></div>
+                                                            <div><dt>Days remaining</dt><dd>@row.DaysRemaining</dd></div>
+                                                            <div><dt>Predicted depletion</dt><dd>@row.PredictedDepletionDate</dd></div>
+                                                        </dl>
+                                                    </details>
+                                                </td>
+                                                <td>@row.Category</td>
+                                                <td>@row.CurrentStock.ToString("0.##")</td>
+                                                <td>@row.WeeklyConsumption.ToString("0.##")</td>
+                                                <td>@row.DaysRemaining</td>
+                                                <td>@row.PredictedDepletionDate</td>
+                                                <td><span class="status-badge status-@row.Status.ToLowerInvariant()">@row.Status</span></td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+                    </div>
+
+                    @if (Model.IsOwner)
                     {
-                        <option value="@product.Id">@product.Name</option>
+                        <div class="dashboard-tab-panel" id="panel-recent-activity" role="tabpanel" aria-labelledby="tab-recent-activity" data-dashboard-panel="recent-activity" hidden>
+                            <div class="panel-header"><h2>Recent Activity</h2></div>
+                            <ul class="activity-list">
+                                @foreach (var entry in Model.RecentActivity)
+                                {
+                                    <li>
+                                        <span>@entry.Timestamp.ToString("HH:mm")</span>
+                                        <strong>@entry.User</strong>
+                                        <span>@entry.ActionType</span>
+                                        <small>@entry.Description</small>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
                     }
-                </select>
-            </label>
-            <label>
-                Quantity
-                <input id="quantity" name="quantity" type="number" min="1" max="200" step="1" value="1" />
-            </label>
-            <input type="hidden" name="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" />
-            <button type="submit" class="primary-btn">Record Sale</button>
-        </form>
-        <div id="quick-sale-toast" class="toast" aria-live="polite"></div>
-    </article>
-</section>
-
-<section class="dashboard-tabs" aria-label="Dashboard panels">
-    <div class="dashboard-tab-list" role="tablist" aria-label="Dashboard views">
-        <button class="dashboard-tab active" id="tab-stock-overview" type="button" role="tab" aria-selected="true" aria-controls="panel-stock-overview" tabindex="0" data-dashboard-tab="stock-overview">Stock Overview</button>
-        <button class="dashboard-tab" id="tab-daily-sales" type="button" role="tab" aria-selected="false" aria-controls="panel-daily-sales" tabindex="-1" data-dashboard-tab="daily-sales">Daily Sales Trend</button>
-        <button class="dashboard-tab" id="tab-low-stock" type="button" role="tab" aria-selected="false" aria-controls="panel-low-stock" tabindex="-1" data-dashboard-tab="low-stock">Low Stock Distribution</button>
-        <button class="dashboard-tab" id="tab-depletion" type="button" role="tab" aria-selected="false" aria-controls="panel-depletion" tabindex="-1" data-dashboard-tab="depletion">Forecasted Stock Depletion</button>
-        <button class="dashboard-tab" id="tab-weekly-sales" type="button" role="tab" aria-selected="false" aria-controls="panel-weekly-sales" tabindex="-1" data-dashboard-tab="weekly-sales">Weekly Sales by Product</button>
-        @if (Model.IsOwner)
-        {
-            <button class="dashboard-tab" id="tab-recent-activity" type="button" role="tab" aria-selected="false" aria-controls="panel-recent-activity" tabindex="-1" data-dashboard-tab="recent-activity">Recent Activity</button>
-        }
-    </div>
-
-    <div class="dashboard-tab-panel" id="panel-stock-overview" role="tabpanel" aria-labelledby="tab-stock-overview" data-dashboard-panel="stock-overview">
-<section class="panel stock-panel">
-    <div class="panel-header split-header">
-        <h2>Stock Overview</h2>
-        <div class="filter-row">
-            <input id="stockFilter" type="text" placeholder="Filter by product" />
-            <select id="categoryFilter" aria-label="Filter by category">
-                <option value="All">All</option>
-                <option value="Whole Chicken">Whole Chicken</option>
-                <option value="Cuts &amp; Parts">Cuts &amp; Parts</option>
-            </select>
-            <div class="status-filters">
-                <button class="chip active" data-status="All" type="button">All</button>
-                <button class="chip" data-status="Healthy" type="button">Healthy</button>
-                <button class="chip" data-status="Warning" type="button">Warning</button>
-                <button class="chip" data-status="Critical" type="button">Critical</button>
+                </div>
             </div>
-        </div>
+        </section>
     </div>
 
-    <div class="table-wrap">
-        <table>
-            <thead>
-                <tr>
-                    <th>Product</th>
-                    <th>Category</th>
-                    <th>Current Stock</th>
-                    <th>Weekly Consumption</th>
-                    <th>Days Remaining</th>
-                    <th>Predicted Depletion Date</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody id="stockTableBody">
-                @foreach (var row in Model.StockOverview)
-                {
-                    <tr data-status="@row.Status" data-category="@row.Category" data-name="@row.Product">
-                        <td>
-                            <span>@row.Product</span>
-                            <details class="stock-mobile-details">
-                                <summary>More details</summary>
-                                <dl>
-                                    <div><dt>Category</dt><dd>@row.Category</dd></div>
-                                    <div><dt>Weekly consumption</dt><dd>@row.WeeklyConsumption.ToString("0.##")</dd></div>
-                                    <div><dt>Days remaining</dt><dd>@row.DaysRemaining</dd></div>
-                                    <div><dt>Predicted depletion</dt><dd>@row.PredictedDepletionDate</dd></div>
-                                </dl>
-                            </details>
-                        </td>
-                        <td>@row.Category</td>
-                        <td>@row.CurrentStock.ToString("0.##")</td>
-                        <td>@row.WeeklyConsumption.ToString("0.##")</td>
-                        <td>@row.DaysRemaining</td>
-                        <td>@row.PredictedDepletionDate</td>
-                        <td><span class="status-badge status-@row.Status.ToLowerInvariant()">@row.Status</span></td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-</section>
-    </div>
+    <aside class="dash-rail">
+        <div class="rail-frame">
+            <article class="rail-card rail-card--alerts">
+                <h2>Critical Alerts</h2>
+                <div class="alert-count-box">
+                    <span class="kpi-value">@Model.CriticalAlertCount</span>
+                </div>
+                <p class="rail-meta">@Model.WarningAlertCount warning(s) active</p>
+            </article>
 
-    <div class="dashboard-tab-panel" id="panel-daily-sales" role="tabpanel" aria-labelledby="tab-daily-sales" data-dashboard-panel="daily-sales" hidden>
-    <article class="panel chart-panel chart-panel--primary">
-        <div class="panel-header"><h2>Daily Sales Trend</h2><div class="chart-toggle"><button class="chart-mode active" data-category="Whole Chicken" type="button">Whole Chicken</button><button class="chart-mode" data-category="Cuts &amp; Parts" type="button">Cuts &amp; Parts</button></div></div>
-        <div class="chart-plot">
-            <div class="chart-empty hidden" data-chart-empty="dailySalesChart"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 18.5h16M5.5 15l4-4 3.2 2.6 5.8-6.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="18.5" cy="7.5" r="1.2" fill="currentColor"/></svg><strong>No sales to chart yet</strong><span>Daily totals will appear here after a sale is recorded.</span></div>
-            <canvas id="dailySalesChart"></canvas>
+            <article class="rail-card">
+                <h2>Current Stock</h2>
+                <ul class="rail-list">
+                    <li>@Model.WholeChickenStock.ToString("0.##") pcs whole chicken</li>
+                    <li>@Model.CutsAndPartsStock.ToString("0.##") kg cuts &amp; parts</li>
+                </ul>
+                <p class="rail-meta">@Model.ProductTypesCount product types</p>
+            </article>
         </div>
-    </article>
-    </div>
 
-    <div class="dashboard-tab-panel" id="panel-low-stock" role="tabpanel" aria-labelledby="tab-low-stock" data-dashboard-panel="low-stock" hidden>
-    <article class="panel chart-panel chart-panel--secondary">
-        <div class="panel-header"><h2>Low Stock Distribution</h2></div>
-        <div class="chart-plot">
-            <div id="lowStockEmpty" class="empty-state empty-state--healthy hidden">
-                <span class="empty-state-mark" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.2 4.2L19 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
-                </span>
-                <strong>All products are healthy</strong>
-                <span>No stock alerts need your attention right now.</span>
-            </div>
-            <canvas id="lowStockChart"></canvas>
-        </div>
-    </article>
-    </div>
-
-<div class="dashboard-tab-panel" id="panel-weekly-sales" role="tabpanel" aria-labelledby="tab-weekly-sales" data-dashboard-panel="weekly-sales" hidden>
-    <article class="panel chart-panel chart-panel--support">
-        <div class="panel-header"><h2>Weekly Sales by Product</h2></div>
-        <div class="chart-plot">
-            <div class="chart-empty hidden" data-chart-empty="consumptionChart"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 6.5h14M5 12h9M5 17.5h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="18" cy="12" r="2" stroke="currentColor" stroke-width="1.6"/></svg><strong>No weekly sales to chart</strong><span>Product totals will show here as sales are recorded.</span></div>
-            <canvas id="consumptionChart"></canvas>
-        </div>
-    </article>
-</div>
-<div class="dashboard-tab-panel" id="panel-depletion" role="tabpanel" aria-labelledby="tab-depletion" data-dashboard-panel="depletion" hidden>
-    <article class="panel chart-panel chart-panel--support">
-        <div class="panel-header"><h2>Forecasted Stock Depletion</h2></div>
-        <div class="chart-plot">
-            <div class="chart-empty hidden" data-chart-empty="depletionChart"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4.5c-3.7 3.2-5.7 6.2-5.7 9a5.7 5.7 0 0 0 11.4 0c0-2.8-2-5.8-5.7-9Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9.5 14.2c.4 1.2 1.2 1.9 2.5 2.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><strong>No stock at risk</strong><span>There are no active alerts to forecast right now.</span></div>
-            <canvas id="depletionChart"></canvas>
-        </div>
-    </article>
-</div>
-
-@if (Model.IsOwner)
-{
-<div class="dashboard-tab-panel" id="panel-recent-activity" role="tabpanel" aria-labelledby="tab-recent-activity" data-dashboard-panel="recent-activity" hidden>
-    <aside class="panel recent-activity-panel">
-        <div class="panel-header"><h2>Recent Activity</h2></div>
-        <ul class="activity-list">
-            @foreach (var entry in Model.RecentActivity)
-            {
-                <li>
-                    <span>@entry.Timestamp.ToString("HH:mm")</span>
-                    <strong>@entry.User</strong>
-                    <span>@entry.ActionType</span>
-                    <small>@entry.Description</small>
-                </li>
-            }
-        </ul>
+        <article class="rail-card rail-card--quick" id="quickSaleCard">
+            <h2>Quick Sale</h2>
+            <form id="quick-sale-form" method="post" asp-controller="Sales" asp-action="RecordSale">
+                @Html.AntiForgeryToken()
+                <label>
+                    Product
+                    <select id="productId" name="productId">
+                        @foreach (var product in Model.Products)
+                        {
+                            <option value="@product.Id">@product.Name</option>
+                        }
+                    </select>
+                </label>
+                <label>
+                    Quantity
+                    <input id="quantity" name="quantity" type="number" min="1" max="200" step="1" value="1" />
+                </label>
+                <input type="hidden" name="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                <button type="submit" class="primary-btn">Record Sale</button>
+            </form>
+            <div id="quick-sale-toast" class="toast" aria-live="polite"></div>
+        </article>
     </aside>
-    </div>
-}
-</section>
+</div>
 
 <script>
     window.dashboardState = {

@@ -83,11 +83,31 @@ document.addEventListener("DOMContentLoaded", () => {
     warning: chartColor("--chart-warning"),
     healthy: chartColor("--chart-healthy"),
     criticalFill: chartColor("--chart-critical-fill"),
+    legend: chartColor("--chart-legend") || chartColor("--muted"),
     text: chartColor("--text"),
     muted: chartColor("--muted"),
     white: chartColor("--white"),
     border: chartColor("--border"),
     font: chartColor("--font-body"),
+  };
+  // Vertical fade painted under the red trend lines: strong at the line,
+  // transparent at the baseline (reference look). Scriptable so it survives
+  // every resize; falls back to the flat token before the first layout pass.
+  const lineFill = (context) => {
+    const area = context.chart.chartArea;
+    if (!area) return chartPalette.criticalFill;
+    const gradient = context.chart.ctx.createLinearGradient(
+      0,
+      area.top,
+      0,
+      area.bottom,
+    );
+    gradient.addColorStop(
+      0,
+      chartColor("--chart-fill-top") || chartPalette.criticalFill,
+    );
+    gradient.addColorStop(1, chartColor("--chart-fill-bottom") || "transparent");
+    return gradient;
   };
   const salesSeriesColors = [
     chartPalette.primary,
@@ -109,7 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
     plugins: {
       legend: {
         labels: {
-          color: chartPalette.muted,
+          color: chartPalette.legend,
           font: { family: chartPalette.font, size: 11, weight: "600" },
           boxWidth: 8,
           boxHeight: 8,
@@ -188,7 +208,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return point?.value ?? point?.Value ?? 0;
       }),
       borderColor: salesSeriesColors[index % salesSeriesColors.length],
-      backgroundColor: "transparent",
+      backgroundColor: index === 0 ? lineFill : "transparent",
+      fill: index === 0,
       borderWidth: 2,
       tension: 0.32,
       pointRadius: 0,
@@ -204,16 +225,13 @@ document.addEventListener("DOMContentLoaded", () => {
         options: {
           ...chartBaseOptions(
             {
-              x: { ...chartAxis(false) },
+              // Sparkline treatment on the dark card: no axes (reference look).
+              x: { ...chartAxis(false), ticks: { display: false } },
               y: {
-                ...chartAxis(),
+                ...chartAxis(false),
                 beginAtZero: true,
-                title: {
-                  display: true,
-                  text: selectedCategory === "Whole Chicken" ? "pcs" : "kg",
-                  color: chartPalette.muted,
-                  font: { family: chartPalette.font, size: 11, weight: "600" },
-                },
+                ticks: { display: false },
+                title: { display: false },
               },
             },
             "dailySalesChart",
@@ -428,7 +446,7 @@ document.addEventListener("DOMContentLoaded", () => {
         label: criticalProduct.productName || criticalProduct.ProductName,
         data: trend,
         borderColor: chartPalette.critical,
-        backgroundColor: chartPalette.criticalFill,
+        backgroundColor: lineFill,
         borderWidth: 2,
         pointRadius: 0,
         pointHoverRadius: 4,
