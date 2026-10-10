@@ -10,8 +10,13 @@ namespace PoultryOS.Controllers;
 public class ProductsController : Controller
 {
     private readonly IProductService _products;
+    private readonly IStockReplenishmentService _replenishment;
 
-    public ProductsController(IProductService products) => _products = products;
+    public ProductsController(IProductService products, IStockReplenishmentService replenishment)
+    {
+        _products = products;
+        _replenishment = replenishment;
+    }
 
     private string CurrentUser => User.Identity?.Name ?? "unknown";
 
@@ -51,6 +56,31 @@ public class ProductsController : Controller
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateThresholds([FromForm] Dictionary<int, decimal> thresholds)
         => ToJson(await _products.UpdateThresholdsAsync(thresholds, CurrentUser));
+    
+        [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> Restock([FromForm] RestockRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            var message = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .FirstOrDefault(m => !string.IsNullOrWhiteSpace(m)) ?? "Please check the form and try again.";
+            return BadRequest(new { success = false, message });
+        }
+
+        var result = await _replenishment.RestockAsync(request, CurrentUser);
+
+        return result.Success
+            ? Ok(new
+            {
+                success = true,
+                message = result.Message,
+                newStock = result.NewStock,
+                alertResolved = result.AlertResolved
+            })
+            : BadRequest(new { success = false, message = result.Message });
+    }
 
     // ---------- helpers ----------
 

@@ -72,7 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return result;
   };
 
-  // ---------- modal ----------
+  // ---------- product modal ----------
   const setField = (id, value) => {
     document.getElementById(id).value = value;
   };
@@ -119,7 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   openButton.addEventListener("click", () => openModal(null));
   document
-    .querySelectorAll(".modal-close-btn")
+    .querySelectorAll("#productModalOverlay .modal-close-btn")
     .forEach((button) => button.addEventListener("click", closeModal));
   overlay.addEventListener("click", (event) => {
     if (event.target === overlay) closeModal();
@@ -153,7 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // ---------- Edit / Delete ----------
+  // ---------- Edit / Delete / Restock buttons in the table ----------
   body.addEventListener("click", async (event) => {
     const edit = event.target.closest(".edit-product-btn");
     if (edit) {
@@ -170,6 +170,17 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    const restock = event.target.closest(".restock-product-btn");
+    if (restock) {
+      openRestockModal({
+        id: restock.dataset.id,
+        name: restock.dataset.name,
+        stock: restock.dataset.stock,
+        units: restock.dataset.units,
+      });
+      return;
+    }
+
     const del = event.target.closest(".delete-product-btn");
     if (del) {
       if (!confirm(`Delete "${del.dataset.name}"? Its sales history is kept.`))
@@ -182,6 +193,67 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (error) {
         showToast(error.message);
       }
+    }
+  });
+
+  // ---------- Restock modal ----------
+  const restockOverlay = document.getElementById("restockModalOverlay");
+  const restockBox = document.getElementById("restockModalBox");
+  const restockForm = document.getElementById("restockForm");
+  const restockSaveBtn = restockForm?.querySelector('button[type="submit"]');
+  let restockEscapeHandler;
+
+  const closeRestockModal = () => {
+    restockOverlay?.classList.remove("is-open");
+    restockOverlay?.setAttribute("aria-hidden", "true");
+    restockForm?.reset();
+    document.body.classList.remove("modal-open");
+    restockEscapeHandler &&
+      document.removeEventListener("keydown", restockEscapeHandler);
+    restockEscapeHandler = null;
+  };
+
+  const openRestockModal = (product) => {
+    document.getElementById("restockProductId").value = product.id;
+    document.getElementById("restockProductName").textContent = product.name;
+    document.getElementById("restockCurrentStock").textContent = product.stock;
+    document.getElementById("restockUnits").textContent = product.units;
+    document.getElementById("restockQuantity").value = "";
+    document.getElementById("restockNotes").value = "";
+
+    restockOverlay?.classList.add("is-open");
+    restockOverlay?.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
+    restockEscapeHandler = (event) => {
+      if (event.key === "Escape") closeRestockModal();
+    };
+    document.addEventListener("keydown", restockEscapeHandler);
+    document.getElementById("restockQuantity").focus();
+  };
+
+  document
+    .querySelectorAll("#restockModalOverlay .modal-close-btn")
+    .forEach((button) => button.addEventListener("click", closeRestockModal));
+  restockOverlay?.addEventListener("click", (event) => {
+    if (event.target === restockOverlay) closeRestockModal();
+  });
+  restockBox?.addEventListener("click", (event) => event.stopPropagation());
+
+  restockForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const payload = {
+      productId: document.getElementById("restockProductId").value,
+      quantity: document.getElementById("restockQuantity").value,
+      notes: document.getElementById("restockNotes").value.trim(),
+    };
+
+    restockSaveBtn.disabled = true;
+    try {
+      const result = await postForm("/Products/Restock", payload);
+      finish(result.message);
+    } catch (error) {
+      showToast(error.message);
+      restockSaveBtn.disabled = false;
     }
   });
 

@@ -15,6 +15,8 @@ public class AppDbContext : DbContext
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<StockAlert> StockAlerts => Set<StockAlert>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<StockReplenishment> StockReplenishments => Set<StockReplenishment>();
+    public DbSet<Forecast> Forecasts => Set<Forecast>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -78,6 +80,28 @@ public class AppDbContext : DbContext
 
             e.HasOne(x => x.StockAlert).WithMany(a => a.Notifications)
                 .HasForeignKey(x => x.StockAlertId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+                modelBuilder.Entity<StockReplenishment>(e =>
+        {
+            e.Property(x => x.Quantity).HasPrecision(18, 2);
+            e.Property(x => x.Notes).HasMaxLength(500);
+            e.HasIndex(x => new { x.ProductId, x.ReplenishedAt });
+
+            e.HasOne(x => x.Product).WithMany(p => p.Replenishments)
+                .HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.User).WithMany()
+                .HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+        });
+                modelBuilder.Entity<Forecast>(e =>
+        {
+            e.Property(x => x.WeightedMovingAverage).HasPrecision(18, 2);
+            e.Property(x => x.ForecastNext7Days).HasPrecision(18, 2);
+            e.Property(x => x.Status).HasMaxLength(20);
+            e.HasIndex(x => new { x.ProductId, x.GeneratedAt });
+
+            e.HasOne(x => x.Product).WithMany(p => p.Forecasts)
+                .HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

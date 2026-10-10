@@ -61,7 +61,7 @@ public class ForecastService : IForecastService
             var last7 = days.Skip(days.Count - WmaWindow).Take(WmaWindow).ToList();
             var sellingDays = last7.Where(d => d > 0).ToList();
             var last7Sum = last7.Sum();                    // total still counts all 7 days
-            var wma = sellingDays.Count >= 3
+            var wma = sellingDays.Count >= 2
                 ? CalculateWma(sellingDays)                // use only days with sales
                 : 0d;                                       // too few selling days → no forecast
             var forecast7 = (decimal)wma * WmaWindow;
@@ -84,7 +84,7 @@ public class ForecastService : IForecastService
                 var priorSelling = prior7.Where(d => d > 0).ToList();
                 var actual = days[days.Count - 1];
 
-                if (priorSelling.Count >= 3)
+                if (priorSelling.Count >= 2)
                 {
                     var predicted = CalculateWma(priorSelling);
                     if (predicted > 0)
@@ -125,7 +125,7 @@ public class ForecastService : IForecastService
         var accuracyScores = rows.Where(r => r.ForecastAccuracy.HasValue).Select(r => r.ForecastAccuracy!.Value).ToList();
         var avgAccuracy = accuracyScores.Count > 0 ? Math.Round(accuracyScores.Average(), 1) : 0d;
 
-        // --- Chart data ---
+                // --- Chart data ---
         var chartData = rows
             .Select(r => new ForecastChartPoint
             {
@@ -135,6 +135,57 @@ public class ForecastService : IForecastService
                 Next7DaysForecast = r.ForecastNext7Days
             })
             .ToList();
+
+        // ---------------------------------------------------------------
+        // Persist today's forecast snapshot (one row per product per day)
+        // ---------------------------------------------------------------
+        var forecastDayStart = DateTime.Today;
+        var forecastDayEnd = forecastDayStart.AddDays(1);
+
+        var existingToday = await _db.Forecasts
+            .Where(f => f.GeneratedAt >= forecastDayStart && f.GeneratedAt < forecastDayEnd)
+            .ToListAsync();
+
+        foreach (var row in rows)
+        {
+            var existing = existingToday.FirstOrDefault(f => f.ProductId == row.ProductId);
+
+            DateTime? depletionDate = null;
+            if (DateTime.TryParse(row.PredictedDepletionDate, out var parsed))
+                depletionDate = parsed;
+
+            if (existing is null)
+            {
+                _db.Forecasts.Add(new PoultryOS.Models.Entities.Forecast
+                {
+                    ProductId = row.ProductId,
+                    GeneratedAt = DateTime.Now,
+                    WeightedMovingAverage = row.WeightedMovingAverage,
+                    ForecastNext7Days = row.ForecastNext7Days,
+                    PredictedDepletionDate = depletionDate,
+                    ConfidenceScore = row.ForecastAccuracy,
+                    Status = row.Status
+                });
+            }
+            else
+            {
+                existing.GeneratedAt = DateTime.Now;
+                existing.WeightedMovingAverage = row.WeightedMovingAverage;
+                existing.ForecastNext7Days = row.ForecastNext7Days;
+                existing.PredictedDepletionDate = depletionDate;
+                existing.ConfidenceScore = row.ForecastAccuracy;
+                existing.Status = row.Status;
+            }
+        }
+
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            // Don't block the page if persistence fails -- the forecast itself is fine.
+        }
 
         return new ForecastPageViewModel
         {
@@ -153,9 +204,9 @@ public class ForecastService : IForecastService
     //  HELPERS
     // ==============================================================
 
-    private static double CalculateWma(IReadOnlyList<decimal> sales)
+       private static double CalculateWma(IReadOnlyList<decimal> sales)
     {
-        if (sales.Count < WmaWindow) return 0;
+        if (sales.Count < 2) return 0;
 
         var trailing = sales.TakeLast(WmaWindow).ToList();
         var weightedTotal = 0d;
@@ -164,8 +215,9 @@ public class ForecastService : IForecastService
             weightedTotal += (i + 1) * (double)trailing[i];
         }
 
-        // Sum of weights 1+2+...+7 = 28
-        return weightedTotal / 28d;
+        // Sum of weights 1+2+...+n = n(n+1)/2 -- works for any count
+        var divisor = (double)trailing.Count * (trailing.Count + 1) / 2d;
+        return weightedTotal / divisor;
     }
 
     private static string DetermineStatus(Product product, decimal weeklyConsumption, double daysRemaining, double wma)

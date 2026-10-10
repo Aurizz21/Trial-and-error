@@ -14,4 +14,6 @@ public class Product
 
     public List<Sale> Sales { get; set; } = new();
     public List<StockAlert> StockAlerts { get; set; } = new();
+    public List<StockReplenishment> Replenishments { get; set; } = new();
+    public List<Forecast> Forecasts { get; set; } = new();
 }

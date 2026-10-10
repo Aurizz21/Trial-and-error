@@ -65,6 +65,9 @@
                                             data-id="@r.Id" data-name="@r.Name" data-category="@r.Category"
                                             data-units="@r.Units" data-supplier="@r.Supplier"
                                             data-stock="@Inv(r.CurrentStock)" data-threshold="@Inv(r.ReorderThreshold)">Edit</button>
+                                    <button class="small-btn restock-product-btn" type="button"
+                                            data-id="@r.Id" data-name="@r.Name"
+                                            data-stock="@Inv(r.CurrentStock)" data-units="@r.Units">Restock</button>
                                     <button class="danger-btn small-btn delete-product-btn" type="button"
                                             data-id="@r.Id" data-name="@r.Name">Delete</button>
                                 </td>
@@ -127,5 +130,34 @@
         </form>
     </div>
 </div>
+
+<div id="restockModalOverlay" class="modal-backdrop" aria-hidden="true">
+    <div id="restockModalBox" class="modal" role="dialog" aria-modal="true" aria-labelledby="restockModalTitle">
+        <div class="modal-header">
+            <h2 id="restockModalTitle">Restock Product</h2>
+            <button id="closeRestockModal" class="modal-close modal-close-btn" type="button" aria-label="Close">&times;</button>
+        </div>
+        <form id="restockForm" class="form-grid">
+            <input type="hidden" id="restockProductId">
+            <div class="field full">
+                <strong id="restockProductName" style="font-size: 1rem;"></strong>
+                <p class="panel-note" style="margin-top: 4px;">
+                    Current stock: <span id="restockCurrentStock">0</span> <span id="restockUnits"></span>
+                </p>
+            </div>
+            <label class="field full">Quantity to Add
+                <input id="restockQuantity" type="number" min="0.01" step="0.01" placeholder="e.g. 50" required>
+            </label>
+            <label class="field full">Notes (optional)
+                <input id="restockNotes" maxlength="500" placeholder="Supplier, invoice #, etc.">
+            </label>
+            <div class="button-row field full">
+                <button id="cancelRestock" class="secondary-btn modal-close-btn" type="button">Cancel</button>
+                <button class="primary-btn" type="submit">Restock</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div id="productToast" class="toast"></div>
 <script src="~/js/products.js" asp-append-version="true"></script>

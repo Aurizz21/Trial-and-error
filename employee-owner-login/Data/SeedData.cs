@@ -73,7 +73,6 @@ public static class SeedData
             foreach (var product in products)
             {
                 // Baseline daily sales per product.
-                // Whole Chicken sells more by volume; cuts sell less.
                 var baseDaily = product.Category == "Whole Chicken" ? 6.0 : 4.0;
 
                 // Slight upward trend over 100 days (+30% growth across the window).
@@ -82,8 +81,16 @@ public static class SeedData
                 // Weekend bump: +60%
                 var weekendMultiplier = isWeekend ? 1.6 : 1.0;
 
-                // Small realistic noise: ±15%
-                var noise = 1.0 + (rng.NextDouble() * 0.3 - 0.15);
+                // Realistic day-to-day variance (base ±12%).
+                double noise = 1.0 + (rng.NextDouble() * 0.24 - 0.12);
+
+                // 5% chance of a mildly busy day (+10% to +25%)
+                if (rng.NextDouble() < 0.05)
+                    noise *= 1.1 + rng.NextDouble() * 0.15;
+
+                // 2% chance of a mildly slow day (-5% to -15%)
+                if (rng.NextDouble() < 0.02)
+                    noise *= 0.85 + rng.NextDouble() * 0.10;
 
                 var quantity = Math.Round((decimal)Math.Max(1.0, trend * weekendMultiplier * noise), 2);
 
@@ -99,19 +106,6 @@ public static class SeedData
                     Notes = null
                 });
 
-                // Small chance of an extra sale for variety (25% of product-days)
-                if (rng.NextDouble() < 0.25)
-                {
-                    var extraQty = Math.Round((decimal)Math.Max(1.0, baseDaily * 0.5 * (1 + rng.NextDouble() * 0.5)), 2);
-                    sales.Add(new Sale
-                    {
-                        ProductId = product.Id,
-                        UserId = rng.Next(2) == 0 ? owner.Id : employee.Id,
-                        Quantity = extraQty,
-                        SoldAt = day.AddHours(rng.Next(7, 19)).AddMinutes(rng.Next(0, 60)),
-                        Notes = null
-                    });
-                }
             }
         }
 

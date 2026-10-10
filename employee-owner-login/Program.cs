@@ -17,6 +17,7 @@ builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<ISalesEntryService, SalesEntryService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IForecastService, ForecastService>();
+builder.Services.AddScoped<IStockReplenishmentService, StockReplenishmentService>();
 
 // Register the EF Core DbContext against SQL Server.   // ← NEW
 builder.Services.AddDbContext<AppDbContext>(options =>  // ← NEW

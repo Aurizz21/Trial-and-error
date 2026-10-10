@@ -184,7 +184,7 @@ public class DashboardService : IDashboardService
             var actual = days[days.Count - 1];
 
             // Skip if there weren't enough selling days to make a real forecast.
-            if (prior7.Count(d => d > 0) < 3) continue;
+            if (prior7.Count(d => d > 0) < 2) continue;
 
             var forecast = CalculateWma(prior7);
             if (forecast <= 0) continue;
@@ -379,7 +379,7 @@ public class DashboardService : IDashboardService
         // Skip zero-sales days so a quiet day doesn't drag the forecast down.
         var selling = sales.Where(d => d > 0).TakeLast(WmaWindow).ToList();
 
-        if (selling.Count < 3) return 0;    // too few data points for a meaningful WMA
+        if (selling.Count < 2) return 0;    // too few data points for a meaningful WMA
 
         var weightedTotal = 0d;
         for (var i = 0; i < selling.Count; i++)

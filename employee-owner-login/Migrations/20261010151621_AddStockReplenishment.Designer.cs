@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PoultryOS.Data;
 
@@ -11,9 +12,11 @@ using PoultryOS.Data;
 namespace PoultryOS.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261010151621_AddStockReplenishment")]
+    partial class AddStockReplenishment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -53,46 +56,6 @@ namespace PoultryOS.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("AuditLogs");
-                });
-
-            modelBuilder.Entity("PoultryOS.Models.Entities.Forecast", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<double?>("ConfidenceScore")
-                        .HasColumnType("float");
-
-                    b.Property<decimal>("ForecastNext7Days")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("GeneratedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("PredictedDepletionDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<decimal>("WeightedMovingAverage")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId", "GeneratedAt");
-
-                    b.ToTable("Forecasts");
                 });
 
             modelBuilder.Entity("PoultryOS.Models.Entities.Notification", b =>
@@ -344,17 +307,6 @@ namespace PoultryOS.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("PoultryOS.Models.Entities.Forecast", b =>
-                {
-                    b.HasOne("PoultryOS.Models.Entities.Product", "Product")
-                        .WithMany("Forecasts")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-                });
-
             modelBuilder.Entity("PoultryOS.Models.Entities.Notification", b =>
                 {
                     b.HasOne("PoultryOS.Models.Entities.StockAlert", "StockAlert")
@@ -416,8 +368,6 @@ namespace PoultryOS.Migrations
 
             modelBuilder.Entity("PoultryOS.Models.Entities.Product", b =>
                 {
-                    b.Navigation("Forecasts");
-
                     b.Navigation("Replenishments");
 
                     b.Navigation("Sales");
