@@ -28,6 +28,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const sidebar = document.getElementById("sidebar");
   const menuButton = document.querySelector(".mobile-menu");
   const sidebarOverlay = document.getElementById("sidebarOverlay");
+  // Tablet only: reveals the icon rail's labels. The control is a no-op on
+  // desktop (hidden) and on mobile (the drawer handles that width instead).
+  const railToggle = document.querySelector(".sidebar-toggle");
   const offlineBanner = document.getElementById("offlineBanner");
   let dailySalesChartInstance;
   let lowStockChartInstance;
@@ -72,65 +75,92 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
   const chartRoot = getComputedStyle(document.documentElement);
+  // Global fallback only. Prefer paletteFor(canvas) so a chart can pick up the
+  // values its own card sets (see the --chart-dark-*/--chart-light-* blocks in
+  // tokens.css and dashboard.css).
   const chartColor = (token) => chartRoot.getPropertyValue(token).trim();
-  const chartPalette = {
-    primary: chartColor("--chart-primary"),
-    secondary: chartColor("--chart-secondary"),
-    tertiary: chartColor("--chart-tertiary"),
-    quaternary: chartColor("--chart-quaternary"),
-    grid: chartColor("--chart-grid"),
-    critical: chartColor("--chart-critical"),
-    warning: chartColor("--chart-warning"),
-    healthy: chartColor("--chart-healthy"),
-    criticalFill: chartColor("--chart-critical-fill"),
-    legend: chartColor("--chart-legend") || chartColor("--muted"),
-    text: chartColor("--text"),
-    muted: chartColor("--muted"),
-    white: chartColor("--white"),
-    border: chartColor("--border"),
-    font: chartColor("--font-body"),
+
+  // Resolve a chart's colours from the CANVAS, not from :root, so the dark cards
+  // and the white plotting sheet can each carry their own palette. Falls back to
+  // the :root token when the canvas has no scoped value.
+  const paletteFor = (canvas) => {
+    const scoped = canvas ? getComputedStyle(canvas) : null;
+    const scopedColor = (token) =>
+      scoped ? scoped.getPropertyValue(token).trim() : "";
+    const pick = (token, fallback) =>
+      scopedColor(token) || chartColor(token) || fallback;
+
+    const fillTop = pick("--chart-fill-top", "");
+    const fillBottom = pick("--chart-fill-bottom", "transparent");
+    const criticalFill = pick("--chart-critical-fill", "transparent");
+
+    return {
+      primary: pick("--chart-primary", "#b41818"),
+      secondary: pick("--chart-secondary", "#8f0d0d"),
+      tertiary: pick("--chart-tertiary", "#6d4a47"),
+      quaternary: pick("--chart-quaternary", "#8a4b08"),
+      grid: pick("--chart-grid", "#b5b5b5"),
+      critical: pick("--chart-critical", "#b41818"),
+      warning: pick("--chart-warning", "#8a4b08"),
+      healthy: pick("--chart-healthy", "#176b3a"),
+      criticalFill,
+      legend: pick("--chart-legend", "") || pick("--muted", "#3d3d3d"),
+      text: pick("--chart-text", "") || pick("--text", "#111111"),
+      muted: pick("--chart-tick", "") || pick("--muted", "#3d3d3d"),
+      white: pick("--white", "#ffffff"),
+      border: pick("--chart-border", "") || pick("--border", "#dcdcdc"),
+      font: pick("--font-body", "sans-serif"),
+      // The doughnut's two series, resolved per canvas so each surface can use
+      // the red pair that reads on it, plus the separator ring that keeps
+      // adjacent slices distinct.
+      donut: [
+        pick("--chart-donut-1", "") || pick("--chart-primary", "#b41818"),
+        pick("--chart-donut-2", "") || pick("--chart-secondary", "#8f0d0d"),
+      ],
+      donutGap: pick("--chart-donut-gap", "") || pick("--chart-border", "") || "#ffffff",
+      // Vertical fade painted under the trend lines: strong at the line,
+      // transparent at the baseline. Scriptable so it survives a resize; falls
+      // back to the flat token before the first layout pass.
+      lineFill: (context) => {
+        const area = context.chart.chartArea;
+        if (!area) return criticalFill;
+        const gradient = context.chart.ctx.createLinearGradient(
+          0,
+          area.top,
+          0,
+          area.bottom,
+        );
+        gradient.addColorStop(0, fillTop || criticalFill);
+        gradient.addColorStop(1, fillBottom);
+        return gradient;
+      },
+    };
   };
-  // Vertical fade painted under the red trend lines: strong at the line,
-  // transparent at the baseline (reference look). Scriptable so it survives
-  // every resize; falls back to the flat token before the first layout pass.
-  const lineFill = (context) => {
-    const area = context.chart.chartArea;
-    if (!area) return chartPalette.criticalFill;
-    const gradient = context.chart.ctx.createLinearGradient(
-      0,
-      area.top,
-      0,
-      area.bottom,
-    );
-    gradient.addColorStop(
-      0,
-      chartColor("--chart-fill-top") || chartPalette.criticalFill,
-    );
-    gradient.addColorStop(1, chartColor("--chart-fill-bottom") || "transparent");
-    return gradient;
-  };
-  const salesSeriesColors = [
-    chartPalette.primary,
-    chartPalette.secondary,
-    chartPalette.quaternary,
-    chartPalette.tertiary,
+
+  // The series ramp for a given palette: primary first, then the quieter steps.
+  const seriesFor = (palette) => [
+    palette.primary,
+    palette.secondary,
+    palette.quaternary,
+    palette.tertiary,
   ];
-  const chartBaseOptions = (scales, chartId) => ({
+
+  const chartBaseOptions = (palette, scales, chartId) => ({
     responsive: true,
     maintainAspectRatio: false,
     animation:
       motionPreference.matches || (chartId && animatedCharts.has(chartId))
         ? false
         : { duration: 620, easing: "easeOutQuart" },
-    color: chartPalette.muted,
-    font: { family: chartPalette.font, size: 11 },
+    color: palette.muted,
+    font: { family: palette.font, size: 11 },
     layout: { padding: { top: 4, right: 8, bottom: 0, left: 4 } },
     scales,
     plugins: {
       legend: {
         labels: {
-          color: chartPalette.legend,
-          font: { family: chartPalette.font, size: 11, weight: "600" },
+          color: palette.legend,
+          font: { family: palette.font, size: 11, weight: "600" },
           boxWidth: 8,
           boxHeight: 8,
           usePointStyle: true,
@@ -139,31 +169,31 @@ document.addEventListener("DOMContentLoaded", () => {
         },
       },
       tooltip: {
-        backgroundColor: chartPalette.text,
-        titleColor: chartPalette.white,
-        bodyColor: chartPalette.white,
-        borderColor: chartPalette.border,
+        backgroundColor: palette.text,
+        titleColor: palette.white,
+        bodyColor: palette.white,
+        borderColor: palette.border,
         borderWidth: 1,
         cornerRadius: 8,
         padding: 10,
         displayColors: true,
-        titleFont: { family: chartPalette.font, weight: "700" },
-        bodyFont: { family: chartPalette.font },
+        titleFont: { family: palette.font, weight: "700" },
+        bodyFont: { family: palette.font },
       },
     },
   });
-  const chartAxis = (showGrid = true) => ({
+  const chartAxis = (palette, showGrid = true) => ({
     grid: {
       display: showGrid,
-      color: chartPalette.grid,
+      color: palette.grid,
       lineWidth: 0.75,
       drawTicks: false,
     },
     border: { display: false },
     ticks: {
-      color: chartPalette.muted,
+      color: palette.muted,
       padding: 8,
-      font: { family: chartPalette.font, size: 11 },
+      font: { family: palette.font, size: 11 },
     },
   });
   const setChartEmpty = (canvas, empty) => {
@@ -178,6 +208,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const renderDailySalesChart = () => {
     if (!dailyCanvas) return;
+    const palette = paletteFor(dailyCanvas);
+    const series = seriesFor(palette);
     const selectedCategory =
       document.querySelector(".chart-mode.active")?.dataset.category ||
       "Whole Chicken";
@@ -207,16 +239,15 @@ document.addEventListener("DOMContentLoaded", () => {
         );
         return point?.value ?? point?.Value ?? 0;
       }),
-      borderColor: salesSeriesColors[index % salesSeriesColors.length],
-      backgroundColor: index === 0 ? lineFill : "transparent",
+      borderColor: series[index % series.length],
+      backgroundColor: index === 0 ? palette.lineFill : "transparent",
       fill: index === 0,
       borderWidth: 2,
       tension: 0.32,
       pointRadius: 0,
       pointHoverRadius: 4,
-      pointHoverBackgroundColor:
-        salesSeriesColors[index % salesSeriesColors.length],
-      pointHoverBorderColor: chartPalette.white,
+      pointHoverBackgroundColor: series[index % series.length],
+      pointHoverBorderColor: palette.white,
     }));
     if (!dailySalesChartInstance) {
       dailySalesChartInstance = new Chart(dailyCanvas, {
@@ -224,11 +255,12 @@ document.addEventListener("DOMContentLoaded", () => {
         data: { labels, datasets },
         options: {
           ...chartBaseOptions(
+            palette,
             {
               // Sparkline treatment on the dark card: no axes (reference look).
-              x: { ...chartAxis(false), ticks: { display: false } },
+              x: { ...chartAxis(palette, false), ticks: { display: false } },
               y: {
-                ...chartAxis(false),
+                ...chartAxis(palette, false),
                 beginAtZero: true,
                 ticks: { display: false },
                 title: { display: false },
@@ -237,9 +269,9 @@ document.addEventListener("DOMContentLoaded", () => {
             "dailySalesChart",
           ),
           plugins: {
-            ...chartBaseOptions().plugins,
+            ...chartBaseOptions(palette).plugins,
             legend: {
-              ...chartBaseOptions().plugins.legend,
+              ...chartBaseOptions(palette).plugins.legend,
               display: datasets.length > 1,
             },
           },
@@ -260,6 +292,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const renderLowStockChart = () => {
     if (!lowStockCanvas) return;
+    const palette = paletteFor(lowStockCanvas);
     const slices =
       state.lowStockDistribution || state.LowStockDistribution || [];
     const healthy =
@@ -281,25 +314,40 @@ document.addEventListener("DOMContentLoaded", () => {
     const colors = slices.map((item, index) => {
       const sourceColor = (item.color || item.Color || "").toLowerCase();
       if (sourceColor === "#ef4444" || sourceColor === "#b42318")
-        return chartPalette.critical;
+        return palette.critical;
       if (sourceColor === "#f59e0b" || sourceColor === "#8a4b08")
-        return chartPalette.warning;
+        return palette.warning;
       if (sourceColor === "#10b981" || sourceColor === "#176b3a")
-        return chartPalette.healthy;
-      return index % 2 === 0 ? chartPalette.primary : chartPalette.secondary;
+        return palette.healthy;
+      // Two red-family shades only, alternating, so the slices stay in the
+      // brand family and are told apart by the separator ring below.
+      return palette.donut[index % palette.donut.length];
     });
     if (!lowStockChartInstance) {
       lowStockChartInstance = new Chart(lowStockCanvas, {
         type: "doughnut",
-        data: { labels, datasets: [{ data: values, backgroundColor: colors }] },
+        data: {
+          labels,
+          datasets: [
+            {
+              data: values,
+              backgroundColor: colors,
+              // The 2px separator ring between slices. It is what makes two
+              // near shades of the same red read as separate wedges.
+              borderColor: palette.donutGap,
+              borderWidth: 2,
+              borderAlign: "inner",
+            },
+          ],
+        },
         options: {
-          ...chartBaseOptions(undefined, "lowStockChart"),
+          ...chartBaseOptions(palette, undefined, "lowStockChart"),
           cutout: "72%",
           radius: "88%",
           plugins: {
-            ...chartBaseOptions().plugins,
+            ...chartBaseOptions(palette).plugins,
             legend: {
-              ...chartBaseOptions().plugins.legend,
+              ...chartBaseOptions(palette).plugins.legend,
               position: "bottom",
             },
           },
@@ -312,6 +360,7 @@ document.addEventListener("DOMContentLoaded", () => {
     lowStockChartInstance.data.labels = labels;
     lowStockChartInstance.data.datasets[0].data = values;
     lowStockChartInstance.data.datasets[0].backgroundColor = colors;
+    lowStockChartInstance.data.datasets[0].borderColor = palette.donutGap;
     lowStockChartInstance.update("none");
   };
 
@@ -341,6 +390,34 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Tablet rail: toggles the label column of the collapsed sidebar.
+  if (railToggle) {
+    const setRailExpanded = (expanded) => {
+      document.body.classList.toggle("rail-expanded", expanded);
+      railToggle.setAttribute("aria-expanded", String(expanded));
+      railToggle.setAttribute(
+        "aria-label",
+        expanded ? "Collapse navigation" : "Expand navigation",
+      );
+    };
+
+    setRailExpanded(false);
+    railToggle.addEventListener("click", () =>
+      setRailExpanded(!document.body.classList.contains("rail-expanded")),
+    );
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") setRailExpanded(false);
+    });
+    // Clicking the content, the shell bar or the scrim puts the rail back.
+    // Uses the toggle class, not the new button class, so this cannot clash
+    // with the drawer handler above.
+    document.addEventListener("click", (event) => {
+      if (!document.body.classList.contains("rail-expanded")) return;
+      if (event.target.closest(".sidebar") || event.target.closest(".sidebar-toggle")) return;
+      setRailExpanded(false);
+    });
+  }
+
   const showOffline = () => {
     if (offlineBanner) {
       const timeLabel = new Date().toLocaleTimeString([], {
@@ -366,6 +443,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderLowStockChart();
 
     if (consumptionCanvas) {
+      const palette = paletteFor(consumptionCanvas);
       const weeklyConsumption =
         state.weeklyConsumption || state.WeeklyConsumption || [];
       setChartEmpty(consumptionCanvas, !weeklyConsumption.length);
@@ -388,7 +466,7 @@ document.addEventListener("DOMContentLoaded", () => {
           {
             label: "pcs",
             data: pcs,
-            backgroundColor: chartPalette.primary,
+            backgroundColor: palette.primary,
             borderRadius: 4,
             barThickness: 14,
             maxBarThickness: 16,
@@ -396,7 +474,7 @@ document.addEventListener("DOMContentLoaded", () => {
           {
             label: "kg",
             data: kg,
-            backgroundColor: chartPalette.quaternary,
+            backgroundColor: palette.quaternary,
             borderRadius: 4,
             barThickness: 14,
             maxBarThickness: 16,
@@ -408,16 +486,17 @@ document.addEventListener("DOMContentLoaded", () => {
             data: { labels, datasets },
             options: {
               ...chartBaseOptions(
+                palette,
                 {
-                  x: { ...chartAxis(), beginAtZero: true },
-                  y: { ...chartAxis(false) },
+                  x: { ...chartAxis(palette), beginAtZero: true },
+                  y: { ...chartAxis(palette, false) },
                 },
                 "consumptionChart",
               ),
               indexAxis: "y",
               plugins: {
-                ...chartBaseOptions().plugins,
-                legend: { ...chartBaseOptions().plugins.legend, display: true },
+                ...chartBaseOptions(palette).plugins,
+                legend: { ...chartBaseOptions(palette).plugins.legend, display: true },
               },
             },
           });
@@ -433,6 +512,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const activeAlerts = state.activeAlerts || state.ActiveAlerts || [];
     setChartEmpty(depletionCanvas, !activeAlerts.length);
     if (depletionCanvas && activeAlerts.length) {
+      const palette = paletteFor(depletionCanvas);
       const criticalProduct = activeAlerts[0];
       const labels = Array.from({ length: 7 }, (_, index) => `D${index + 1}`);
       const stock =
@@ -445,13 +525,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const dataset = {
         label: criticalProduct.productName || criticalProduct.ProductName,
         data: trend,
-        borderColor: chartPalette.critical,
-        backgroundColor: lineFill,
+        borderColor: palette.critical,
+        backgroundColor: palette.lineFill,
         borderWidth: 2,
         pointRadius: 0,
         pointHoverRadius: 4,
-        pointHoverBackgroundColor: chartPalette.critical,
-        pointHoverBorderColor: chartPalette.white,
+        pointHoverBackgroundColor: palette.critical,
+        pointHoverBorderColor: palette.white,
         fill: true,
         tension: 0.32,
       };
@@ -465,15 +545,16 @@ document.addEventListener("DOMContentLoaded", () => {
           data: { labels, datasets: [dataset] },
           options: {
             ...chartBaseOptions(
+              palette,
               {
-                x: { ...chartAxis(false) },
-                y: { ...chartAxis(), beginAtZero: true },
+                x: { ...chartAxis(palette, false) },
+                y: { ...chartAxis(palette), beginAtZero: true },
               },
               "depletionChart",
             ),
             plugins: {
-              ...chartBaseOptions().plugins,
-              legend: { ...chartBaseOptions().plugins.legend, display: false },
+              ...chartBaseOptions(palette).plugins,
+              legend: { ...chartBaseOptions(palette).plugins.legend, display: false },
             },
           },
         });

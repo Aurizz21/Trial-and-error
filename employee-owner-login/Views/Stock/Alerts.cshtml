@@ -4,6 +4,9 @@
 @{
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
     ViewData["Title"] = "Stock Alerts";
+    // Opt in to the shared Dashboard skin (shell, glass cards, tab style).
+    // Look only: no markup, model or behaviour change.
+    ViewData["BodyClass"] = "skin-page";
 
     string Show(decimal value) => value.ToString("0.##", CultureInfo.InvariantCulture);
     string ShowDays(double d) => d.ToString("0.#", CultureInfo.InvariantCulture);
