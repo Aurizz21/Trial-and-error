@@ -3,6 +3,7 @@
 @{
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
     ViewData["Title"] = "Audit Trail";
+    ViewData["BodyClass"] = "skin-page audit-trail-page";
 
     string PageUrl(int p) => $"/Audit?actionType={Model.ActionTypeFilter}&user={Model.UserFilter}&page={p}";
 }
