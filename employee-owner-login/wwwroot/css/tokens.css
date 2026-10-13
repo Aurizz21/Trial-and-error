@@ -1,3 +1,17 @@
+/* ==========================================================================
+   tokens.css — Manok ni Rene design tokens
+   The single source of truth for colour, gradient, radius, type, spacing,
+   shadow and motion. No other stylesheet may define a raw colour, gradient,
+   radius or shadow; they consume the semantic roles in :root.
+
+   The palette is measured from the six reference mockups, then adjusted where
+   the mockup failed the 4.5:1 text rule. The mockup's own values failed in six
+   places, including the critical and healthy badges (2.29:1 and 1.89:1).
+
+   Coloured text on a LIGHT surface must use the -on-light roles, never the
+   base --critical / --warning: the base red is only 3.66:1 on #bebebe.
+   ========================================================================== */
+
 @font-face {
   font-family: "Nunito";
   src: url("/fonts/Nunito-Variable.ttf") format("truetype");
@@ -7,55 +21,447 @@
 }
 
 :root {
-  color-scheme: light;
   --font-body: "Nunito", "Segoe UI", sans-serif;
 
-  --bg: #f3f3f3;
-  --panel: #ffffff;
-  --panel-alt: #f7f7f7;
-  --sidebar: #333333;
-  --sidebar-soft: #474747;
-  --primary: #2457a6;
-  --primary-hover: #1d4788;
-  --primary-soft: rgba(36, 87, 166, 0.1);
-  --primary-border: color-mix(in srgb, var(--primary) 18%, transparent);
-  --text: #292929;
-  --muted: #626262;
-  --border: #dedede;
-  --white: #ffffff;
-  --on-dark-muted: #dedede;
-  --scrim: rgba(41, 41, 41, 0.48);
+  /* ------------------------------------------------------------- type scale
+     Text floor is 0.8rem. Control text is 1rem (16px) so focusing an input
+     does not trigger the iOS zoom. */
+  --text-xs:   0.8rem;
+  --text-sm:   0.875rem;
+  --text-md:   1rem;
+  --text-lg:   1.125rem;
+  --text-xl:   1.375rem;
+  --text-2xl:  clamp(1.4rem, 1.15rem + 1vw, 1.75rem);
+  --text-3xl:  clamp(1.75rem, 1.3rem + 2vw, 2.5rem);
 
-  --critical: #b42318;
-  --critical-soft: rgba(180, 35, 24, 0.1);
-  --warning: #8a4b08;
-  --warning-soft: rgba(138, 75, 8, 0.1);
-  --healthy: #176b3a;
-  --healthy-soft: rgba(23, 107, 58, 0.1);
-  --critical-border: color-mix(in srgb, var(--critical) 18%, transparent);
-  --warning-border: color-mix(in srgb, var(--warning) 18%, transparent);
-  --healthy-border: color-mix(in srgb, var(--healthy) 18%, transparent);
-  --info: #2457a6;
-  --info-soft: rgba(36, 87, 166, 0.1);
+  /* KPI tiles. The coloured figures only clear contrast as LARGE text, so the
+     floor is 24px and they are always weight 800. Never render these smaller
+     or lighter: do not replace --text-kpi-value with a plain 1rem. */
+  --text-kpi-label: 0.82rem;
+  --text-kpi-value: clamp(24px, 18px + 1.6vw, 36px);
 
+  --weight-regular: 400;
+  --weight-medium:  600;
+  --weight-bold:    700;
+  --weight-black:   800;
+
+  --leading-tight: 1.15;
+  --leading-body:  1.5;
+
+  /* ----------------------------------------------------------- neutral ramp
+     Very slightly warm so the grays sit with the red accent rather than
+     looking cold against it. */
+  --gray-000: #ffffff;
+  --gray-050: #f4f4f4;
+  --gray-100: #ececec;
+  --gray-150: #e6e6e6;
+  --gray-200: #dcdcdc;
+  --gray-250: #cfcfcf;
+  --gray-300: #bebebe;
+  --gray-350: #b5b5b5;
+  --gray-400: #a2a2a2;
+  --gray-450: #8f8f8f;
+  --gray-500: #868686;
+  --gray-550: #6e6e6e;
+  --gray-600: #5c5c5c;
+  --gray-650: #4b4b4b;
+  --gray-700: #3d3d3d;
+  --gray-750: #2e2e2e;
+  --gray-800: #242424;
+  --gray-850: #1a1a1a;
+  --gray-900: #111111;
+  --gray-950: #0a0a0a;
+
+  /* ------------------------------------------------------------------ accent
+     The red the mockups use for chart lines, the active state and urgency,
+     plus the darkened steps needed for text and badge fills. */
+  --red-100: #f6d3d1;
+  --red-200: #e08b86;
+  --red-300: #f06c6c;   /* the mockup's salmon badge fill */
+  --red-400: #c94a44;   /* badge fill, darkened so white text passes 4.5:1 */
+  --red-500: #b41818;   /* the mockup's accent red */
+  --red-600: #951212;
+  --red-700: #7d0b0b;
+
+  /* Chart series: the mockup's red line and brown forecast bars, lightened so
+     both hold 3:1 against the dark chart card. */
+  --series-actual:   #ff7070;
+  --series-forecast: #cf8a3a;
+
+  /* Healthy / online / live */
+  --green-300: #7fd3a0;  /* value on a dark tile */
+  --green-500: #4fb477;  /* chart series */
+  --green-600: #63907a;  /* badge fill, darkened from the mockup */
+  --green-700: #0a4426;  /* value on a light tile */
+  --green-800: #03210e;  /* badge text */
+
+  /* Warning: amber-brown, deliberately distinct from the forecast series. */
+  --warning-300: #e8a94f;
+  --warning-500: #d8a25a;  /* badge fill */
+  --warning-600: #8a4b08;
+  --warning-700: #6f3c06;
+  --warning-800: #4a2606;  /* badge text */
+
+  /* ------------------------------------------------------------ semantic roles
+     Component CSS must use these, never the ramp directly. */
+  --app-wall:         var(--gray-400);   /* the gray the window floats on */
+  --surface-window:   var(--gray-300);   /* the big rounded container */
+  --surface-raised:   var(--gray-150);   /* light cards and panels */
+  --surface-panel:    var(--gray-300);   /* light stat tiles, table panels */
+  --surface-sunken:   var(--gray-250);   /* inputs on a light surface */
+  --surface-bar:      var(--gray-250);   /* the shell bar */
+  --surface-control:  var(--gray-650);   /* flat buttons, tab container */
+
+  --text-on-light:    var(--gray-800);
+  --text-muted-light: var(--gray-700);   /* 5.84:1 on the darkest light surface */
+  --text-on-dark:     var(--gray-000);
+  --text-muted-dark:  var(--gray-200);   /* 5.03:1 at the dark card's lightest */
+
+  --line-light:       var(--gray-350);
+  --line-dark:        rgba(255, 255, 255, 0.16);
+
+  /* Translucent overlays for hover states, inset edges and hairline rules.
+     Named by tone and alpha so a component can pick the strength it needs
+     without inventing a raw colour. */
+  --overlay-light-00: rgba(255, 255, 255, 0);
+  --overlay-light-14: rgba(255, 255, 255, 0.14);
+  --overlay-light-16: rgba(255, 255, 255, 0.16);
+  --overlay-light-36: rgba(255, 255, 255, 0.36);
+  --overlay-light-55: rgba(255, 255, 255, 0.55);
+  --overlay-light-90: rgba(255, 255, 255, 0.90);
+  --overlay-dark-06:  rgba(0, 0, 0, 0.06);
+  --overlay-dark-07:  rgba(0, 0, 0, 0.07);
+  --overlay-dark-08:  rgba(0, 0, 0, 0.08);
+
+  /* Base status colours. These are tuned for DARK surfaces and for fills.
+     On a light surface use the -on-light roles below instead. */
+  --critical:         var(--red-500);
+  --warning:          var(--warning-600);
+  --healthy:          var(--green-700);
+  --info:             var(--gray-700);
+
+  /* Coloured TEXT on a light surface. --critical is only 3.66:1 on #bebebe,
+     so anything light-surface uses these instead. */
+  --critical-on-light: var(--red-700);      /* 5.87:1 on #bebebe */
+  --warning-on-light:  var(--warning-700);  /* 4.86:1 on #bebebe */
+  --healthy-on-light:  var(--green-700);    /* 6.05:1 on #bebebe */
+  --neutral-on-light:  var(--gray-800);
+
+  /* ------------------------------------------------------------- status pills
+     The mockup's pairs measured 2.29:1 (critical) and 1.89:1 (healthy). These
+     fills are darkened until the text clears 4.5:1 on every one. */
+  --pill-critical-bg:   var(--red-400);
+  --pill-critical-text: var(--gray-000);      /* 4.62:1 */
+  --pill-critical-edge: var(--red-700);
+  --pill-warning-bg:    var(--warning-500);
+  --pill-warning-text:  var(--warning-800);   /* 5.88:1 */
+  --pill-warning-edge:  var(--warning-600);
+  --pill-healthy-bg:    var(--green-600);
+  --pill-healthy-text:  var(--green-800);     /* 4.72:1 */
+  --pill-healthy-edge:  var(--green-800);
+  --pill-neutral-bg:    var(--gray-250);
+  --pill-neutral-text:  var(--gray-700);      /* 6.97:1 */
+  --pill-neutral-edge:  var(--gray-400);
+
+  /* ---------------------------------------------------------------- gradients
+     The mockup's dark cards start at #868686, where white text is only
+     3.64:1, so --grad-card starts at #5a5a5a. Chart cards go darker again so
+     the red and brown series keep 3:1 at the card's lightest point, and KPI
+     tiles darker still so the coloured figures do too. */
+  --grad-card:    linear-gradient(180deg, #5a5a5a 0%, #3a3a3a 42%, #0a0a0a 100%);
+  --grad-chart:   linear-gradient(180deg, #454545 0%, #2b2b2b 45%, #0a0a0a 100%);
+  --grad-kpi:     linear-gradient(180deg, #4f4f4f 0%, #232323 52%, #0a0a0a 100%);
+  --grad-control: linear-gradient(180deg, #5c5c5c 0%, #3d3d3d 100%);
+  --grad-bar:     linear-gradient(115deg,
+                    rgba(255, 255, 255, 0.88) 0%,
+                    rgba(255, 255, 255, 0.28) 45%,
+                    rgba(255, 255, 255, 0.00) 100%);
+  /* Capped at #5a5a5a: the focus ring's dark tone needs >= 2:1 here. */
+  --grad-sidebar: linear-gradient(180deg, #5a5a5a 0%, #333333 52%, #010101 100%);
+  --grad-panel:   linear-gradient(180deg, #cfcfcf 0%, #bebebe 100%);
+
+  /* ------------------------------------------------------------------- radii
+     Shrink on small screens; see the media query at the end of this file. */
+  --radius-shell:   40px;
+  --radius-card:    30px;
+  --radius-inner:   20px;
+  --radius-control: 12px;
+  --radius-pill:    999px;
+
+  /* ---------------------------------------------------------------- spacing */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
   --space-5: 20px;
   --space-6: 24px;
+  --space-7: 28px;
   --space-8: 32px;
+  --space-10: 40px;
 
-  --radius-control: 8px;
-  --radius-card: 14px;
-  --radius-pill: 999px;
+  /* ---------------------------------------------------------------- shadows */
+  --shadow-sm:     0 1px 3px rgba(0, 0, 0, 0.16);
+  --shadow-card:   0 4px 14px rgba(0, 0, 0, 0.18);
+  --shadow-bar:    0 5px 16px rgba(0, 0, 0, 0.18);
+  --shadow-raised: 0 10px 28px rgba(0, 0, 0, 0.26);
 
-  --shadow: 0 2px 8px rgba(41, 41, 41, 0.06);
-  --shadow-raised: 0 8px 22px rgba(41, 41, 41, 0.1);
-  --focus-ring: 0 0 0 3px rgba(36, 87, 166, 0.2);
+  /* ----------------------------------------------------------------- motion */
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur-fast: 150ms;
+  --dur-base: 200ms;
+  --dur-slow: 280ms;
+
+  /* ----------------------------------------------------------------- layout */
+  --sidebar-width:           264px;
+  --sidebar-width-collapsed:  84px;
+  --topbar-height:            84px;
+  --touch-target:             44px;
+
+  /* -------------------------------------------------------------- focus ring
+     Two tones so one of them always contrasts, whatever it lands on:
+       inner #ffffff  6.90:1 on the sidebar top, 19.80:1 on a dark card
+       outer #111111 15.07:1 on the light window, 10.12:1 on a light panel
+     The dark tone is only 2.03:1 on the sidebar's lightest point, which is why
+     the sidebar gradient top is capped at #5a5a5a.
+     Use --focus-shadow on box-shadow. For outline-based focus (the
+     notifications panel) use --focus-ring-color. */
+  --focus-ring-inner: var(--gray-000);
+  --focus-ring-outer: var(--gray-900);
+  --focus-ring-color: var(--gray-900);
+  --focus-shadow: 0 0 0 2px var(--focus-ring-inner), 0 0 0 4px var(--focus-ring-outer);
+  --focus-ring: var(--focus-shadow);
+
+  /* A ring for focusable items inside a container that clips overflow (table
+     wrappers, the scrolling sidebar nav). An outer ring would be cut off. */
+  --focus-shadow-inset: inset 0 0 0 2px var(--focus-ring-inner), inset 0 0 0 4px var(--focus-ring-outer);
+
+  /* ------------------------------------------------------------------ charts
+     dashboard.js and the Forecast view read these through
+     getComputedStyle(document.documentElement), so they cannot see
+     card-scoped values: every one must be legible on the dark chart card.
+     --chart-tick is the dedicated axis/point-label colour; the light depletion
+     panel inside a dark card overrides it locally. */
+  --chart-primary:    var(--series-actual);
+  --chart-secondary:  #b41818;
+  --chart-tertiary:   #7d0b0b;
+  --chart-quaternary: #ff5a5a;
+  --chart-grid:       #8f8f8f;
+  --chart-critical:   var(--series-actual);
+  --chart-warning:    var(--series-forecast);
+  --chart-healthy:    var(--green-500);
+  --chart-critical-fill: rgba(255, 112, 112, 0.20);
+  --chart-fill-top:      rgba(255, 112, 112, 0.34);
+  --chart-fill-bottom:   rgba(255, 112, 112, 0);
+  --chart-legend:        var(--gray-200);
+  --chart-tick:          var(--gray-200);
+  --chart-tick-on-light: var(--gray-700);
+
+  /* ======================================================================
+     DARK CARD SURFACES  (the current visual target)
+     A vertical gradient from --card-dark-top to pure black, light text.
+     --card-dark-top is the LIGHTEST stop at which every small text on a card
+     still reaches 4.5:1 at its worst spot (the top of the gradient):
+         #ffffff          6.69:1
+         #d8d8d8 (muted)  4.69:1
+     The mockup's own top, #8a8a8a, gives only 3.45:1 / 2.42:1, so it is not
+     usable for a card that carries text. Large text-free frames (--rail-frame,
+     --dash-sheet) keep the lighter --skin-dark-top and stay nearer the mockup.
+     ====================================================================== */
+  --card-dark-top:      #5c5c5c;
+  --card-dark-gradient: linear-gradient(180deg, var(--card-dark-top) 0%, #000000 100%);
+  --card-ink:           var(--gray-000);
+  --card-muted:         rgb(216 216 216);   /* #d8d8d8 */
+  --card-line:          rgba(255, 255, 255, 0.22);
+
+  /* ------------------------------------------------------- status on DARK CARDS
+     The dark-theme tones (#FF7670 / #FFC768 / #61D394) measure 2.57:1, 4.34:1
+     and 3.58:1 on #5c5c5c, so they cannot carry small text there. These are
+     lightened until they pass: as badge text (fill + dark ink) and as figures
+     at 3:1. Critical is the tight one: #ffb3ae is 3.92:1, so critical may only
+     appear on a dark card as a badge or as a large (24px+) bold figure. */
+  --cs-critical:        rgb(255 179 174);   /* #ffb3ae */
+  --cs-critical-text:   rgb(92 18 16);      /* #5c1210  -> 7.95:1 on the fill */
+  --cs-warning:         rgb(255 220 168);   /* #ffdca8 */
+  --cs-warning-text:    rgb(74 42 6);       /* #4a2a06  -> 9.88:1 */
+  --cs-healthy:         rgb(168 232 196);   /* #a8e8c4 */
+  --cs-healthy-text:    rgb(13 58 36);      /* #0d3a24  -> 9.11:1 */
+  --cs-neutral:         rgb(220 220 220);   /* #dcdcdc */
+  --cs-neutral-text:    rgb(61 61 61);      /* #3d3d3d  -> 7.92:1 */
+  /* Figures only: 3:1 is enough at 24px+ bold. */
+  --cs-critical-figure: rgb(255 154 150);   /* #ff9a96 -> 3.28:1 */
+  --cs-warning-figure:  rgb(255 208 138);   /* #ffd08a -> 4.66:1 */
+  --cs-healthy-figure:  rgb(134 228 177);   /* #86e4b1 -> 4.38:1 */
+
+  /* ------------------------------------------------------ status on LIGHT CARDS
+     Darkened tones, because the dark-card tints above are unusable on a light
+     surface (#ffb3ae on #bebebe is 1.09:1). Same pill shape, different fill. */
+  --ls-critical:        rgb(193 65 60);     /* #c1413c */
+  --ls-critical-text:   var(--gray-000);    /* 5.14:1 */
+  --ls-warning:         rgb(138 75 8);      /* #8a4b08 */
+  --ls-warning-text:    var(--gray-000);    /* 6.79:1 */
+  --ls-healthy:         rgb(31 111 69);     /* #1f6f45 */
+  --ls-healthy-text:    var(--gray-000);    /* 6.14:1 */
+  --ls-neutral:         rgb(143 143 143);   /* #8f8f8f: reads against #bababa */
+  --ls-neutral-text:    var(--gray-900);
+  /* Alpha variants for light-surface status tints (banners, badges, borders). */
+  --ls-critical-soft:   rgba(193, 65, 60, 0.10);
+  --ls-critical-edge:   rgba(193, 65, 60, 0.24);
+  --ls-warning-soft:    rgba(138, 75, 8, 0.10);
+  --ls-warning-edge:    rgba(138, 75, 8, 0.24);
+  --ls-healthy-soft:    rgba(31, 111, 69, 0.10);
+  --ls-healthy-edge:    rgba(31, 111, 69, 0.24);
+
+  /* ------------------------------------------------------------ chart palettes
+     dashboard.js resolves these per canvas, so the two surfaces can differ.
+     Dark-card charts (Daily Sales Trend, Low Stock Distribution): */
+  --chart-dark-tick:      var(--cs-neutral);      /* 4.88:1 */
+  --chart-dark-legend:    var(--cs-neutral);      /* 4.88:1 */
+  --chart-dark-grid:      rgb(143 143 143);       /* decorative */
+  --chart-dark-line:      var(--cs-critical-figure);  /* #ff9a96  3.28:1 */
+  --chart-dark-line-2:    var(--cs-critical);         /* #ffb3ae  3.92:1 */
+  --chart-dark-line-3:    rgb(255 196 192);           /* #ffc4c0  4.43:1 */
+  --chart-dark-line-4:    var(--cs-warning-figure);   /* #ffd08a  4.66:1 */
+  --chart-dark-fill-top:  rgba(255, 154, 150, 0.34);
+  --chart-dark-fill-bottom: rgba(255, 154, 150, 0);
+  --chart-dark-text:      var(--gray-900);   /* tooltip fill */
+  --chart-dark-ink:       var(--gray-000);   /* tooltip ink */
+  --chart-dark-border:    var(--card-dark-top);
+  /* The doughnut's two series. Both slices must read against the card (>=3:1),
+     which on a mid-dark card means BOTH have to be light: no dark red can hold
+     3:1 there. Because of that the two shades sit close together (1.66:1), so
+     the 2px separator ring is what makes adjacent slices read as separate. */
+  --chart-dark-donut-1:   #ff9a96;
+  --chart-dark-donut-2:   #e0655f;
+  --chart-dark-donut-gap: #141414;
+
+  /* White-sheet charts (Forecasted Stock Depletion, Weekly Sales by Product).
+     The red family stays the primary line colour on both surfaces, per the
+     brief: #b41818 here, #ff9a96 on a dark card. */
+  --chart-light-tick:     var(--gray-700);        /* 10.86:1 */
+  --chart-light-legend:   var(--gray-700);        /* 10.86:1 */
+  --chart-light-grid:     var(--gray-350);        /* decorative */
+  --chart-light-line:     var(--red-500);         /* #b41818  6.81:1 */
+  --chart-light-line-2:   rgb(143 13 13);         /* #8f0d0d  9.41:1 */
+  --chart-light-line-3:   rgb(109 74 71);         /* #6d4a47  7.72:1 */
+  --chart-light-line-4:   var(--warning-600);     /* #8a4b08  6.79:1 */
+  --chart-light-fill-top: rgba(180, 24, 24, 0.34);
+  --chart-light-fill-bottom: rgba(180, 24, 24, 0);
+  --chart-light-text:     var(--gray-900);
+  --chart-light-ink:      var(--gray-000);
+  --chart-light-border:   var(--gray-250);
+  --chart-light-donut-1:   #b41818;
+  --chart-light-donut-2:   #8f0d0d;
+  --chart-light-donut-gap: #ffffff;
+
+  /* ======================================================================
+     TEMPORARY - delete in Stage 3 when dashboard.css is rewritten.
+     The previous tokens.css defined these and dashboard.css (plus
+     notifications.css) still reads them. Values are the originals, copied
+     from tokens.css rather than re-derived, so nothing shifts before the page
+     that uses it is migrated. Do not use these in new code.
+     ====================================================================== */
+
+  /* --skin-* : the previous Dashboard skin values */
+  /* The wall behind the window. #6b6b6b is the lightest top at which the
+     sidebar's own light text still clears 4.5:1 (white 5.3:1, #dcdcdc 3.9:1).
+     It is shared: the sidebar paints nothing, so wall and sidebar are one
+     continuous gradient and there is no seam at the sidebar edge. */
+  --wall-top: #6b6b6b;
+  --skin-wall-top: var(--wall-top);
+  --skin-black: #000000;
+  --skin-window: #bebebe;
+  --skin-ink: #1b1b1b;
+  --skin-window-muted: #4c4c4c;
+  --skin-window-line: #a8a8a8;
+  --skin-sidebar-width: 299px;
+  --skin-dark-top: #8a8a8a;
+  --skin-on-dark-muted: #d8d8d8;
+  --skin-white: #ffffff;
+  --skin-card: #bababa;
+  --skin-card-soft: #ececec;
+  --skin-button: #4b4b4b;
+  --skin-button-hover: #3d3d3d;
+  --skin-critical: #b6211a;
+  --skin-critical-count: #c62415;
+  --skin-banner-bg: #fdecec;
+  --skin-banner-border: #f3c9c6;
+  --skin-banner-text: #a01f18;
+  --skin-radius-window: 28px;
+  --skin-radius-card: 24px;
+  --skin-radius-inner: 22px;
+  /* A darker step of the healthy green, used for status text sitting on a
+     window surface. Added in the previous pass; still read by dashboard.css. */
+  --skin-accuracy: #0f4f2a;
+
+  /* --glass-* : the previous glass-card values, including the three
+     --glass-card-* roles that live only in dashboard.css */
+  --glass-blur: 14px;
+  --glass-bg: rgba(255, 255, 255, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.55);
+  --glass-edge: rgba(0, 0, 0, 0.06);
+  --glass-shadow: 0 2px 10px rgba(27, 27, 27, 0.14);
+  --glass-bg-solid: #f2f2f2;
+  /* The glass shell bar. The fill has to stay strong enough that its dark ink
+     keeps 4.5:1 over the WORST thing that can scroll under it (a dark card at
+     its black end): at 0.65 the bar resolves to #a6a6a6, title #111111 = 7.8:1
+     and icons #1b1b1b = 7.1:1. A lighter fill looks more like glass but drops
+     the small icons under the floor. */
+  --glass-bar-bg: rgba(255, 255, 255, 0.65);
+  --glass-bar-blur: 16px;
+  --glass-bar-saturate: 140%;
+  --glass-bar-edge: rgba(255, 255, 255, 0.6);
+  --glass-bar-fallback: #e4e4e4;
+  --glass-bar-ink: #111111;
+  --glass-bar-ink-soft: #1b1b1b;
+  --glass-bar-sheen: rgba(255, 255, 255, 0.45);
+  --glass-bar-shadow: 0 5px 16px rgba(27, 27, 27, 0.16);
+  --glass-card-ink: var(--gray-800);
+  --glass-card-label: var(--gray-700);
+  --glass-card-soft: var(--gray-600);
+
+  /* legacy singles still read by a live stylesheet */
+  --sidebar: #333333;
+  --sidebar-soft: #474747;
+  --info-soft: rgba(36, 87, 166, 0.1);
+  /* NOTE: --radius-small was never defined in this project. notifications.css
+     line 85 reads it with no fallback, so that button's radius is currently
+     broken. 8px matches the old control radius and is a placeholder only; the
+     real fix is in Stage 6, where it becomes --radius-control. */
+  --radius-small: 8px;
+  /* --reveal-delay is self-defining in login.css per data-reveal-order, and
+     every read has a 0ms fallback. Alias kept only for completeness. */
+  --reveal-delay: 0ms;
+
+  /* ------------------------------------------------------------ legacy aliases
+     The remaining pre-redesign names, remapped onto the new scale so pages
+     that have not been migrated yet (Stages 4-7) do not break mid-redesign.
+     Removed at the end of Stage 8. */
+  --bg:            var(--app-wall);
+  --panel:         var(--surface-raised);
+  --panel-alt:     var(--surface-sunken);
+  --border:        var(--line-light);
+  --text:          var(--text-on-light);
+  --muted:         var(--text-muted-light);
+  --primary:       var(--gray-700);
+  --primary-hover: var(--gray-800);
+  --primary-soft:  rgba(61, 61, 61, 0.10);
+  --primary-border: rgba(61, 61, 61, 0.28);
+  --on-primary:    var(--gray-000);
+  --white:         var(--gray-000);
+  --on-dark-muted: var(--gray-200);
+  --scrim:         rgba(0, 0, 0, 0.55);
+  --radius-control-old: 8px;
+  --radius-card-old:    14px;
 }
 
-/* Dark application palette is scoped to authenticated pages through the shared layout body class. */
+/* ==========================================================================
+   TEMPORARY - delete in Stage 3 when dashboard.css is rewritten.
+   The dark application theme that every not-yet-migrated page still runs on.
+   These are the ORIGINAL values from the pre-redesign tokens.css, kept scoped
+   to .dashboard-body so the 13 pages on the old theme look exactly as they do
+   today while Stages 4-7 move them across one at a time. Nothing new may use
+   this block.
+   ========================================================================== */
 .dashboard-body {
   color-scheme: dark;
 
@@ -92,11 +498,39 @@
 
   --shadow: 0 2px 8px #00000066;
   --shadow-raised: 0 8px 22px #00000099;
-  --focus-ring: 0 0 0 3px #82B1F5B3;
 }
 
-html {
-  font-family: var(--font-body);
-  color: var(--text);
-  background: var(--bg);
+/* The large radii shrink on small screens so content is not cramped. */
+@media (max-width: 768px) {
+  :root {
+    --radius-shell: 20px;
+    --radius-card:  20px;
+    --radius-inner: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 1ms;
+    --dur-base: 1ms;
+    --dur-slow: 1ms;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Focus visibility.
+   box-shadow rings are dropped in forced-colours mode, so every focusable
+   control also carries a transparent outline for the system to paint.
+   --------------------------------------------------------------------------- */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+@media (forced-colors: active) {
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 3px solid CanvasText;
+    outline-offset: 2px;
+    box-shadow: none;
+  }
 }

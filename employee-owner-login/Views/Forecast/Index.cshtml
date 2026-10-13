@@ -3,6 +3,7 @@
 @{
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
     ViewData["Title"] = "Forecast";
+    ViewData["BodyClass"] = "skin-page forecast-page";
 }
 <div class="module-page">
     <header class="module-heading">
@@ -131,10 +132,12 @@
             const forecast = data.map(d => d.next7DaysForecast ?? d.Next7DaysForecast ?? 0);
 
             const root = getComputedStyle(document.documentElement);
-            const primary = root.getPropertyValue('--chart-primary').trim() || '#2563eb';
-            const warning = root.getPropertyValue('--chart-warning').trim() || '#f59e0b';
-            const muted = root.getPropertyValue('--muted').trim() || '#6b7280';
-            const grid = root.getPropertyValue('--chart-grid').trim() || 'rgba(0,0,0,0.06)';
+            const canvasStyle = getComputedStyle(canvas);
+            Chart.defaults.font.size = 13;
+            const primary = canvasStyle.getPropertyValue('--chart-primary').trim() || root.getPropertyValue('--chart-primary').trim() || '#2563eb';
+            const warning = canvasStyle.getPropertyValue('--chart-warning').trim() || root.getPropertyValue('--chart-warning').trim() || '#f59e0b';
+            const muted = canvasStyle.getPropertyValue('--chart-tick').trim() || root.getPropertyValue('--chart-tick').trim() || canvasStyle.getPropertyValue('--muted').trim() || root.getPropertyValue('--muted').trim() || '#6b7280';
+            const grid = canvasStyle.getPropertyValue('--chart-grid').trim() || root.getPropertyValue('--chart-grid').trim() || 'rgba(0,0,0,0.06)';
 
             new Chart(canvas, {
                 type: 'bar',

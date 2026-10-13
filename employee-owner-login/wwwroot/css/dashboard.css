@@ -2,20 +2,6 @@
 
 :root {
   --sidebar-width: 248px;
-  /* Chart palette: alarm red on the dark cards, soft rose gridlines on the
-     white plotting sheet. Only Chart.js reads these tokens. */
-  --chart-primary: #b6211a;
-  --chart-secondary: #8e1a14;
-  --chart-tertiary: #6d4a47;
-  --chart-quaternary: #c9564c;
-  --chart-grid: #f0d7d5;
-  --chart-critical: #b6211a;
-  --chart-warning: #a35a12;
-  --chart-healthy: #2c6e49;
-  --chart-critical-fill: rgba(182, 33, 26, 0.28);
-  --chart-fill-top: rgba(182, 33, 26, 0.42);
-  --chart-fill-bottom: rgba(182, 33, 26, 0);
-  --chart-legend: #dedede;
 }
 
 * {
@@ -885,38 +871,9 @@ th {
   color: var(--muted);
 }
 
-.dashboard-tabs { margin-top: 18px; }
-.dashboard-tab-list {
-  display: flex;
-  gap: var(--space-2);
-  margin-bottom: var(--space-4);
-  overflow-x: auto;
-  padding: 2px 1px 6px;
-  scrollbar-width: thin;
-}
-.dashboard-tab {
-  flex: 0 0 auto;
-  min-height: 40px;
-  padding: 8px 14px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  color: var(--muted);
-  background: var(--panel-alt);
-  cursor: pointer;
-  font-size: .82rem;
-  font-weight: 650;
-}
-.dashboard-tab.active {
-  color: var(--on-primary);
-  background: var(--primary);
-  border-color: var(--primary);
-}
-.dashboard-tab:focus-visible { outline: none; box-shadow: var(--focus-ring); }
-.dashboard-tab-panel[hidden] { display: none !important; }
-.dashboard-tab-panel > .chart-panel { width: 100%; }
-.dashboard-tab-panel > .chart-panel--primary .chart-plot { height: 332px; }
-.dashboard-tab-panel > .chart-panel--secondary .chart-plot { min-height: 332px; }
-.dashboard-tab-panel > .chart-panel--support .chart-plot { height: 300px; }
+/* The tab row's geometry now lives with the rest of the dark card skin further
+   down this file (pill bar + pill tabs), so the legacy base block that used to
+   sit here was removed. */
 
 .alert-panel,
 .quick-sale-panel {
@@ -1083,13 +1040,13 @@ th {
 }
 
 @media (max-width: 768px) {
-  .dashboard-body {
+  :where(.dashboard-body) {
     height: auto;
     min-height: 100%;
     overflow: auto;
   }
 
-  .dashboard-body.drawer-open {
+  :where(.dashboard-body).drawer-open {
     overflow: hidden;
   }
 
@@ -1098,13 +1055,13 @@ th {
     min-height: 100vh;
   }
 
-  .sidebar {
+  :where(.dashboard-page, .skin-page) .sidebar {
     width: min(78vw, 300px);
     transform: translateX(-100%);
     transition: transform 0.25s ease;
   }
 
-  .sidebar.open {
+  :where(.dashboard-page, .skin-page) .sidebar.open {
     transform: translateX(0);
   }
 
@@ -1119,7 +1076,7 @@ th {
     display: block;
   }
 
-  .main-panel {
+  :where(.dashboard-page, .skin-page) .main-panel {
     height: auto;
     min-height: 100vh;
     margin-left: 0;
@@ -1130,13 +1087,13 @@ th {
     display: flex;
   }
 
-  .topbar {
+  :where(.dashboard-page, .skin-page) .topbar {
     padding: 14px 16px;
     gap: var(--space-3);
     flex-wrap: wrap;
   }
 
-  .topbar-search {
+  :where(.dashboard-page, .skin-page) .topbar-search {
     order: 3;
     width: 100%;
   }
@@ -1188,6 +1145,48 @@ th {
   .quick-sale-panel {
     order: 1;
   }
+
+  /* Shared shell: the floating window, top bar and tab row behave the same on
+     every skin page. Kept separate from the Dashboard block above. */
+  :where(.dashboard-page, .skin-page) .main-panel {
+    margin: 0;
+    height: auto;
+    min-height: 100dvh;
+    border-radius: 0;
+  }
+
+  :where(.dashboard-page, .skin-page) .topbar {
+    flex-wrap: wrap;
+    gap: 10px 12px;
+    padding: 12px 14px 14px;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  :where(.dashboard-page, .skin-page) .farm-title { font-size: 1.28rem; }
+  :where(.dashboard-page, .skin-page) .topbar-search { order: 3; width: 100%; margin-left: 0; min-height: 46px; }
+  :where(.dashboard-page, .skin-page) .content-area { padding: 16px 16px 26px; }
+
+  :where(.dashboard-page, .skin-page) .dashboard-tab-list { overflow-x: auto; padding-bottom: 4px; }
+  :where(.dashboard-page, .skin-page) .dashboard-tab { flex: 0 0 auto; width: auto; padding: 2px 14px; }
+  :where(.dashboard-page, .skin-page) .dashboard-tab.active { padding-right: 18px; }
+}
+
+/* Phone: the title and bell share the first row and the search takes the
+   second, so the bar stays two rows tall down to 360px. Top-level at-rules:
+   these must NOT be nested inside the 768px block above. */
+@media (max-width: 620px) {
+  :where(.dashboard-page, .skin-page) .topbar { gap: 8px 10px; padding: 12px 12px 13px; }
+  :where(.dashboard-page, .skin-page) .farm-title { font-size: 1.18rem; }
+  :where(.dashboard-page, .skin-page) .date-pill { display: none; }
+  :where(.dashboard-page, .skin-page) .content-area { padding: 14px 12px 24px; }
+}
+
+@media (max-width: 400px) {
+  :where(.dashboard-page, .skin-page) .topbar { padding: 10px 10px 12px; }
+  :where(.dashboard-page, .skin-page) .farm-title { font-size: 1.08rem; }
+  :where(.dashboard-page, .skin-page) .notification-btn { width: 38px; height: 38px; }
 }
 
 @media (max-width: 520px) {
@@ -1372,684 +1371,291 @@ th {
 }
 
 /* ==========================================================================
-   Dashboard reference skin
-   Scoped to <body class="dashboard-page"> so every other authenticated page
-   keeps the existing theme until it gets its own pass. Values are taken from
-   the approved reference mock: a light-to-black wall gradient, a light
-   floating window, dark gradient inset cards and a white plotting sheet.
+   Dashboard skin
+   The mockup's frame: a gray-to-black wall with a light floating window on top.
+   The wall lives on the body so every authenticated page sits on the same wall.
+   The window itself is the base .main-panel rule in shell.css.
+
+   NOTE: the .dashboard-page body class is still set by Views/Dashboard/Index.cshtml
+   and .skin-page by Views/Stock/Alerts.cshtml. Both are kept, and both carry the
+   same declarations, so the two can never drift apart.
    ========================================================================== */
 
-.dashboard-page {
-  --sidebar-width: 299px;
-
-  /* floating window */
-  --win: #bebebe;
-  --win-ink: #1b1b1b;
-  --win-muted: #4c4c4c;
-  --win-line: #a8a8a8;
-
-  /* dark inset cards */
-  --ink-top: #8a8a8a;
-  --ink-bottom: #000000;
-  --ink-ink: #ffffff;
-  --ink-muted: #d8d8d8;
-
-  /* rail */
-  --rail-card: #bababa;
-  --rail-card-soft: #ececec;
-  --rail-frame-grad: linear-gradient(90deg, #8a8a8a 0%, #000000 100%);
-
-  background-color: #000000;
-  background-image: linear-gradient(180deg, #888888 0%, #000000 100%);
+/* Wall behind the window. */
+.dashboard-body {
+  background-color: var(--skin-black);
+  background-image: linear-gradient(180deg, var(--skin-wall-top) 0%, var(--skin-black) 100%);
   background-attachment: fixed;
 }
 
-/* Light palette for anything sitting on a light card or on the white sheet,
-   so every reused control keeps working without one-off overrides. */
-.dashboard-page :is(.rail-card, .dash-sheet-inner) {
+/* Per-window aliases. The legacy names (--win, --ink-*, --rail-card*) are kept
+   defined for both page classes even though the card rules below no longer read
+   them, so an older page or an inline style referencing them still resolves. */
+:is(.dashboard-page, .skin-page) {
+  --win: var(--skin-window);
+  --win-ink: var(--skin-ink);
+  --win-muted: var(--skin-window-muted);
+  --win-line: var(--skin-window-line);
+  --ink-top: var(--skin-dark-top);
+  --ink-bottom: var(--skin-black);
+  --ink-ink: var(--skin-white);
+  --ink-muted: var(--skin-on-dark-muted);
+  --rail-card: var(--skin-card);
+  --rail-card-soft: var(--skin-card-soft);
+  --rail-frame-grad: linear-gradient(180deg, var(--skin-dark-top) 0%, var(--skin-black) 100%);
+}
+
+/* Light palette for the white plotting sheet and the module pages, so every
+   reused control keeps working there without one-off overrides. Rail cards are
+   NOT in this list any more: they are gray cards with dark text of their own. */
+:where(.dashboard-page, .skin-page) :is(.dash-sheet-inner, .module-page) {
   color-scheme: light;
-  --text: #242424;
-  --muted: #5f5f5f;
-  --border: #dcdcdc;
-  --panel: #ffffff;
-  --panel-alt: #f4f4f4;
-  --white: #ffffff;
-  --primary: #2457a6;
-  --primary-hover: #1d4788;
-  --primary-soft: rgba(36, 87, 166, 0.1);
-  --primary-border: rgba(36, 87, 166, 0.24);
-  --on-primary: #ffffff;
-  --critical: #b6211a;
-  --critical-soft: rgba(182, 33, 26, 0.1);
-  --critical-border: rgba(182, 33, 26, 0.24);
-  --warning: #8a4b08;
-  --warning-soft: rgba(138, 75, 8, 0.1);
-  --warning-border: rgba(138, 75, 8, 0.24);
-  --healthy: #176b3a;
-  --healthy-soft: rgba(23, 107, 58, 0.1);
-  --healthy-border: rgba(23, 107, 58, 0.24);
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
-  --shadow-raised: 0 4px 14px rgba(0, 0, 0, 0.1);
-  --focus-ring: 0 0 0 3px rgba(36, 87, 166, 0.25);
+  --text: var(--gray-800);
+  --muted: var(--gray-700);
+  --border: var(--gray-300);
+  --panel: var(--gray-000);
+  --panel-alt: var(--gray-150);
+  --white: var(--gray-000);
+  --primary: var(--gray-700);
+  --primary-hover: var(--gray-800);
+  --primary-soft: var(--overlay-dark-06);
+  --primary-border: var(--overlay-dark-08);
+  --on-primary: var(--gray-000);
+  --critical: var(--ls-critical);
+  --critical-soft: var(--ls-critical-soft);
+  --critical-border: var(--ls-critical-edge);
+  --warning: var(--ls-warning);
+  --warning-soft: var(--ls-warning-soft);
+  --warning-border: var(--ls-warning-edge);
+  --healthy: var(--ls-healthy);
+  --healthy-soft: var(--ls-healthy-soft);
+  --healthy-border: var(--ls-healthy-edge);
+  --shadow: var(--shadow-sm);
+  --shadow-raised: var(--shadow-card);
+  --focus-ring: var(--focus-shadow);
 }
 
 /* --------------------------------------------------------------- sidebar */
 
-.dashboard-page .sidebar {
+:where(.dashboard-page, .skin-page) .sidebar {
   background: transparent;
   padding: 20px 16px 14px;
 }
 
-.dashboard-page .sidebar-header {
+:where(.dashboard-page, .skin-page) .sidebar-header {
   padding: 30px 8px 22px;
   border-bottom: 0;
 }
 
-.dashboard-page .logo-chip {
+:where(.dashboard-page, .skin-page) .logo-chip {
   display: grid;
   flex: 0 0 46px;
   width: 46px;
   height: 46px;
   place-items: center;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--overlay-light-90);
 }
 
-.dashboard-page .logo-mark {
+:where(.dashboard-page, .skin-page) .logo-mark {
   width: 36px;
   height: 36px;
   flex: 0 0 36px;
   border-radius: 50%;
 }
 
-.dashboard-page .logo-text {
+:where(.dashboard-page, .skin-page) .logo-text {
   font-size: 1.32rem;
   font-weight: 800;
   letter-spacing: -0.01em;
-  color: #ffffff;
+  color: var(--skin-white);
 }
 
-.dashboard-page .sidebar-header small { display: none; }
+:where(.dashboard-page, .skin-page) .sidebar-header small { display: none; }
 
-.dashboard-page .nav-group-label {
+:where(.dashboard-page, .skin-page) .nav-group-label {
   display: flex;
   align-items: center;
   gap: 10px;
   margin: 26px 8px 8px;
-  color: #ffffff;
+  color: var(--skin-white);
   font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: 0;
   text-transform: none;
 }
 
-.dashboard-page .nav-group-icon {
+:where(.dashboard-page, .skin-page) .nav-group-icon {
   width: 22px;
   height: 22px;
   flex: 0 0 22px;
 }
 
-.dashboard-page .nav-link {
+:where(.dashboard-page, .skin-page) .nav-link {
   justify-content: flex-start;
   gap: 12px;
   min-height: 46px;
   padding: 11px 12px;
   border-radius: 16px;
-  color: #f1f1f1;
+  color: var(--gray-200);
   font-size: 0.95rem;
   font-weight: 600;
   transform: none;
   box-shadow: none;
 }
 
-.dashboard-page .nav-icon {
+:where(.dashboard-page, .skin-page) .nav-icon {
   width: 24px;
   height: 24px;
   flex: 0 0 24px;
 }
 
-.dashboard-page .nav-link:hover {
-  background: rgba(255, 255, 255, 0.16);
-  color: #ffffff;
+:where(.dashboard-page, .skin-page) .nav-link:hover {
+  background: var(--overlay-light-16);
+  color: var(--skin-white);
   transform: none;
 }
 
-.dashboard-page .nav-link.active,
-.dashboard-page .nav-link.active:hover {
-  background: rgba(255, 255, 255, 0.36);
-  color: #1b1b1b;
+:where(.dashboard-page, .skin-page) .nav-link.active,
+:where(.dashboard-page, .skin-page) .nav-link.active:hover {
+  background: var(--overlay-light-36);
+  color: var(--skin-ink);
   font-weight: 700;
   box-shadow: none;
 }
 
-.dashboard-page .nav-badge {
+:where(.dashboard-page, .skin-page) .nav-badge {
   margin-left: auto;
-  background: #b6211a;
-  color: #ffffff;
+  background: var(--skin-critical);
+  color: var(--skin-white);
 }
 
-.dashboard-page .sidebar-footer {
+:where(.dashboard-page, .skin-page) .sidebar-footer {
   padding: 16px 4px 4px;
   border-top: 0;
 }
 
-.dashboard-page .user-mini { gap: 14px; padding: 0 4px; }
+:where(.dashboard-page, .skin-page) .user-mini { gap: 14px; padding: 0 4px; }
 
-.dashboard-page .avatar {
+:where(.dashboard-page, .skin-page) .avatar {
   width: 44px;
   height: 44px;
   flex: 0 0 44px;
   border-radius: 50%;
   background: var(--rail-card);
-  color: #ffffff;
+  color: var(--skin-white);
 }
 
-.dashboard-page .avatar svg { width: 30px; height: 30px; }
+:where(.dashboard-page, .skin-page) .avatar svg { width: 30px; height: 30px; }
 
-.dashboard-page .user-mini strong { font-size: 1.02rem; font-weight: 800; color: #ffffff; }
-.dashboard-page .user-mini small { color: #d6d6d6; font-size: 0.78rem; }
+:where(.dashboard-page, .skin-page) .user-mini strong { font-size: 1.02rem; font-weight: 800; color: var(--skin-white); }
+:where(.dashboard-page, .skin-page) .user-mini small { color: var(--gray-300); font-size: 0.78rem; }
 
-.dashboard-page .signout-form { margin-top: 12px; }
+:where(.dashboard-page, .skin-page) .signout-form { margin-top: 12px; }
 
-.dashboard-page .signout-link {
+:where(.dashboard-page, .skin-page) .signout-link {
   padding: 8px 6px;
-  color: #ffffff;
+  color: var(--skin-white);
   font-size: 1rem;
   font-weight: 800;
 }
 
-.dashboard-page .signout-link:hover { background: transparent; color: #ffffff; text-decoration: underline; }
+:where(.dashboard-page, .skin-page) .signout-link:hover { background: transparent; color: var(--skin-white); text-decoration: underline; }
 
 /* --------------------------------------------------- floating window */
 
-.dashboard-page .main-panel {
+:where(.dashboard-page, .skin-page) .main-panel {
   margin: 15px clamp(16px, 5.7vw, 78px) 27px var(--sidebar-width);
   height: calc(100vh - 42px);
   height: calc(100dvh - 42px);
   background: var(--win);
-  border-radius: 28px;
+  border-radius: var(--skin-radius-window);
   color: var(--win-ink);
 }
 
-.dashboard-page .topbar {
-  justify-content: flex-start;
-  gap: 0;
-  padding: 34px 39px 0 58px;
-  background: transparent;
-  border-bottom: 0;
-}
-
-.dashboard-page .farm-title {
+/* The shell bar's surface lives in shell.css; the legacy block that painted an
+   opaque fill here was removed because it won on load order and hid the bar's
+   backdrop-filter. Only the window's ink token is set here. */
+:where(.dashboard-page, .skin-page) .farm-title {
+  flex-shrink: 0;
   font-size: 1.7rem;
   font-weight: 800;
   letter-spacing: -0.015em;
   color: var(--win-ink);
 }
 
-.dashboard-page .topbar-search {
-  margin-left: 47px;
-  width: min(375px, 32vw);
-  min-height: 42px;
-  padding: 0 8px 0 16px;
-  border: 1px solid #dedede;
-  border-radius: 10px;
-  background: #ededed;
-  color: #6e6e6e;
+:where(.dashboard-page, .skin-page) .topbar-search {
+  margin-left: 28px;
+  width: min(430px, 40vw);
+  min-height: 44px;
+  padding: 0 8px 0 18px;
+  border: 1px solid var(--gray-250);
+  border-radius: var(--radius-pill);
+  background: var(--gray-200);
+  color: var(--gray-600);
 }
 
-.dashboard-page .topbar-search:hover:not(:focus-within) { background: #ededed; border-color: #dedede; }
+:where(.dashboard-page, .skin-page) .topbar-search:hover:not(:focus-within) { background: var(--gray-200); border-color: var(--gray-300); }
 
-.dashboard-page .topbar-search:focus-within {
-  background: #ffffff;
-  border-color: #b5b5b5;
-  box-shadow: none;
+:where(.dashboard-page, .skin-page) .topbar-search:focus-within {
+  background: var(--skin-white);
+  border-color: var(--gray-350);
+  box-shadow: var(--focus-ring);
 }
 
-.dashboard-page .topbar-search input {
+:where(.dashboard-page, .skin-page) .topbar-search input {
   order: 1;
-  color: #2b2b2b;
+  color: var(--gray-800);
   font-size: 0.88rem;
 }
 
-.dashboard-page .topbar-search input::placeholder { color: #8c8c8c; }
+/* --gray-500 was 3.3:1 on the glass bar, under the floor for placeholder text. */
+:where(.dashboard-page, .skin-page) .topbar-search input::placeholder { color: var(--gray-600); }
 
-.dashboard-page .global-search-trigger {
+:where(.dashboard-page, .skin-page) .global-search-trigger {
   order: 2;
   width: 34px;
   height: 34px;
   flex: 0 0 34px;
-  color: #4a4a4a;
-  border-radius: 8px;
+  color: var(--gray-700);
+  border-radius: var(--radius-pill);
 }
 
-.dashboard-page .global-search-trigger:hover,
-.dashboard-page .global-search-trigger:focus-visible { background: rgba(0, 0, 0, 0.07); color: #1b1b1b; }
+:where(.dashboard-page, .skin-page) .global-search-trigger:hover,
+:where(.dashboard-page, .skin-page) .global-search-trigger:focus-visible { background: var(--overlay-dark-07); color: var(--skin-ink); }
 
-.dashboard-page .topbar-right { margin-left: auto; gap: 18px; }
+:where(.dashboard-page, .skin-page) .topbar-right { margin-left: auto; gap: 18px; }
 
-.dashboard-page .date-pill { color: #1f1f1f; font-size: 0.95rem; font-weight: 600; }
+:where(.dashboard-page, .skin-page) .date-pill { color: var(--gray-800); font-size: 0.95rem; font-weight: 600; white-space: nowrap; }
 
-.dashboard-page .notification-btn {
+:where(.dashboard-page, .skin-page) .notification-btn {
   width: 40px;
   height: 40px;
-  background: #efefef;
-  color: #1b1b1b;
+  background: var(--gray-200);
+  color: var(--skin-ink);
 }
 
-.dashboard-page .notification-btn:hover { background: #ffffff; color: #000000; }
+:where(.dashboard-page, .skin-page) .notification-btn:hover { background: var(--skin-white); color: var(--skin-black); }
 
-.dashboard-page .content-area { padding: 24px 39px 18px 58px; }
+:where(.dashboard-page, .skin-page) .content-area { padding: 22px 39px 18px 34px; }
 
-/* ------------------------------------------------- dashboard grid */
 
-.dashboard-page .dash-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 223px;
-  gap: 31px;
-  align-items: start;
-}
-
-.dashboard-page .dash-column { min-width: 0; }
-
-.dashboard-page .dash-charts {
-  display: grid;
-  grid-template-columns: 1.29fr 1fr;
-  gap: 11px;
-  margin-bottom: 20px;
-}
-
-.dashboard-page .glass-card {
-  position: relative;
-  overflow: hidden;
-  border: 0;
-  border-radius: 24px;
-  background: linear-gradient(180deg, var(--ink-top) 0%, var(--ink-bottom) 100%);
-  box-shadow: none;
-}
-
-.dashboard-page .dash-chart-card {
-  display: flex;
-  flex-direction: column;
-  height: 250px;
-  padding: 0;
-}
-
-.dashboard-page .dash-card-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 20px 24px 4px;
-}
-
-.dashboard-page .dash-card-head h2 {
-  margin: 0;
-  color: var(--ink-ink);
-  font-size: 1.24rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-}
-
-.dashboard-page .dash-chart-card .chart-plot {
-  position: relative;
-  flex: 1 1 auto;
-  min-height: 0;
-}
-
-.dashboard-page .dash-chart-card .chart-plot canvas {
-  display: block;
-  width: 100% !important;
-  height: 100% !important;
-}
-
-.dashboard-page .dash-chart-card .chart-empty { color: var(--ink-muted); }
-.dashboard-page .dash-chart-card .chart-empty strong { color: #ffffff; }
-.dashboard-page .dash-chart-card .chart-empty > svg { color: #ffffff; background: rgba(255, 255, 255, 0.18); }
-
-/* The category switch sits in the card foot so the title keeps one line,
-   mirroring the legend row on the donut card. */
-.dashboard-page .dash-chart-card .chart-toggle {
-  display: flex;
-  flex: 0 0 auto;
-  justify-content: center;
-  gap: 6px;
-  padding: 4px 0 14px;
-}
-
-.dashboard-page .chart-mode {
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
-  color: #ededed;
-  padding: 5px 10px;
-  font-size: 0.72rem;
-}
-
-.dashboard-page .chart-mode.active {
-  background: #ffffff;
-  border-color: #ffffff;
-  color: #1b1b1b;
-}
-
-/* ------------------------------------------------------- tab row + sheet */
-
-.dashboard-page .dashboard-tabs { margin-top: 0; }
-
-.dashboard-page .dashboard-tab-list {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 0 0 22px;
-  padding: 0;
-  overflow: visible;
-}
-
-.dashboard-page .dashboard-tab {
-  display: inline-flex;
-  flex: 0 0 126px;
-  width: 126px;
-  height: 34px;
-  min-height: 34px;
-  align-items: center;
-  justify-content: center;
-  padding: 2px 10px;
-  border: 0;
-  border-radius: 10px;
-  background: linear-gradient(180deg, #8a8a8a 0%, #000000 100%);
-  color: #ffffff;
-  font-size: 0.75rem;
-  font-weight: 600;
-  line-height: 1.15;
-  text-align: center;
-}
-
-/* The current tab reads as plain text on the window (reference look) but keeps
-   the same box, so the row never reflows when the user switches tabs. */
-.dashboard-page .dashboard-tab.active {
-  flex: 0 0 126px;
-  width: 126px;
-  height: 34px;
-  min-height: 34px;
-  justify-content: flex-start;
-  padding: 2px 0;
-  background: none;
-  color: var(--win-ink);
-  font-size: 0.95rem;
-  font-weight: 600;
-  text-align: left;
-}
-
-.dashboard-page .dashboard-tab:not(.active):hover { background: linear-gradient(180deg, #9a9a9a 0%, #111111 100%); }
-.dashboard-page .dashboard-tab.active:focus-visible { box-shadow: var(--focus-ring); }
-
-.dashboard-page .dash-sheet {
-  padding: 19px 31px 35px 30px;
-  border-radius: 28px;
-  background: linear-gradient(180deg, var(--ink-top) 0%, var(--ink-bottom) 100%);
-}
-
-.dashboard-page .dash-sheet-inner {
-  height: calc(100dvh - 545px);
-  min-height: 224px;
-  padding: 16px 18px;
-  overflow: auto;
-  border-radius: 28px;
-  background: #ffffff;
-}
-
-.dashboard-page .dash-sheet-inner .panel {
-  padding: 0;
-  border: 0;
-  background: none;
-  box-shadow: none;
-}
-
-.dashboard-page .dash-sheet-inner .panel-header { margin-bottom: 12px; }
-.dashboard-page .dash-sheet-inner h2 { font-size: 1rem; }
-
-.dashboard-page .dash-sheet-inner .chart-plot {
-  position: relative;
-  height: 190px;
-}
-
-.dashboard-page .dash-sheet-inner .chart-plot canvas {
-  display: block;
-  width: 100% !important;
-  height: 100% !important;
-}
-
-.dashboard-page .dash-sheet-inner .chart-empty { color: var(--muted); }
-.dashboard-page .dash-sheet-inner .chart-empty > svg { color: var(--primary); }
-
-.dashboard-page .dash-sheet-inner table { min-width: 0; font-size: 0.72rem; }
-.dashboard-page .dash-sheet-inner .panel-header.split-header {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-}
-.dashboard-page .dash-sheet-inner th { font-size: 0.62rem; color: #6b6b6b; }
-.dashboard-page .dash-sheet-inner th,
-.dashboard-page .dash-sheet-inner td { padding: 6px 8px; border-bottom: 1px solid #e6e6e6; }
-.dashboard-page .dash-sheet-inner tbody tr:hover { background: #f6f6f6; }
-
-.dashboard-page .dash-sheet-inner #stockFilter,
-.dashboard-page .dash-sheet-inner #categoryFilter {
-  min-height: 32px;
-  padding: 5px 10px;
-  border: 1px solid #cfcfcf;
-  border-radius: 6px;
-  background: #fafafa;
-  color: #333333;
-  font-size: 0.78rem;
-}
-
-.dashboard-page .dash-sheet-inner .chip {
-  min-height: 30px;
-  padding: 4px 12px;
-  border: 1px solid #cfcfcf;
-  border-radius: 999px;
-  background: #fafafa;
-  color: #4a4a4a;
-  font-size: 0.74rem;
-}
-
-.dashboard-page .dash-sheet-inner .chip.active {
-  border-color: #1b1b1b;
-  background: #1b1b1b;
-  color: #ffffff;
-}
-
-.dashboard-page .dash-sheet-inner .status-badge { min-width: 66px; padding: 3px 9px; font-size: 0.7rem; }
-.dashboard-page .dash-sheet-inner .empty-state { color: var(--muted); }
-
-.dashboard-page .dash-sheet-inner .alert-row { background: #f7f7f7; border-color: #e4e4e4; }
-.dashboard-page .dash-sheet-inner .alert-name { color: #1e1e1e; }
-.dashboard-page .dash-sheet-inner .alert-meta,
-.dashboard-page .dash-sheet-inner .alert-side { color: #6b6b6b; }
-.dashboard-page .dash-sheet-inner .activity-list li { background: #f7f7f7; border-color: #e4e4e4; }
-.dashboard-page .dash-sheet-inner .activity-list small { color: #6b6b6b; }
-
-.dashboard-page .dash-sheet-inner .depletion-banner {
-  margin: 0 0 14px;
-  padding: 8px 12px;
-  border: 1px solid #f3c9c6;
-  border-radius: 8px;
-  background: #fdecec;
-  color: #a01f18;
-  font-size: 0.8rem;
-  font-weight: 700;
-}
-
-.dashboard-page .dash-sheet-inner .alert-list { display: grid; gap: 10px; }
-
-.dashboard-page .dash-overview {
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  gap: 16px;
-  align-items: start;
-}
-
-.dashboard-page .dash-overview-alerts { min-width: 0; }
-
-.dashboard-page .dash-kpi-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.dashboard-page .dash-overview .dash-kpi-row {
-  grid-template-columns: minmax(0, 1fr);
-  gap: 10px;
-  margin-bottom: 0;
-}
-
-.dashboard-page .dash-overview .dash-kpi { padding: 10px 13px; }
-.dashboard-page .dash-overview .dash-kpi .kpi-label { margin-bottom: 5px; font-size: 0.7rem; }
-.dashboard-page .dash-overview .dash-kpi .kpi-value { margin-bottom: 3px; font-size: 0.95rem; }
-.dashboard-page .dash-overview .dash-kpi .kpi-lines { font-size: 0.82rem; line-height: 1.3; }
-.dashboard-page .dash-overview .dash-kpi .kpi-meta { font-size: 0.7rem; }
-
-.dashboard-page .dash-overview .panel-header { margin-bottom: 8px; }
-.dashboard-page .dash-overview .depletion-banner { margin-bottom: 10px; padding: 6px 10px; font-size: 0.76rem; }
-
-/* The sheet keeps the reference's height, so the alert list scrolls inside it
-   instead of stretching the whole dashboard. */
-.dashboard-page .dash-overview .alert-list {
-  max-height: 128px;
-  overflow-y: auto;
-}
-
-.dashboard-page .dash-kpi {
-  padding: 14px 16px;
-  border: 1px solid #e0e0e0;
-  border-radius: 14px;
-  background: #f8f8f8;
-}
-
-.dashboard-page .dash-kpi .kpi-label { margin-bottom: 8px; color: #6b6b6b; font-size: 0.74rem; font-weight: 700; }
-.dashboard-page .dash-kpi .kpi-value { margin: 0 0 4px; color: #1e1e1e; font-size: 1.15rem; font-weight: 800; }
-.dashboard-page .dash-kpi .kpi-lines { display: grid; gap: 2px; font-size: 0.85rem; }
-.dashboard-page .dash-kpi .kpi-meta { color: #6f6f6f; font-size: 0.74rem; }
-
-/* ------------------------------------------------------------- right rail */
-
-.dashboard-page .dash-rail {
-  display: grid;
-  gap: 6px;
-  align-content: start;
-  min-width: 0;
-}
-
-.dashboard-page .rail-frame {
-  display: grid;
-  gap: 4px;
-  padding: 14px;
-  border-radius: 28px;
-  background: var(--rail-frame-grad);
-}
-
-.dashboard-page .rail-card {
-  padding: 20px;
-  border: 0;
-  border-radius: 22px;
-  background: var(--rail-card);
-  box-shadow: none;
-}
-
-.dashboard-page .rail-card h2 { margin: 0; color: #242424; font-size: 0.96rem; font-weight: 800; }
-
-.dashboard-page .rail-card--alerts { padding: 20px 18px; text-align: center; }
-.dashboard-page .rail-card--alerts h2 { margin-bottom: 14px; }
-
-.dashboard-page .alert-count-box {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 64px;
-  padding: 3px 16px;
-  border: 1px solid #9a9a9a;
-  border-radius: 8px;
-}
-
-.dashboard-page .alert-count-box .kpi-value {
-  margin: 0;
-  color: #c62415;
-  font-size: 1.4rem;
-  font-weight: 800;
-  line-height: 1.35;
-}
-
-.dashboard-page .rail-meta { margin: 14px 0 0; color: #5c5c5c; font-size: 0.76rem; }
-
-.dashboard-page .rail-list {
-  display: grid;
-  gap: 14px;
-  margin: 18px 0 0;
-  padding: 0;
-  list-style: none;
-  color: #3d3d3d;
-}
-
-.dashboard-page .rail-list li { font-size: 0.78rem; }
-
-.dashboard-page .rail-card--quick { padding: 22px 24px; border-radius: 28px; background: var(--rail-card-soft); }
-.dashboard-page .rail-card--quick h2 { margin-bottom: 4px; font-size: 1.05rem; }
-
-.dashboard-page .rail-card--quick label {
-  display: block;
-  margin: 16px 0 0;
-  color: #6f6f6f;
-  font-size: 0.78rem;
-  font-weight: 600;
-}
-
-.dashboard-page .rail-card--quick :is(select, input) {
-  width: 100%;
-  min-height: 30px;
-  margin-top: 6px;
-  padding: 5px 10px;
-  border: 1px solid #c9c9c9;
-  border-radius: 6px;
-  background: #fbfbfb;
-  color: #4a4a4a;
-  font-size: 0.78rem;
-}
-
-.dashboard-page .rail-card--quick select option { background: #ffffff; color: #242424; }
-
-.dashboard-page .rail-card--quick .primary-btn {
-  display: block;
-  width: auto;
-  min-height: 0;
-  margin: 22px auto 0;
-  padding: 11px 24px;
-  border: 0;
-  border-radius: 8px;
-  background: #4b4b4b;
-  color: #ffffff;
-  font-size: 0.82rem;
-  font-weight: 700;
-}
-
-.dashboard-page .rail-card--quick .primary-btn:not(:disabled):hover { background: #3d3d3d; }
-
-.dashboard-page .rail-card--quick .toast {
-  margin-top: 12px;
-  min-height: 0;
-  font-size: 0.76rem;
-  font-weight: 700;
-  color: var(--healthy);
-}
+/* The Dashboard grid geometry (dashboard grid, tab row + sheet, right rail)
+   was rewritten as the dark card skin further down this file. The legacy
+   .dashboard-page block that used to sit here, including its dark glass
+   chart-card overrides, was removed with the glass direction change. */
 
 /* ------------------------------------------------------------ responsive */
 
 @media (max-width: 1240px) {
   .dashboard-page { --sidebar-width: 248px; }
+  .skin-page { --sidebar-width: 248px; }
 
-  .dashboard-page .main-panel { margin-right: 22px; }
-  .dashboard-page .topbar { padding: 26px 24px 0 32px; }
-  .dashboard-page .content-area { padding: 20px 24px 18px 32px; }
+  :where(.dashboard-page, .skin-page) .main-panel { margin: 12px 22px 22px var(--sidebar-width); }
+  :where(.dashboard-page, .skin-page) .topbar { padding: 14px 18px 14px 26px; gap: 16px; }
+  :where(.dashboard-page, .skin-page) .content-area { padding: 18px 24px 18px 26px; }
+  :where(.dashboard-page, .skin-page) .topbar-search { margin-left: 20px; width: min(340px, 38vw); }
+  :where(.dashboard-page, .skin-page) .farm-title { font-size: 1.5rem; }
   .dashboard-page .dash-layout { grid-template-columns: minmax(0, 1fr); gap: 24px; }
   .dashboard-page .dash-rail { order: -1; }
   .dashboard-page .rail-frame { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -2058,31 +1664,786 @@ th {
 
 @media (max-width: 900px) {
   .dashboard-page .dash-charts { grid-template-columns: minmax(0, 1fr); }
-  .dashboard-page .topbar-search { width: min(300px, 40vw); margin-left: 24px; }
+  :where(.dashboard-page, .skin-page) .topbar-search { margin-left: 16px; width: min(300px, 40vw); }
   .dashboard-page .rail-frame { grid-template-columns: minmax(0, 1fr); }
 }
 
 @media (max-width: 768px) {
-  .dashboard-page .main-panel {
-    margin: 0;
-    height: auto;
-    min-height: 100dvh;
-    border-radius: 0;
-  }
-
-  .dashboard-page .topbar { padding: 16px 16px 0; gap: 12px; }
-  .dashboard-page .topbar-search { width: 100%; margin-left: 0; }
-  .dashboard-page .content-area { padding: 16px 16px 26px; }
-  .dashboard-page .farm-title { font-size: 1.32rem; }
-
-  .dashboard-page .dashboard-tab-list { overflow-x: auto; padding-bottom: 4px; }
-  .dashboard-page .dashboard-tab { flex: 0 0 auto; width: auto; padding: 2px 14px; }
-  .dashboard-page .dashboard-tab.active { padding-right: 18px; }
-
-  .dashboard-page .dash-sheet { padding: 12px; border-radius: 22px; }
+  .dashboard-page .dash-sheet { padding: 12px; border-radius: var(--skin-radius-inner); }
   .dashboard-page .dash-sheet-inner { min-height: 0; max-height: none; border-radius: 18px; }
   .dashboard-page .dash-chart-card { height: 230px; }
   .dashboard-page .dash-overview { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .dashboard-page .dash-kpi-row { grid-template-columns: minmax(0, 1fr); }
   .dashboard-page .rail-card--quick :is(select, input) { min-height: 44px; }
+}
+
+/* ==========================================================================
+   Shared skin â€” dark card surfaces
+   The current visual target: a light-gray floating window on the gray-to-black
+   wall, with dark gradient cards as the main card surface.
+
+   A page opts in by placing "skin-page" on the body through
+   ViewData["BodyClass"]; the Dashboard uses "dashboard-page". Both are carried
+   by the same selectors so the two can never drift apart.
+
+   The glass card rules that used to live here were retired when the direction
+   changed: no translucent fill, no backdrop-filter, no blur fallbacks. See
+   DESIGN.md ("Glass rules retired").
+   ========================================================================== */
+
+/* ------------------------------------------------- dashboard grid */
+
+.dash-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 223px;
+  gap: var(--space-8);
+  align-items: start;
+}
+
+.dash-column { min-width: 0; }
+
+.dash-charts {
+  display: grid;
+  grid-template-columns: 1.29fr 1fr;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+/* --------------------------------------------------- the dark card surface */
+
+/* Scoped to the two migrated page classes. `.glass-card` is a shared class name
+   that unmigrated pages also carry (e.g. the Forecast summary cards), and a
+   bare `.glass-card` rule would set the dark palette's --text on them and leave
+   dark text on their own light cards. The page class is what makes the surface
+   opt-in, so every dark-card rule below is scoped to it. */
+:is(.dashboard-page, .skin-page) .glass-card {
+  border: 1px solid var(--card-line);
+  border-radius: var(--skin-radius-card);
+  background-color: var(--skin-black);
+  background-image: var(--card-dark-gradient);
+  box-shadow: var(--shadow-card);
+  /* The card carries its own dark palette, so its chart canvas resolves the
+     right values through getComputedStyle(canvas). */
+  --chart-primary:    var(--chart-dark-line);
+  --chart-secondary:  var(--chart-dark-line-2);
+  --chart-quaternary: var(--chart-dark-line-4);
+  --chart-tertiary:   var(--chart-dark-line-3);
+  --chart-grid:       var(--chart-dark-grid);
+  --chart-tick:       var(--chart-dark-tick);
+  --chart-legend:     var(--chart-dark-legend);
+  --chart-critical:   var(--chart-dark-line);
+  --chart-warning:    var(--chart-dark-line-4);
+  --chart-healthy:    var(--chart-dark-line-4);
+  --chart-fill-top:   var(--chart-dark-fill-top);
+  --chart-fill-bottom: var(--chart-dark-fill-bottom);
+  --chart-text:       var(--chart-dark-text);
+  --chart-border:     var(--chart-dark-border);
+  --chart-donut-1:    var(--chart-dark-donut-1);
+  --chart-donut-2:    var(--chart-dark-donut-2);
+  --chart-donut-gap:  var(--chart-dark-donut-gap);
+  --text:             var(--card-ink);
+}
+
+/* --------------------------------------------------------- chart cards */
+
+.dash-chart-card {
+  display: flex;
+  flex-direction: column;
+  height: 250px;
+  padding: 0;
+}
+
+.dash-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-6) var(--space-1);
+}
+
+.dash-card-head h2 {
+  margin: 0;
+  color: var(--card-ink);
+  font-size: 1.24rem;
+  font-weight: var(--weight-black);
+  letter-spacing: -0.01em;
+}
+
+.dash-chart-card .chart-plot {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.dash-chart-card .chart-plot canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.dash-chart-card .chart-empty { color: var(--card-muted); }
+.dash-chart-card .chart-empty strong { color: var(--card-ink); }
+.dash-chart-card .chart-empty > svg { color: var(--card-ink); background: var(--overlay-light-16); }
+
+/* The category switch sits in the card foot so the title keeps one line,
+   mirroring the legend row on the donut card. */
+.dash-chart-card .chart-toggle {
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: center;
+  gap: 6px;
+  padding: var(--space-1) 0 var(--space-4);
+}
+
+/* Pill toggles: the active one is the most filled control in the row. */
+.chart-mode {
+  border: 1px solid var(--card-line);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--card-muted);
+  padding: 6px 12px;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+
+.chart-mode.active {
+  background: var(--skin-white);
+  border-color: var(--skin-white);
+  color: var(--skin-ink);
+}
+
+.chart-mode:focus-visible {
+  outline: 2px solid transparent;
+  box-shadow: var(--focus-shadow-inset);
+}
+
+/* ------------------------------------------------------------- status pills
+   One pill shape, two fills. Status colour is reserved for stock/alert meaning
+   on every surface. The dark set is the lightened one; the light set is the
+   darkened one, because the dark tints are unusable on a light surface
+   (#ffb3ae on #bebebe measures 1.09:1). */
+
+/* On DARK cards (rail cards and any dark container). */
+:is(.rail-card, .rail-card--quick) :is(.status-badge, .status-critical, .status-warning, .status-healthy) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 72px;
+  padding: 6px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  text-transform: capitalize;
+  letter-spacing: 0;
+  background: var(--cs-neutral);
+  color: var(--cs-neutral-text);
+  border-color: var(--cs-neutral-text);
+}
+
+:is(.rail-card, .rail-card--quick) .status-critical {
+  background: var(--cs-critical);
+  color: var(--cs-critical-text);
+  border-color: var(--cs-critical-text);
+}
+
+:is(.rail-card, .rail-card--quick) .status-warning {
+  background: var(--cs-warning);
+  color: var(--cs-warning-text);
+  border-color: var(--cs-warning-text);
+}
+
+:is(.rail-card, .rail-card--quick) .status-healthy {
+  background: var(--cs-healthy);
+  color: var(--cs-healthy-text);
+  border-color: var(--cs-healthy-text);
+}
+
+/* On LIGHT surfaces (the plotting sheet, the gray module panels, gray cards). */
+:where(.dashboard-page, .skin-page) :is(.dash-sheet-inner, .module-page, .rail-card) :is(.status-badge, .status-critical, .status-warning, .status-healthy) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 72px;
+  padding: 6px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  text-transform: capitalize;
+  letter-spacing: 0;
+  background: var(--ls-neutral);
+  color: var(--ls-neutral-text);
+  border-color: var(--ls-neutral-text);
+}
+
+:where(.dashboard-page, .skin-page) :is(.dash-sheet-inner, .module-page, .rail-card) .status-critical {
+  background: var(--ls-critical);
+  color: var(--ls-critical-text);
+  border-color: var(--ls-critical-text);
+}
+
+:where(.dashboard-page, .skin-page) :is(.dash-sheet-inner, .module-page, .rail-card) .status-warning {
+  background: var(--ls-warning);
+  color: var(--ls-warning-text);
+  border-color: var(--ls-warning-text);
+}
+
+:where(.dashboard-page, .skin-page) :is(.dash-sheet-inner, .module-page, .rail-card) .status-healthy {
+  background: var(--ls-healthy);
+  color: var(--ls-healthy-text);
+  border-color: var(--ls-healthy-text);
+}
+
+/* KPI figures carry status colour at 24px+ bold, where 3:1 is the bar. */
+.skin-page .module-page .stat-strip .accuracy-value { color: var(--ls-healthy); }
+
+/* ---------------------------------------------- the plotting sheet (light) */
+
+.dash-sheet {
+  padding: var(--space-5) var(--space-6) var(--space-8);
+  border-radius: var(--skin-radius-window);
+  background-color: var(--skin-dark-top);
+  background-image: linear-gradient(180deg, var(--skin-dark-top) 0%, var(--skin-black) 100%);
+}
+
+.dash-sheet-inner {
+  min-height: 224px;
+  padding: var(--space-4);
+  overflow: auto;
+  border-radius: var(--skin-radius-window);
+  background: var(--skin-white);
+  /* Its charts resolve the light palette from their own canvas. */
+  --chart-primary:    var(--chart-light-line);
+  --chart-secondary:  var(--chart-light-line-2);
+  --chart-quaternary: var(--chart-light-line-4);
+  --chart-tertiary:   var(--chart-light-line-3);
+  --chart-grid:       var(--chart-light-grid);
+  --chart-tick:       var(--chart-light-tick);
+  --chart-legend:     var(--chart-light-legend);
+  --chart-critical:   var(--chart-light-line);
+  --chart-warning:    var(--chart-light-line-4);
+  --chart-healthy:    var(--chart-light-line-4);
+  --chart-fill-top:   var(--chart-light-fill-top);
+  --chart-fill-bottom: var(--chart-light-fill-bottom);
+  --chart-text:       var(--chart-light-text);
+  --chart-border:     var(--chart-light-border);
+  --chart-donut-1:    var(--chart-light-donut-1);
+  --chart-donut-2:    var(--chart-light-donut-2);
+  --chart-donut-gap:  var(--chart-light-donut-gap);
+}
+
+.dash-sheet-inner .panel {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.dash-sheet-inner .panel-header { margin-bottom: var(--space-3); }
+.dash-sheet-inner h2 { font-size: 1rem; }
+
+.dash-sheet-inner .chart-plot {
+  position: relative;
+  height: 190px;
+}
+
+.dash-sheet-inner .chart-plot canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.dash-sheet-inner .chart-empty { color: var(--muted); }
+.dash-sheet-inner .chart-empty strong { color: var(--text); }
+.dash-sheet-inner .chart-empty > svg { color: var(--primary); }
+
+.dash-sheet-inner .panel-header.split-header {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+/* Tables on the light sheet: dark text, 1px dividers, no faded last row. */
+.dash-sheet-inner table { min-width: 0; font-size: 0.86rem; }
+.dash-sheet-inner th { color: var(--gray-700); font-size: var(--text-xs); }
+
+.dash-sheet-inner th,
+.dash-sheet-inner td { padding: 8px; border-bottom: 1px solid var(--gray-250); }
+
+.dash-sheet-inner tbody tr:last-child :is(th, td) { border-bottom: 0; }
+.dash-sheet-inner tbody tr:hover { background: var(--gray-150); }
+
+.dash-sheet-inner :is(#stockFilter, #categoryFilter) {
+  min-height: var(--touch-target);
+  padding: 6px 12px;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-control);
+  background: var(--gray-100);
+  color: var(--gray-800);
+  font-size: var(--text-sm);
+}
+
+.dash-sheet-inner .chip {
+  min-height: 36px;
+  padding: 6px 14px;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-pill);
+  background: var(--gray-100);
+  color: var(--gray-700);
+  font-size: var(--text-xs);
+}
+
+.dash-sheet-inner .chip.active {
+  border-color: var(--skin-ink);
+  background: var(--skin-ink);
+  color: var(--skin-white);
+}
+
+.dash-sheet-inner .status-badge { min-width: 66px; padding: 5px 10px; font-size: var(--text-xs); }
+.dash-sheet-inner .empty-state { color: var(--muted); }
+
+.dash-sheet-inner .alert-row { background: var(--gray-150); border-color: var(--gray-250); }
+.dash-sheet-inner .alert-name { color: var(--gray-800); }
+.dash-sheet-inner .alert-meta,
+.dash-sheet-inner .alert-side { color: var(--gray-700); }
+.dash-sheet-inner .activity-list li { background: var(--gray-150); border-color: var(--gray-250); }
+.dash-sheet-inner .activity-list small { color: var(--gray-700); }
+
+.dash-sheet-inner .depletion-banner {
+  margin: 0 0 var(--space-3);
+  padding: 10px 14px;
+  border: 1px solid var(--skin-banner-border);
+  border-radius: var(--radius-control);
+  background: var(--skin-banner-bg);
+  color: var(--skin-banner-text);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+}
+
+.dash-sheet-inner .alert-list { display: grid; gap: var(--space-3); }
+
+/* ------------------------------------------------ dashboard overview grid */
+
+.dash-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.dash-overview-alerts { min-width: 0; }
+
+.dash-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.dash-overview .dash-kpi-row {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  margin-bottom: 0;
+}
+
+.dash-overview .panel-header { margin-bottom: var(--space-2); }
+.dash-overview .depletion-banner { margin-bottom: var(--space-3); padding: 8px 12px; }
+
+/* The sheet keeps its height, so the alert list scrolls inside it instead of
+   stretching the whole dashboard. */
+.dash-overview .alert-list {
+  max-height: 132px;
+  overflow-y: auto;
+}
+
+/* ------------------------------------------------------- KPI cards (dark) */
+
+/* `:is()` raises specificity to (0,2,0), which beats the light-palette block on
+   .dash-sheet-inner / .module-page and keeps the window's --text untouched. */
+:is(.dashboard-page, .skin-page) :is(.dash-kpi, .rail-card, .rail-card--quick) {
+  --text: var(--card-ink);
+}
+
+/* Scoped to the two migrated page classes, so unmigrated pages that share these
+   class names (the Forecast summary cards) keep their own light/dark ink. */
+:is(.dashboard-page, .skin-page) :is(.dash-kpi, .rail-card, .rail-card--quick) .kpi-label,
+:is(.dashboard-page, .skin-page) .rail-meta { color: var(--card-muted); }
+
+:is(.dashboard-page, .skin-page) .dash-kpi {
+  padding: var(--space-4);
+  border: 1px solid var(--card-line);
+  border-radius: var(--skin-radius-inner);
+  background-color: var(--skin-black);
+  background-image: var(--card-dark-gradient);
+  box-shadow: var(--shadow-card);
+}
+
+:is(.dashboard-page, .skin-page) .dash-kpi .kpi-label {
+  margin-bottom: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+}
+
+:is(.dashboard-page, .skin-page) .dash-kpi .kpi-value {
+  margin: 0 0 var(--space-1);
+  color: var(--card-ink);
+  font-size: 1.15rem;
+  font-weight: var(--weight-black);
+}
+
+:is(.dashboard-page, .skin-page) .dash-kpi .kpi-lines { display: grid; gap: 2px; font-size: var(--text-sm); }
+
+/* ------------------------------------------------------------- right rail */
+
+.dash-rail {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  min-width: 0;
+}
+
+/* Large frame with no text of its own: keeps the lighter --skin-dark-top so it
+   stays nearer the mockup. It is the one place a gray card sits inside a dark
+   container. */
+:is(.dashboard-page, .skin-page) .rail-frame {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border-radius: var(--skin-radius-window);
+  background-color: var(--skin-dark-top);
+  background-image: linear-gradient(180deg, var(--skin-dark-top) 0%, var(--skin-black) 100%);
+}
+
+/* Rail cards are gray cards inside that dark container, per the mockup. */
+:is(.dashboard-page, .skin-page) .rail-card {
+  padding: var(--space-5);
+  border: 0;
+  border-radius: var(--skin-radius-inner);
+  background-color: var(--skin-card);
+  background-image: none;
+  box-shadow: none;
+}
+
+:is(.dashboard-page, .skin-page) .rail-card h2 {
+  margin: 0;
+  color: var(--gray-800);
+  font-size: 1rem;
+  font-weight: var(--weight-black);
+}
+
+:is(.dashboard-page, .skin-page) .rail-card--alerts { padding: var(--space-5) var(--space-4); text-align: center; }
+:is(.dashboard-page, .skin-page) .rail-card--alerts h2 { margin-bottom: var(--space-3); }
+
+:is(.dashboard-page, .skin-page) .alert-count-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
+  padding: 4px 16px;
+  border: 1px solid var(--gray-400);
+  border-radius: var(--radius-control);
+}
+
+:is(.dashboard-page, .skin-page) .alert-count-box .kpi-value {
+  margin: 0;
+  color: var(--skin-critical-count);
+  font-size: var(--text-kpi-value);
+  font-weight: var(--weight-black);
+  line-height: 1.2;
+}
+
+:is(.dashboard-page, .skin-page) .rail-list {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--gray-800);
+}
+
+:is(.dashboard-page, .skin-page) .rail-list li { font-size: var(--text-sm); }
+
+:is(.dashboard-page, .skin-page) .rail-card--quick { padding: var(--space-5); border-radius: var(--skin-radius-window); background: var(--skin-card-soft); }
+:is(.dashboard-page, .skin-page) .rail-card--quick h2 { margin-bottom: var(--space-1); font-size: 1.05rem; }
+
+:is(.dashboard-page, .skin-page) .rail-card--quick label {
+  display: block;
+  margin: var(--space-4) 0 0;
+  color: var(--gray-700);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+}
+
+:is(.dashboard-page, .skin-page) .rail-card--quick :is(select, input) {
+  width: 100%;
+  min-height: var(--touch-target);
+  margin-top: 6px;
+  padding: 8px 12px;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-control);
+  background: var(--gray-000);
+  color: var(--gray-800);
+  font-size: var(--text-md);
+}
+
+:is(.dashboard-page, .skin-page) .rail-card--quick select option { background: var(--skin-white); color: var(--gray-800); }
+
+:is(.dashboard-page, .skin-page) .rail-card--quick .primary-btn {
+  display: block;
+  width: auto;
+  min-height: var(--touch-target);
+  margin: var(--space-5) auto 0;
+  padding: 11px 24px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--skin-button);
+  color: var(--skin-white);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+}
+
+.rail-card--quick .primary-btn:not(:disabled):hover { background: var(--skin-button-hover); }
+
+.rail-card--quick .toast {
+  margin-top: var(--space-3);
+  min-height: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  color: var(--gray-800);
+}
+
+/* ------------------------------------------------------- shared tab row */
+
+.dashboard-tabs { margin-top: 0; }
+
+/* Pill bar holding pill tabs; the active tab is the most filled. */
+.dashboard-tab-list {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 var(--space-5);
+  padding: 6px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  border-radius: var(--radius-pill);
+  background-color: var(--skin-dark-top);
+  background-image: linear-gradient(180deg, var(--skin-dark-top) 0%, var(--skin-black) 100%);
+}
+
+.dashboard-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 0;
+  min-height: var(--touch-target);
+  padding: 8px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--gray-200);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+}
+
+.dashboard-tab:not(.active):hover { background: var(--overlay-light-16); color: var(--skin-white); }
+
+.dashboard-tab.active,
+.dashboard-tab.active:focus-visible {
+  background: var(--gray-350);
+  color: var(--gray-900);
+  border-color: var(--gray-350);
+  font-weight: var(--weight-black);
+}
+
+.dashboard-tab:focus-visible {
+  outline: 2px solid transparent;
+  box-shadow: var(--focus-shadow-inset);
+}
+
+.dashboard-tab-panel[hidden] { display: none !important; }
+.dashboard-tab-panel > .chart-panel { width: 100%; }
+.dashboard-tab-panel > .chart-panel--primary .chart-plot { height: 332px; }
+.dashboard-tab-panel > .chart-panel--secondary .chart-plot { min-height: 332px; }
+.dashboard-tab-panel > .chart-panel--support .chart-plot { height: 300px; }
+
+/* ==========================================================================
+   Stock & Alerts â€” Views/Stock/Alerts.cshtml
+   The mockup shows gray summary cards and a gray table panel inside one dark
+   gradient container, with dark text. The page markup is untouched.
+   ========================================================================== */
+
+.skin-page .module-page .stat-strip .kpi-card {
+  border: 1px solid var(--gray-400);
+  border-radius: var(--skin-radius-card);
+  background: var(--skin-card);
+  box-shadow: none;
+  --text: var(--gray-900);
+  --muted: var(--gray-700);
+}
+
+/* The container that holds the summary cards and the table panel. */
+.skin-page .module-page > .stat-strip {
+  padding: var(--space-4);
+  border-radius: var(--skin-radius-card);
+  background-color: var(--skin-dark-top);
+  background-image: linear-gradient(180deg, var(--skin-dark-top) 0%, var(--skin-black) 100%);
+}
+
+.skin-page .module-page .stat-strip .kpi-label {
+  color: var(--gray-800);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+}
+
+.skin-page .module-page .stat-strip .kpi-value {
+  color: var(--gray-900);
+  font-size: var(--text-kpi-value);
+  font-weight: var(--weight-black);
+}
+
+.skin-page .module-page > .panel {
+  border: 1px solid var(--gray-400);
+  border-radius: var(--skin-radius-card);
+  background: var(--skin-card);
+  box-shadow: none;
+  --text: var(--gray-900);
+  --muted: var(--gray-700);
+}
+
+/* The page heading sits on the window, not on a card. */
+.skin-page .module-heading {
+  color: var(--gray-900);
+}
+
+.skin-page .module-heading .greeting {
+  color: var(--gray-700);
+  font-size: var(--text-xs);
+}
+
+.skin-page .module-heading p {
+  color: var(--gray-700);
+  font-size: var(--text-sm);
+}
+
+/* Tables: fluid so there is no sideways scroll at tablet width. Headers and
+   body text are dark on the gray panel, 1px dividers, and the last row is NOT
+   faded or masked. */
+.skin-page .module-page .table-wrap { overflow-x: auto; }
+
+.skin-page .module-page .table-wrap table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+  font-size: var(--text-sm);
+}
+
+.skin-page .module-page .table-wrap :is(th, td) {
+  padding: 10px 8px;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.skin-page .module-page .table-wrap :is(th, td):first-child { padding-left: 0; }
+.skin-page .module-page .table-wrap :is(th, td):last-child { padding-right: 0; }
+
+.skin-page .module-page .table-wrap th {
+  color: var(--gray-800);
+  font-size: 0.82rem;
+  font-weight: var(--weight-bold);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.skin-page .module-page .table-wrap tbody tr:last-child :is(th, td) { border-bottom: 0; }
+.skin-page .module-page .table-wrap tbody tr:hover { background: var(--overlay-dark-06); }
+
+@media (max-width: 768px) {
+  .skin-page .module-page .table-wrap :is(th, td) { padding: 9px 6px; }
+  .skin-page .module-page .table-wrap table { font-size: var(--text-xs); }
+}
+
+/* Below 520px the wide table becomes labelled cards, using the same pattern
+   and the same .table-wrap markup the page already has. */
+@media (max-width: 520px) {
+  .skin-page .module-page:has(.status-badge) .table-wrap { overflow-x: visible; }
+
+  .skin-page .module-page:has(.status-badge) .table-wrap table {
+    display: block;
+    min-width: 0;
+    table-layout: auto;
+  }
+
+  .skin-page .module-page:has(.status-badge) .table-wrap thead { display: none; }
+
+  .skin-page .module-page:has(.status-badge) .table-wrap tbody {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .skin-page .module-page:has(.status-badge) .table-wrap tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-2) var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-control);
+    background: var(--skin-card);
+  }
+
+  /* The row card carries its own dark-on-gray palette. */
+  .skin-page .module-page:has(.status-badge) .table-wrap tbody tr:last-child :is(th, td) {
+    border-bottom: 0;
+  }
+
+  .skin-page .module-page:has(.status-badge) .table-wrap tbody tr:hover { background: var(--skin-card); }
+
+  .skin-page .module-page:has(.status-badge) .table-wrap tbody td {
+    display: block;
+    min-width: 0;
+    text-align: left;
+  }
+
+  .skin-page .module-page:has(.status-badge) .table-wrap tbody td::before {
+    display: block;
+    margin-bottom: 2px;
+    color: var(--gray-800);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+  }
+
+  .skin-page .module-page:has(.status-badge) .table-wrap tbody td:nth-child(1) { grid-column: 1; grid-row: 1; }
+  .skin-page .module-page:has(.status-badge) .table-wrap tbody td:nth-child(1)::before { content: none; }
+  .skin-page .module-page:has(.status-badge) .table-wrap tbody td:nth-child(2) { grid-column: 1 / -1; grid-row: 2; font-weight: 800; }
+  .skin-page .module-page:has(.status-badge) .table-wrap tbody td:nth-child(2)::before { content: "Product"; }
+  .skin-page .module-page:has(.status-badge) .table-wrap tbody td:nth-child(3) { grid-column: 1; grid-row: 3; }
+  .skin-page .module-page:has(.status-badge) .table-wrap tbody td:nth-child(3)::before { content: "Current stock"; }
+  .skin-page .module-page:has(.status-badge) .table-wrap tbody td:nth-child(4) { grid-column: 2; grid-row: 3; }
+  .skin-page .module-page:has(.status-badge) .table-wrap tbody td:nth-child(4)::before { content: "Days remaining"; }
+  .skin-page .module-page:has(.status-badge) .table-wrap tbody td:nth-child(5) { grid-column: 1; grid-row: 4; }
+  .skin-page .module-page:has(.status-badge) .table-wrap tbody td:nth-child(5)::before { content: "Suggested reorder"; }
+  .skin-page .module-page:has(.status-badge) .table-wrap tbody td:nth-child(6) { grid-column: 1 / -1; grid-row: 5; }
+  .skin-page .module-page:has(.status-badge) .table-wrap tbody td:nth-child(6)::before { content: "Message"; }
+  .skin-page .module-page:has(.status-badge) .table-wrap tbody td:nth-child(7) { grid-column: 2; grid-row: 4; text-align: right; color: var(--gray-700); font-size: 0.82rem; }
+  .skin-page .module-page:has(.status-badge) .table-wrap tbody td:nth-child(7)::before { content: "Created"; }
+
+  /* The designed empty row keeps its own centred layout. */
+  .skin-page .module-page:has(.status-badge) .table-wrap tbody td.empty-state {
+    grid-column: 1 / -1;
+    padding: var(--space-5) var(--space-3);
+    text-align: center;
+  }
+
+  .skin-page .module-page:has(.status-badge) .table-wrap tbody td.empty-state::before { content: none; }
+
+  .skin-page .module-page .toolbar > .field { width: 100%; flex: 1 1 auto; }
+  .skin-page .module-page .toolbar > .field select { width: 100%; }
 }

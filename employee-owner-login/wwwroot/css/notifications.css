@@ -73,7 +73,8 @@
 }
 
 @media (max-width: 640px) {
-  .topbar { backdrop-filter: none; }
+  /* The bar's own mobile treatment (opaque, no blur, ≤720px) lives in
+     shell.css. This rule used to switch the blur off here, which fought it. */
   .notification-area { position: static; }
   .notification-panel { position: fixed; top: 76px; right: 8px; left: 8px; z-index: 40; width: auto; max-height: calc(100dvh - 88px); }
   .notification-panel::before { display: none; }
@@ -87,7 +88,7 @@
 .notification-text-button:active, .notification-filter:active { transform: translateY(1px); }
 .notification-filter { transition: border-color 180ms ease-out, color 180ms ease-out, background-color 180ms ease-out, transform 180ms ease-out; }
 .notification-filter:hover { border-color: var(--primary); color: var(--primary); }
-.notification-filter:focus-visible, .notification-text-button:focus-visible, .notification-row:focus-visible, .notification-panel-footer:focus-visible { outline-color: var(--focus-ring); }
+.notification-filter:focus-visible, .notification-text-button:focus-visible, .notification-row:focus-visible, .notification-panel-footer:focus-visible { outline-color: var(--focus-ring-color); }
 .notification-panel:not([hidden]) { animation: notification-panel-enter 180ms ease-out both; }
 @keyframes notification-panel-enter { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 .notification-page-empty svg { display: block; width: 34px; height: 34px; margin: 0 auto 12px; color: var(--primary); }
