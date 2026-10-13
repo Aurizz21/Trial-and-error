@@ -4,6 +4,7 @@
 @{
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
     ViewData["Title"] = "Product Management";
+    ViewData["BodyClass"] = "skin-page products-page";
 
     // Show = what people read. Inv = the culture-safe format used inside data-* / value attributes.
     string Show(decimal value) => value.ToString("0.##");
