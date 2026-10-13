@@ -57,7 +57,7 @@
                 <a class="nav-link" href="/Stock/Alerts">
                     <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3.6 20 7v5.2L12 15.6 4 12.2V7z" /><path d="M4 12.2V17l8 3.4 8-3.4v-4.8" /><path d="M12 8.4v4" /></svg>
                     <span>Stocks &amp; Alerts</span>
-                    <span class="nav-badge badge-critical">@alertBadge</span>
+                    @await Component.InvokeAsync("CriticalAlertBadge")
                 </a>
                 <a class="nav-link" href="/Forecast/Index">
                     <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.4" /><path d="m15.4 15.4 4.6 4.6" /><path d="M8.2 13v-2.4M10.5 13V8.6M12.8 13v-1.6" /></svg>

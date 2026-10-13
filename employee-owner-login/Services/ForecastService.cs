@@ -8,7 +8,7 @@ namespace PoultryOS.Services;
 
 public class ForecastService : IForecastService
 {
-    private const int HistoryDays = 8;      // need 7 for WMA + 1 actual to compare
+    private const int HistoryDays = 15;      // need 7 for WMA + 1 actual to compare
     private const int WmaWindow = 7;
     private const double WarningDaysRemaining = 3d;
 
@@ -76,23 +76,33 @@ public class ForecastService : IForecastService
                 ? Math.Max(0m, Math.Round(forecast7 - product.CurrentStock, 0))
                 : 0m;
 
-            // Accuracy: use first 7 days to predict day 8, compare to actual.
+            // Accuracy: use the 7 days before the most recent selling day,
+            // predict that day, and compare to actual. Skip if not enough history.
             double? accuracy = null;
             if (days.Count >= WmaWindow + 1)
             {
-                var prior7 = days.Skip(days.Count - WmaWindow - 1).Take(WmaWindow).ToList();
-                var priorSelling = prior7.Where(d => d > 0).ToList();
-                var actual = days[days.Count - 1];
-
-                if (priorSelling.Count >= 2)
+                // Find the last day that actually had sales
+                var lastSellingIndex = -1;
+                for (var i = days.Count - 1; i >= 0; i--)
                 {
-                    var predicted = CalculateWma(priorSelling);
-                    if (predicted > 0)
+                    if (days[i] > 0) { lastSellingIndex = i; break; }
+                }
+
+                // Only compute if we found a selling day with at least 7 days before it
+                if (lastSellingIndex >= WmaWindow)
+                {
+                    var actual = days[lastSellingIndex];
+                    var prior = days.Skip(lastSellingIndex - WmaWindow).Take(WmaWindow).ToList();
+                    var priorSelling = prior.Where(d => d > 0).ToList();
+
+                    if (priorSelling.Count >= 2)
                     {
-                        var error = actual == 0
-                            ? 0d
-                            : Math.Abs((double)actual - predicted) / (double)actual * 100d;
-                        accuracy = Math.Round(100d - Math.Min(100d, error), 1);
+                        var predicted = CalculateWma(priorSelling);
+                        if (predicted > 0)
+                        {
+                            var error = Math.Abs((double)actual - predicted) / (double)actual * 100d;
+                            accuracy = Math.Round(100d - Math.Min(100d, error), 1);
+                        }
                     }
                 }
             }
@@ -123,7 +133,7 @@ public class ForecastService : IForecastService
         var criticalCount = rows.Count(r => r.Status == "Critical");
         var warningCount = rows.Count(r => r.Status == "Warning");
         var accuracyScores = rows.Where(r => r.ForecastAccuracy.HasValue).Select(r => r.ForecastAccuracy!.Value).ToList();
-        var avgAccuracy = accuracyScores.Count > 0 ? Math.Round(accuracyScores.Average(), 1) : 0d;
+        var avgAccuracy = accuracyScores.Count > 0 ? Math.Round(accuracyScores.Average(), 1) : -1d;
 
                 // --- Chart data ---
         var chartData = rows

@@ -180,22 +180,30 @@ public class DashboardService : IDashboardService
             if (!history.TryGetValue(product.Id, out var days) || days.Count < WmaWindow + 1)
                 continue;
 
-            var prior7 = days.Skip(days.Count - WmaWindow - 1).Take(WmaWindow).ToList();
-            var actual = days[days.Count - 1];
+            // Find the last day with actual sales
+            var lastSellingIndex = -1;
+            for (var i = days.Count - 1; i >= 0; i--)
+            {
+                if (days[i] > 0) { lastSellingIndex = i; break; }
+            }
 
-            // Skip if there weren't enough selling days to make a real forecast.
-            if (prior7.Count(d => d > 0) < 2) continue;
+            // Need at least 7 days of history before the selling day
+            if (lastSellingIndex < WmaWindow) continue;
 
-            var forecast = CalculateWma(prior7);
+            var actual = days[lastSellingIndex];
+            var prior = days.Skip(lastSellingIndex - WmaWindow).Take(WmaWindow).ToList();
+
+            // Skip if not enough selling days in the prior window
+            if (prior.Count(d => d > 0) < 2) continue;
+
+            var forecast = CalculateWma(prior);
             if (forecast <= 0) continue;
 
-            var error = actual == 0
-                ? 0d
-                : Math.Abs((double)actual - forecast) / (double)actual * 100d;
+            var error = Math.Abs((double)actual - forecast) / (double)actual * 100d;
             scores.Add(100d - Math.Min(100d, error));
         }
 
-        if (scores.Count == 0) return 0d;
+        if (scores.Count == 0) return -1d;
         return Math.Round(scores.Average(), 1);
     }
 

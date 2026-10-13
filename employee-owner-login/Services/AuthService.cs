@@ -1,32 +1,39 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using PoultryOS.Data;
 
 namespace PoultryOS.Services;
 
 public sealed class AuthService
 {
+    private readonly AppDbContext _db;
     private readonly PasswordHasher<AuthUser> passwordHasher = new();
 
-    // The only two accounts supported by this no-database demo.
-    private static readonly IReadOnlyList<AuthUser> Users = new List<AuthUser>
+    public AuthService(AppDbContext db)
     {
-        new("owner", "Owner", "AQAAAAEAAYagAAAAENBVJptoK2HVEbw0IGMWsZDsSvQa0rVhb9pUBKduNqEC1b+9B3SoTSDFB9vBoCuc3w=="),
-        new("employee", "Employee", "AQAAAAEAAYagAAAAEEvy1hUK0cXXRnsY69v7OHrid8VsnyBCkjksWPax32ggkOIZtHoKp5QWayjjLJL+bw==")
-    };
+        _db = db;
+    }
 
     public AuthUser? ValidateCredentials(string username, string password)
     {
-        var user = Users.FirstOrDefault(candidate =>
-            string.Equals(candidate.Username, username.Trim(), StringComparison.OrdinalIgnoreCase));
+        var normalizedUsername = username.Trim().ToLowerInvariant();
+        var user = _db.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(candidate =>
+                candidate.IsActive && candidate.Username.ToLower() == normalizedUsername)
+            .GetAwaiter()
+            .GetResult();
 
         if (user is null)
         {
             return null;
         }
 
-        var result = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password);
+        var authUser = new AuthUser(user.Username, user.Role, user.PasswordHash);
+        var result = passwordHasher.VerifyHashedPassword(authUser, authUser.PasswordHash, password);
         return result == PasswordVerificationResult.Success ||
                result == PasswordVerificationResult.SuccessRehashNeeded
-            ? user
+            ? authUser
             : null;
     }
 }

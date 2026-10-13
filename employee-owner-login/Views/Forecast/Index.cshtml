@@ -28,8 +28,16 @@
             <div class="kpi-value status-warning">@Model.WarningCount</div>
         </article>
         <article class="kpi-card">
-            <div class="kpi-label">Avg Accuracy</div>
-            <div class="kpi-value">@Model.AverageAccuracy.ToString("0.0")%</div>
+            <div class="kpi-label">Avg Confidence Score</div>
+            @if (Model.AverageAccuracy < 0)
+            {
+                <div class="kpi-value">—</div>
+                <div class="kpi-meta">Insufficient data</div>
+            }
+            else
+            {
+                <div class="kpi-value">@Model.AverageAccuracy.ToString("0.0")%</div>
+            }
         </article>
     </section>
 
@@ -60,7 +68,7 @@
                         <th>Days Left</th>
                         <th>Predicted Depletion</th>
                         <th>Reorder</th>
-                        <th>Accuracy</th>
+                        <th>Confidence</th>
                         <th>Status</th>
                     </tr>
                 </thead>

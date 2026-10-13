@@ -63,9 +63,17 @@
                                     <div class="kpi-meta">@Model.TodaySalesChangePercent.ToString("0.0")% vs last week</div>
                                 </article>
                                 <article class="dash-kpi">
-                                    <div class="kpi-label">Forecast Accuracy</div>
-                                    <div class="kpi-value">@Model.ForecastAccuracy.ToString("0.0")%</div>
-                                    <div class="kpi-meta">7-Day WMA model</div>
+                                    <div class="kpi-label">Forecast Confidence</div>
+                                    @if (Model.ForecastAccuracy < 0)
+                                    {
+                                        <div class="kpi-value">—</div>
+                                        <div class="kpi-meta">Insufficient data</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="kpi-value">@Model.ForecastAccuracy.ToString("0.0")%</div>
+                                        <div class="kpi-meta">7-Day WMA model</div>
+                                    }
                                 </article>
                             </div>
 

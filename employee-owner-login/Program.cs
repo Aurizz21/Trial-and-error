@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Register MVC and the in-memory authentication and inventory services.
 builder.Services.AddControllersWithViews();
-builder.Services.AddSingleton<AuthService>();
+builder.Services.AddScoped<AuthService>();
 builder.Services.AddSingleton<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ISalesHistoryService, SalesHistoryService>();
