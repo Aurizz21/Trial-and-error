@@ -16,15 +16,24 @@ public sealed class DashboardSummaryViewModel
     public decimal CutsAndPartsTodaySales { get; set; }
     public decimal TodaySalesChangePercent { get; set; }
     public double ForecastAccuracy { get; set; }
+    public decimal ThisWeekSales { get; set; }
+    public decimal LastWeekSales { get; set; }
+    public decimal ThisMonthSales { get; set; }
+    public decimal LastMonthSales { get; set; }
+    public decimal WeekSalesChangePercent { get; set; }
+    public decimal MonthSalesChangePercent { get; set; }
     public List<DailySalesPoint> DailySalesTrend { get; set; } = new();
     public List<ProductSalesSummary> WeeklyConsumption { get; set; } = new();
     public List<DonutSlice> LowStockDistribution { get; set; } = new();
     public List<StockOverviewRow> StockOverview { get; set; } = new();
     public List<AlertItem> ActiveAlerts { get; set; } = new();
+    public List<string> CriticalAlertProductNames { get; set; } = new();
     public List<Product> Products { get; set; } = new();
     public List<AuditEntry> RecentActivity { get; set; } = new();
     public string DepletionBanner { get; set; } = string.Empty;
     public bool IsOwner => string.Equals(Role, "Owner", StringComparison.OrdinalIgnoreCase);
+    public int ProductsBelowThresholdCount =>
+        StockOverview.Count(product => product.CurrentStock <= product.ReorderThreshold);
     public int ProductTypesCount => Products.Count;
     public string CurrentDateLabel { get; set; } = string.Empty;
     public string LastUpdatedLabel { get; set; } = string.Empty;
@@ -43,7 +52,9 @@ public sealed class StockOverviewRow
     public int ProductId { get; set; }
     public string Product { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty;
+    public string Units { get; set; } = string.Empty;
     public decimal CurrentStock { get; set; }
+    public decimal ReorderThreshold { get; set; }
     public decimal WeeklyConsumption { get; set; }
     public string DaysRemaining { get; set; } = string.Empty;
     public string PredictedDepletionDate { get; set; } = string.Empty;

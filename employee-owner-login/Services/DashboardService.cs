@@ -81,6 +81,26 @@ public class DashboardService : IDashboardService
             ? 0m
             : Math.Round((todayTotal - lastWeekSalesTotal) / lastWeekSalesTotal * 100m, 1);
 
+        var tomorrow = today.AddDays(1);
+        var thisWeekSales = await _db.Sales
+            .Where(s => s.SoldAt >= today.AddDays(-6) && s.SoldAt < tomorrow)
+            .SumAsync(s => (decimal?)s.Quantity) ?? 0m;
+        var lastWeekSales = await _db.Sales
+            .Where(s => s.SoldAt >= today.AddDays(-13) && s.SoldAt < today.AddDays(-6))
+            .SumAsync(s => (decimal?)s.Quantity) ?? 0m;
+        var thisMonthSales = await _db.Sales
+            .Where(s => s.SoldAt >= today.AddDays(-29) && s.SoldAt < tomorrow)
+            .SumAsync(s => (decimal?)s.Quantity) ?? 0m;
+        var lastMonthSales = await _db.Sales
+            .Where(s => s.SoldAt >= today.AddDays(-59) && s.SoldAt < today.AddDays(-29))
+            .SumAsync(s => (decimal?)s.Quantity) ?? 0m;
+        var weekChangePct = lastWeekSales == 0m
+            ? 0m
+            : Math.Round((thisWeekSales - lastWeekSales) / lastWeekSales * 100m, 1);
+        var monthChangePct = lastMonthSales == 0m
+            ? 0m
+            : Math.Round((thisMonthSales - lastMonthSales) / lastMonthSales * 100m, 1);
+
         // --- Active alerts ---
         var activeAlerts = await _db.StockAlerts
             .AsNoTracking()
@@ -125,12 +145,22 @@ public class DashboardService : IDashboardService
             WholeChickenTodaySales = wholeChickenToday,
             CutsAndPartsTodaySales = cutsToday,
             TodaySalesChangePercent = changePct,
+            ThisWeekSales = thisWeekSales,
+            LastWeekSales = lastWeekSales,
+            ThisMonthSales = thisMonthSales,
+            LastMonthSales = lastMonthSales,
+            WeekSalesChangePercent = weekChangePct,
+            MonthSalesChangePercent = monthChangePct,
             ForecastAccuracy = CalculateForecastAccuracy(products, historyByProduct),
             DailySalesTrend = BuildDailySalesTrend(products, historyByProduct, today),
             WeeklyConsumption = BuildWeeklyConsumption(products, weeklyByProduct),
             LowStockDistribution = BuildLowStockDistribution(activeAlerts),
             StockOverview = BuildStockOverview(products, weeklyByProduct, historyByProduct),
             ActiveAlerts = activeAlerts.Select(ToAlertItem).ToList(),
+            CriticalAlertProductNames = activeAlerts
+                .Where(alert => alert.Status == "Critical")
+                .Select(alert => alert.Product?.Name ?? $"Product #{alert.ProductId}")
+                .ToList(),
             Products = products.Select(ToViewModelProduct).ToList(),
             CriticalAlertCount = activeAlerts.Count(a => a.Status == "Critical"),
             WarningAlertCount = activeAlerts.Count(a => a.Status == "Warning"),
@@ -305,7 +335,9 @@ public class DashboardService : IDashboardService
                 ProductId = product.Id,
                 Product = product.Name,
                 Category = product.Category,
+                Units = product.Units,
                 CurrentStock = product.CurrentStock,
+                ReorderThreshold = product.ReorderThreshold,
                 WeeklyConsumption = weekly,
                 DaysRemaining = forecast > 0 ? $"{daysRemaining:0.0} days" : "No recent sales",
                 PredictedDepletionDate = forecast > 0 && product.CurrentStock > 0

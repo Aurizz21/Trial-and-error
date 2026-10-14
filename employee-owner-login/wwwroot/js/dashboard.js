@@ -32,8 +32,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // desktop (hidden) and on mobile (the drawer handles that width instead).
   const railToggle = document.querySelector(".sidebar-toggle");
   const offlineBanner = document.getElementById("offlineBanner");
-  let dailySalesChartInstance;
-  let lowStockChartInstance;
+  let weeklyStockChartInstance;
+  let thresholdChartInstance;
   let consumptionChartInstance;
   let depletionChartInstance;
   const animatedCharts = new Set();
@@ -110,14 +110,6 @@ document.addEventListener("DOMContentLoaded", () => {
       white: pick("--white", "#ffffff"),
       border: pick("--chart-border", "") || pick("--border", "#dcdcdc"),
       font: pick("--font-body", "sans-serif"),
-      // The doughnut's two series, resolved per canvas so each surface can use
-      // the red pair that reads on it, plus the separator ring that keeps
-      // adjacent slices distinct.
-      donut: [
-        pick("--chart-donut-1", "") || pick("--chart-primary", "#b41818"),
-        pick("--chart-donut-2", "") || pick("--chart-secondary", "#8f0d0d"),
-      ],
-      donutGap: pick("--chart-donut-gap", "") || pick("--chart-border", "") || "#ffffff",
       // Vertical fade painted under the trend lines: strong at the line,
       // transparent at the baseline. Scriptable so it survives a resize; falls
       // back to the flat token before the first layout pass.
@@ -136,14 +128,6 @@ document.addEventListener("DOMContentLoaded", () => {
       },
     };
   };
-
-  // The series ramp for a given palette: primary first, then the quieter steps.
-  const seriesFor = (palette) => [
-    palette.primary,
-    palette.secondary,
-    palette.quaternary,
-    palette.tertiary,
-  ];
 
   const chartBaseOptions = (palette, scales, chartId) => ({
     responsive: true,
@@ -203,165 +187,129 @@ document.addEventListener("DOMContentLoaded", () => {
       ?.querySelector(`[data-chart-empty="${canvas.id}"]`)
       ?.classList.toggle("hidden", !empty);
   };
-  const dailyCanvas = document.getElementById("dailySalesChart");
-  const lowStockCanvas = document.getElementById("lowStockChart");
-
-  const renderDailySalesChart = () => {
-    if (!dailyCanvas) return;
-    const palette = paletteFor(dailyCanvas);
-    const series = seriesFor(palette);
-    const selectedCategory =
-      document.querySelector(".chart-mode.active")?.dataset.category ||
-      "Whole Chicken";
-    const points = (
-      state.dailySalesTrend ||
-      state.DailySalesTrend ||
-      []
-    ).filter((item) => (item.category || item.Category) === selectedCategory);
-    const labels = [...new Set(points.map((item) => item.label || item.Label))];
-    const products = [
-      ...new Set(points.map((item) => item.product || item.Product)),
-    ];
-    if (!labels.length) {
-      setChartEmpty(dailyCanvas, true);
-      dailySalesChartInstance?.destroy();
-      dailySalesChartInstance = null;
-      return;
-    }
-    setChartEmpty(dailyCanvas, false);
-    const datasets = products.map((product, index) => ({
-      label: product,
-      data: labels.map((label) => {
-        const point = points.find(
-          (item) =>
-            (item.product || item.Product) === product &&
-            (item.label || item.Label) === label,
-        );
-        return point?.value ?? point?.Value ?? 0;
-      }),
-      borderColor: series[index % series.length],
-      backgroundColor: index === 0 ? palette.lineFill : "transparent",
-      fill: index === 0,
-      borderWidth: 2,
-      tension: 0.32,
-      pointRadius: 0,
-      pointHoverRadius: 4,
-      pointHoverBackgroundColor: series[index % series.length],
-      pointHoverBorderColor: palette.white,
-    }));
-    if (!dailySalesChartInstance) {
-      dailySalesChartInstance = new Chart(dailyCanvas, {
-        type: "line",
-        data: { labels, datasets },
-        options: {
-          ...chartBaseOptions(
-            palette,
-            {
-              // Sparkline treatment on the dark card: no axes (reference look).
-              x: { ...chartAxis(palette, false), ticks: { display: false } },
-              y: {
-                ...chartAxis(palette, false),
-                beginAtZero: true,
-                ticks: { display: false },
-                title: { display: false },
-              },
-            },
-            "dailySalesChart",
-          ),
-          plugins: {
-            ...chartBaseOptions(palette).plugins,
-            legend: {
-              ...chartBaseOptions(palette).plugins.legend,
-              display: datasets.length > 1,
-            },
-          },
-        },
-      });
-      animatedCharts.add("dailySalesChart");
-      return;
-    }
-
-    dailySalesChartInstance.data.labels = labels;
-    dailySalesChartInstance.data.datasets = datasets;
-    dailySalesChartInstance.options.scales.y.title.text =
-      selectedCategory === "Whole Chicken" ? "pcs" : "kg";
-    dailySalesChartInstance.options.plugins.legend.display =
-      datasets.length > 1;
-    dailySalesChartInstance.update("none");
-  };
-
-  const renderLowStockChart = () => {
-    if (!lowStockCanvas) return;
-    const palette = paletteFor(lowStockCanvas);
-    const slices =
-      state.lowStockDistribution || state.LowStockDistribution || [];
-    const healthy =
-      slices.length === 0 ||
-      (slices.length === 1 &&
-        (slices[0].label || slices[0].Label) === "All products are healthy");
-    const emptyState = document.getElementById("lowStockEmpty");
-    if (emptyState) emptyState.classList.toggle("hidden", !healthy);
-    lowStockCanvas.classList.toggle("hidden", healthy);
-
-    if (healthy) {
-      lowStockChartInstance?.destroy();
-      lowStockChartInstance = null;
-      return;
-    }
-
-    const labels = slices.map((item) => item.label || item.Label);
-    const values = slices.map((item) => item.value ?? item.Value ?? 0);
-    const colors = slices.map((item, index) => {
-      const sourceColor = (item.color || item.Color || "").toLowerCase();
-      if (sourceColor === "#ef4444" || sourceColor === "#b42318")
-        return palette.critical;
-      if (sourceColor === "#f59e0b" || sourceColor === "#8a4b08")
-        return palette.warning;
-      if (sourceColor === "#10b981" || sourceColor === "#176b3a")
-        return palette.healthy;
-      // Two red-family shades only, alternating, so the slices stay in the
-      // brand family and are told apart by the separator ring below.
-      return palette.donut[index % palette.donut.length];
+  const weeklyStockCanvas = document.getElementById("weeklyStockChart");
+  const thresholdCanvas = document.getElementById("thresholdChart");
+  const stockOverviewRows = () =>
+    state.stockOverview || state.StockOverview || [];
+  const stockField = (row, field) =>
+    row[field] ?? row[field[0].toUpperCase() + field.slice(1)];
+  const sortedStockRows = () =>
+    [...stockOverviewRows()].sort((left, right) => {
+      const leftSales = Number(stockField(left, "weeklyConsumption")) || 0;
+      const rightSales = Number(stockField(right, "weeklyConsumption")) || 0;
+      const leftUrgency =
+        leftSales > 0
+          ? Number(stockField(left, "currentStock")) / leftSales
+          : Number.POSITIVE_INFINITY;
+      const rightUrgency =
+        rightSales > 0
+          ? Number(stockField(right, "currentStock")) / rightSales
+          : Number.POSITIVE_INFINITY;
+      return leftUrgency - rightUrgency;
     });
-    if (!lowStockChartInstance) {
-      lowStockChartInstance = new Chart(lowStockCanvas, {
-        type: "doughnut",
-        data: {
-          labels,
-          datasets: [
-            {
-              data: values,
-              backgroundColor: colors,
-              // The 2px separator ring between slices. It is what makes two
-              // near shades of the same red read as separate wedges.
-              borderColor: palette.donutGap,
-              borderWidth: 2,
-              borderAlign: "inner",
-            },
-          ],
-        },
-        options: {
-          ...chartBaseOptions(palette, undefined, "lowStockChart"),
-          cutout: "72%",
-          radius: "88%",
-          plugins: {
-            ...chartBaseOptions(palette).plugins,
-            legend: {
-              ...chartBaseOptions(palette).plugins.legend,
-              position: "bottom",
-            },
-          },
-        },
-      });
-      animatedCharts.add("lowStockChart");
-      return;
+  const stockTooltip = (context, rows) => {
+    const units = stockField(rows[context.dataIndex], "units") || "";
+    const value = Number(context.raw).toLocaleString(undefined, {
+      maximumFractionDigits: 2,
+    });
+    return `${context.dataset.label}: ${value} ${units}`.trim();
+  };
+  const renderStockChart = (
+    canvas,
+    chart,
+    chartId,
+    secondLabel,
+    secondField,
+    currentColor,
+  ) => {
+    if (!canvas) return chart;
+    const rows = sortedStockRows();
+    setChartEmpty(canvas, !rows.length);
+    if (!rows.length) {
+      chart?.destroy();
+      return null;
     }
 
-    lowStockChartInstance.data.labels = labels;
-    lowStockChartInstance.data.datasets[0].data = values;
-    lowStockChartInstance.data.datasets[0].backgroundColor = colors;
-    lowStockChartInstance.data.datasets[0].borderColor = palette.donutGap;
-    lowStockChartInstance.update("none");
+    const palette = paletteFor(canvas);
+    const labels = rows.map((row) => stockField(row, "product"));
+    const datasets = [
+      {
+        label: "Current stock",
+        data: rows.map((row) => Number(stockField(row, "currentStock")) || 0),
+        backgroundColor:
+          typeof currentColor === "function"
+            ? rows.map(currentColor)
+            : currentColor,
+        borderRadius: 3,
+        barThickness: 8,
+        maxBarThickness: 12,
+      },
+      {
+        label: secondLabel,
+        data: rows.map((row) => Number(stockField(row, secondField)) || 0),
+        backgroundColor: "#a2a2a2",
+        borderRadius: 3,
+        barThickness: 8,
+        maxBarThickness: 12,
+      },
+    ];
+    const base = chartBaseOptions(
+      palette,
+      {
+        x: { ...chartAxis(palette), beginAtZero: true },
+        y: { ...chartAxis(palette, false) },
+      },
+      chartId,
+    );
+    const options = {
+      ...base,
+      indexAxis: "y",
+      plugins: {
+        ...base.plugins,
+        tooltip: {
+          ...base.plugins.tooltip,
+          callbacks: { label: (context) => stockTooltip(context, rows) },
+        },
+      },
+    };
+    if (!chart) {
+      chart = new Chart(canvas, {
+        type: "bar",
+        data: { labels, datasets },
+        options,
+      });
+      animatedCharts.add(chartId);
+      return chart;
+    }
+    chart.data.labels = labels;
+    chart.data.datasets = datasets;
+    chart.options = options;
+    chart.update("none");
+    return chart;
+  };
+  const renderWeeklyStockChart = () => {
+    weeklyStockChartInstance = renderStockChart(
+      weeklyStockCanvas,
+      weeklyStockChartInstance,
+      "weeklyStockChart",
+      "Last 7 days sales",
+      "weeklyConsumption",
+      "#4f9de8",
+    );
+  };
+  const renderThresholdChart = () => {
+    thresholdChartInstance = renderStockChart(
+      thresholdCanvas,
+      thresholdChartInstance,
+      "thresholdChart",
+      "Reorder threshold",
+      "reorderThreshold",
+      (row) =>
+        Number(stockField(row, "currentStock")) <
+        Number(stockField(row, "reorderThreshold"))
+          ? "#ff7670"
+          : "#61d394",
+    );
   };
 
   const closeDrawer = () => {
@@ -413,7 +361,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // with the drawer handler above.
     document.addEventListener("click", (event) => {
       if (!document.body.classList.contains("rail-expanded")) return;
-      if (event.target.closest(".sidebar") || event.target.closest(".sidebar-toggle")) return;
+      if (
+        event.target.closest(".sidebar") ||
+        event.target.closest(".sidebar-toggle")
+      )
+        return;
       setRailExpanded(false);
     });
   }
@@ -439,8 +391,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Refresh the chart data within their fixed plot areas.
     const consumptionCanvas = document.getElementById("consumptionChart");
     const depletionCanvas = document.getElementById("depletionChart");
-    renderDailySalesChart();
-    renderLowStockChart();
+    renderWeeklyStockChart();
+    renderThresholdChart();
 
     if (consumptionCanvas) {
       const palette = paletteFor(consumptionCanvas);
@@ -496,7 +448,10 @@ document.addEventListener("DOMContentLoaded", () => {
               indexAxis: "y",
               plugins: {
                 ...chartBaseOptions(palette).plugins,
-                legend: { ...chartBaseOptions(palette).plugins.legend, display: true },
+                legend: {
+                  ...chartBaseOptions(palette).plugins.legend,
+                  display: true,
+                },
               },
             },
           });
@@ -554,7 +509,10 @@ document.addEventListener("DOMContentLoaded", () => {
             ),
             plugins: {
               ...chartBaseOptions(palette).plugins,
-              legend: { ...chartBaseOptions(palette).plugins.legend, display: false },
+              legend: {
+                ...chartBaseOptions(palette).plugins.legend,
+                display: false,
+              },
             },
           },
         });
@@ -573,8 +531,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll("[data-dashboard-panel]"),
   );
   const chartByDashboardTab = {
-    "daily-sales": () => dailySalesChartInstance,
-    "low-stock": () => lowStockChartInstance,
     "weekly-sales": () => consumptionChartInstance,
     depletion: () => depletionChartInstance,
   };
@@ -600,8 +556,10 @@ document.addEventListener("DOMContentLoaded", () => {
     tab.addEventListener("click", () => activateDashboardTab(tab));
     tab.addEventListener("keydown", (event) => {
       let nextIndex = index;
-      if (event.key === "ArrowRight") nextIndex = (index + 1) % dashboardTabs.length;
-      else if (event.key === "ArrowLeft") nextIndex = (index - 1 + dashboardTabs.length) % dashboardTabs.length;
+      if (event.key === "ArrowRight")
+        nextIndex = (index + 1) % dashboardTabs.length;
+      else if (event.key === "ArrowLeft")
+        nextIndex = (index - 1 + dashboardTabs.length) % dashboardTabs.length;
       else if (event.key === "Home") nextIndex = 0;
       else if (event.key === "End") nextIndex = dashboardTabs.length - 1;
       else return;
@@ -649,15 +607,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (categoryFilter) {
     categoryFilter.addEventListener("change", applyTableFilter);
   }
-
-  document.querySelectorAll(".chart-mode").forEach((button) => {
-    button.addEventListener("click", () => {
-      document
-        .querySelectorAll(".chart-mode")
-        .forEach((item) => item.classList.toggle("active", item === button));
-      renderDailySalesChart();
-    });
-  });
 
   statusButtons.forEach((button) => {
     button.addEventListener("click", () => {
@@ -754,7 +703,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (
-    document.getElementById("dailySalesChart") ||
+    document.getElementById("weeklyStockChart") ||
     document.getElementById("stockTableBody")
   ) {
     animateKpiValues();

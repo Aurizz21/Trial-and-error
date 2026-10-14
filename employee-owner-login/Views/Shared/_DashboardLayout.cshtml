@@ -236,6 +236,7 @@
     </div>
 
     <script src="~/lib/chartjs/chart.min.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("PageData", required: false)
     <script src="~/js/dashboard.js" asp-append-version="true"></script>
     <script src="~/js/notifications.js" asp-append-version="true"></script>
     <script src="~/js/global-search.js" asp-append-version="true"></script>
