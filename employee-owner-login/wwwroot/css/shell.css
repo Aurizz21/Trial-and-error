@@ -68,7 +68,7 @@
   background: transparent;
   color: var(--text-on-dark);
   transition: width var(--dur-base) var(--ease-out),
-              transform var(--dur-base) var(--ease-out);
+    transform var(--dur-base) var(--ease-out);
 }
 
 /* ---- header: logo, wordmark, hamburger ---------------------------------- */
@@ -193,7 +193,7 @@
   text-decoration: none;
   white-space: nowrap;
   transition: background-color var(--dur-fast) var(--ease-out),
-              color var(--dur-fast) var(--ease-out);
+    color var(--dur-fast) var(--ease-out);
 }
 
 .nav-link:hover {
@@ -248,7 +248,7 @@
   padding: 0 var(--space-1);
 }
 
-.user-mini > div:last-child {
+.user-mini>div:last-child {
   min-width: 0;
 }
 
@@ -464,7 +464,7 @@
   background: var(--surface-window);
   color: var(--text-on-light);
   transition: border-color var(--dur-fast) var(--ease-out),
-              box-shadow var(--dur-fast) var(--ease-out);
+    box-shadow var(--dur-fast) var(--ease-out);
 }
 
 .topbar-search:hover:not(:focus-within) {
@@ -488,7 +488,8 @@
   outline: none;
   background: transparent;
   color: var(--text-on-light);
-  font-size: var(--text-md);   /* 16px: stops iOS zooming on focus */
+  font-size: var(--text-md);
+  /* 16px: stops iOS zooming on focus */
 }
 
 .topbar-search input::placeholder {
@@ -573,8 +574,13 @@
 }
 
 @keyframes shell-scrim-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 /* ==========================================================================
@@ -619,7 +625,7 @@
     padding: var(--space-1) 0 var(--space-4);
   }
 
-  .sidebar-header > div:last-child {
+  .sidebar-header>div:last-child {
     display: none;
   }
 
@@ -637,7 +643,7 @@
     margin: var(--space-4) 0 var(--space-2);
   }
 
-  .nav-group-label > span {
+  .nav-group-label>span {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -653,7 +659,7 @@
     border-radius: var(--radius-inner);
   }
 
-  .nav-link > span:not(.nav-badge) {
+  .nav-link>span:not(.nav-badge) {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -670,7 +676,8 @@
     height: 20px;
     padding: 0 5px;
     margin-left: 0;
-    font-size: var(--text-xs);   /* 0.8rem floor: 12.8px fits the 20px pill */
+    font-size: var(--text-xs);
+    /* 0.8rem floor: 12.8px fits the 20px pill */
   }
 
   .user-mini {
@@ -678,7 +685,7 @@
     padding: 0;
   }
 
-  .user-mini > div:last-child {
+  .user-mini>div:last-child {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -720,9 +727,9 @@
     padding: var(--space-2) var(--space-2) var(--space-6);
   }
 
-  .rail-expanded .sidebar-header > div:last-child,
-  .rail-expanded .nav-link > span:not(.nav-badge),
-  .rail-expanded .user-mini > div:last-child {
+  .rail-expanded .sidebar-header>div:last-child,
+  .rail-expanded .nav-link>span:not(.nav-badge),
+  .rail-expanded .user-mini>div:last-child {
     position: static;
     width: auto;
     height: auto;
@@ -739,7 +746,7 @@
     margin: var(--space-5) var(--space-2) var(--space-2);
   }
 
-  .rail-expanded .nav-group-label > span {
+  .rail-expanded .nav-group-label>span {
     position: static;
     width: auto;
     height: auto;
@@ -796,7 +803,7 @@
        immediate coming back in. */
     visibility: hidden;
     transition: transform var(--dur-base) var(--ease-out),
-                visibility 0s linear var(--dur-base);
+      visibility 0s linear var(--dur-base);
     box-shadow: none;
   }
 
@@ -804,7 +811,7 @@
     transform: translateX(0);
     visibility: visible;
     transition: transform var(--dur-base) var(--ease-out),
-                visibility 0s linear 0s;
+      visibility 0s linear 0s;
     box-shadow: var(--shadow-raised);
   }
 
@@ -815,10 +822,10 @@
     padding: var(--space-2) var(--space-2) var(--space-6);
   }
 
-  .sidebar-header > div:last-child,
-  .nav-link > span:not(.nav-badge),
-  .nav-group-label > span,
-  .user-mini > div:last-child {
+  .sidebar-header>div:last-child,
+  .nav-link>span:not(.nav-badge),
+  .nav-group-label>span,
+  .user-mini>div:last-child {
     position: static;
     width: auto;
     height: auto;
@@ -893,6 +900,7 @@
 }
 
 @media (max-width: 640px) {
+
   /* notifications.css turns the blur off for the shell bar at this width, which
      left a flat gray strip. Two classes so this also outranks the @supports
      fallback below, which loads later. */
@@ -942,6 +950,7 @@
 /* ---- motion ------------------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
+
   .main-panel,
   .nav-link,
   .signout-link,
@@ -966,13 +975,16 @@
     animation: none;
   }
 }
+
 /* Skin pages use the top-bar title, so suppress the duplicate in-page heading.
    display:none also removes its bottom margin from the flow. */
-:where(.dashboard-page, .skin-page) .module-page > .module-heading { display: none; }
+:where(.dashboard-page, .skin-page) .module-page>.module-heading {
+  display: none;
+}
 
 /* Sales Entry dark-card skin. Kept page-scoped and in shell.css, which loads
    after dashboard.css and modules.css, to override their module/table rules. */
-:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel {
+:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel {
   --text: var(--card-ink);
   --muted: var(--card-muted);
   color: var(--card-ink);
@@ -983,49 +995,49 @@
   box-shadow: var(--shadow-card);
 }
 
-:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel :is(h2, .panel-note, .summary-list dt, .summary-list dd, .mini-row strong, .table-wrap table, .table-wrap th, .table-wrap td, .empty-state) {
+:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel :is(h2, .panel-note, .summary-list dt, .summary-list dd, .mini-row strong, .table-wrap table, .table-wrap th, .table-wrap td, .empty-state) {
   color: var(--card-ink);
 }
 
-:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel :is(.panel-note, .summary-list dt, .mini-row small, .field-hint) {
+:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel :is(.panel-note, .summary-list dt, .mini-row small, .field-hint) {
   color: #e8e8e8;
 }
 
-:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel .summary-list > div {
+:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel .summary-list>div {
   border-bottom: 1px solid var(--card-line);
 }
 
-:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel #lowStockList .mini-row {
+:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel #lowStockList .mini-row {
   border: 1px solid var(--card-line);
   background: rgb(0 0 0 / 18%);
 }
 
-:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel :is(input, select, textarea) {
+:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel :is(input, select, textarea) {
   color: var(--card-ink);
   color-scheme: dark;
   border: 1px solid var(--card-line);
   background-color: rgb(0 0 0 / 22%);
 }
 
-:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel :is(input, textarea)::placeholder {
+:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel :is(input, textarea)::placeholder {
   color: #e8e8e8;
   opacity: 1;
 }
 
-:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel .unit-label {
+:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel .unit-label {
   color: var(--card-ink);
   border-color: var(--card-line);
   background: rgb(0 0 0 / 22%);
 }
 
-:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel #recordSale {
+:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel #recordSale {
   color: var(--card-ink);
   border: 1px solid var(--card-line);
   background: #222;
   opacity: 1;
 }
 
-:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel #recordSale:disabled {
+:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel #recordSale:disabled {
   color: var(--card-ink);
   border-color: var(--card-line);
   background: #4b4b4b;
@@ -1033,82 +1045,82 @@
   cursor: not-allowed;
 }
 
-:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel #clearSale {
+:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel #clearSale {
   color: #242424;
   border-color: #d8d8d8;
   background: #d8d8d8;
 }
 
-:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel .field-error:not([hidden]) {
+:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel .field-error:not([hidden]) {
   color: #fff;
   border: 1px solid var(--cs-critical);
   background: #5c1210;
 }
 
-:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel .toast {
+:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel .toast {
   color: var(--card-ink);
   border: 1px solid var(--card-line);
   background: #14532d;
 }
 
-:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel .status-badge {
+:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel .status-badge {
   border-color: var(--cs-critical-text);
   background: var(--cs-critical);
   color: var(--cs-critical-text);
 }
 
-:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel .status-badge.status-warning {
+:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel .status-badge.status-warning {
   border-color: var(--cs-warning-text);
   background: var(--cs-warning);
   color: var(--cs-warning-text);
 }
 
-:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel .status-badge.status-healthy {
+:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel .status-badge.status-healthy {
   border-color: var(--cs-healthy-text);
   background: var(--cs-healthy);
   color: var(--cs-healthy-text);
 }
 
-:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel .table-wrap {
+:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel .table-wrap {
   overflow-x: auto;
 }
 
-:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel .table-wrap table {
+:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel .table-wrap table {
   width: 100%;
   min-width: 600px;
   table-layout: fixed;
   color: var(--card-ink);
 }
 
-:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel .table-wrap :is(th, td) {
+:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel .table-wrap :is(th, td) {
   color: var(--card-ink);
   border-bottom: 1px solid var(--card-line);
   overflow-wrap: anywhere;
 }
 
-:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel .table-wrap tbody tr:last-child :is(th, td) {
+:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel .table-wrap tbody tr:last-child :is(th, td) {
   border-bottom: 1px solid var(--card-line);
 }
 
-:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel .table-wrap tbody tr:hover {
+:where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel .table-wrap tbody tr:hover {
   background: rgb(255 255 255 / 6%);
 }
 
 @media (max-width: 520px) {
-  :where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel .table-wrap table {
+  :where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel .table-wrap table {
     display: table;
     min-width: 600px;
   }
 
-  :where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel .table-wrap thead {
+  :where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel .table-wrap thead {
     display: table-header-group;
   }
 
-  :where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel .table-wrap tbody {
+  :where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel .table-wrap tbody {
     display: table-row-group;
   }
 
-  :where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel .table-wrap tbody tr {
+  :where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel .table-wrap tbody tr {
     display: table-row;
     padding: 0;
     border: 0;
@@ -1116,11 +1128,11 @@
     background: transparent;
   }
 
-  :where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel .table-wrap tbody td {
+  :where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel .table-wrap tbody td {
     display: table-cell;
   }
 
-  :where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel .table-wrap tbody td::before {
+  :where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel .table-wrap tbody td::before {
     display: none;
     content: none;
   }
@@ -1133,7 +1145,9 @@
   gap: var(--space-2);
 }
 
-.sales-entry #saleNotes { font-family: inherit; }
+.sales-entry #saleNotes {
+  font-family: inherit;
+}
 
 /* Contain the Sales Entry grid and controls at phone and tablet widths. */
 @media (max-width: 980px) {
@@ -1142,19 +1156,19 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  :where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack,
-  :where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > aside.stack {
+  :where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack,
+  :where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>aside.stack {
     min-width: 0;
   }
 
-  :where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > .stack > .panel,
-  :where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid > aside.stack > .panel,
+  :where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>.stack>.panel,
+  :where(.dashboard-page, .skin-page) .module-page.sales-entry .module-grid>aside.stack>.panel,
   :where(.dashboard-page, .skin-page) .module-page.sales-entry .form-grid {
     min-width: 0;
   }
 
-  :where(.dashboard-page, .skin-page) .module-page.sales-entry .form-grid > .field,
-  :where(.dashboard-page, .skin-page) .module-page.sales-entry .form-grid > .button-row {
+  :where(.dashboard-page, .skin-page) .module-page.sales-entry .form-grid>.field,
+  :where(.dashboard-page, .skin-page) .module-page.sales-entry .form-grid>.button-row {
     min-width: 0;
   }
 
@@ -1180,7 +1194,7 @@
   color: var(--card-ink);
 }
 
-.skin-page.forecast-page .module-page > .stat-strip {
+.skin-page.forecast-page .module-page>.stat-strip {
   min-width: 0;
   background: transparent;
 }
@@ -1215,7 +1229,7 @@
   color: var(--cs-warning);
 }
 
-.skin-page.forecast-page .module-page > .panel {
+.skin-page.forecast-page .module-page>.panel {
   min-width: 0;
   color: var(--card-ink);
   --text: var(--card-ink);
@@ -1244,9 +1258,9 @@
   box-shadow: var(--shadow-card);
 }
 
-.skin-page.forecast-page .module-page > .panel h2,
-.skin-page.forecast-page .module-page > .panel .panel-note,
-.skin-page.forecast-page .module-page > .panel .empty-state {
+.skin-page.forecast-page .module-page>.panel h2,
+.skin-page.forecast-page .module-page>.panel .panel-note,
+.skin-page.forecast-page .module-page>.panel .empty-state {
   color: var(--card-ink);
 }
 
@@ -1355,7 +1369,7 @@
   color: var(--card-ink);
 }
 
-.skin-page.products-page .module-page:has(#productsBody) > .module-heading {
+.skin-page.products-page .module-page:has(#productsBody)>.module-heading {
   display: flex;
   min-width: 0;
   justify-content: flex-end;
@@ -1363,22 +1377,22 @@
   color: var(--text-on-light);
 }
 
-.skin-page.products-page .module-page:has(#productsBody) > .module-heading:has(#openProductModal) {
+.skin-page.products-page .module-page:has(#productsBody)>.module-heading:has(#openProductModal) {
   display: flex;
   justify-content: flex-end;
 }
 
-.skin-page.products-page .module-page:has(#productsBody) > .module-heading > div > .greeting,
-.skin-page.products-page .module-page:has(#productsBody) > .module-heading > div > h1,
-.skin-page.products-page .module-page:has(#productsBody) > .module-heading > div > p:not(.greeting) {
+.skin-page.products-page .module-page:has(#productsBody)>.module-heading>div>.greeting,
+.skin-page.products-page .module-page:has(#productsBody)>.module-heading>div>h1,
+.skin-page.products-page .module-page:has(#productsBody)>.module-heading>div>p:not(.greeting) {
   display: none;
 }
 
-.skin-page.products-page .module-page:has(#productsBody) > .module-heading:not(:has(#openProductModal)) {
+.skin-page.products-page .module-page:has(#productsBody)>.module-heading:not(:has(#openProductModal)) {
   display: none;
 }
 
-.skin-page.products-page .module-page:has(#productsBody) > .module-heading #openProductModal {
+.skin-page.products-page .module-page:has(#productsBody)>.module-heading #openProductModal {
   min-height: 44px;
   padding: 10px 16px;
   border: 1px solid #222222;
@@ -1389,19 +1403,19 @@
   font-weight: 800;
 }
 
-.skin-page.products-page .module-page:has(#productsBody) > .module-heading #openProductModal:hover {
+.skin-page.products-page .module-page:has(#productsBody)>.module-heading #openProductModal:hover {
   color: #ffffff;
   border-color: #3d3d3d;
   background: #3d3d3d;
 }
 
-.skin-page.products-page .module-page:has(#productsBody) > .module-heading #openProductModal:focus-visible {
+.skin-page.products-page .module-page:has(#productsBody)>.module-heading #openProductModal:focus-visible {
   outline: 3px solid #111111;
   outline-offset: 3px;
   box-shadow: none;
 }
 
-.skin-page.products-page .module-page:has(#productsBody) > .module-heading #openProductModal:disabled {
+.skin-page.products-page .module-page:has(#productsBody)>.module-heading #openProductModal:disabled {
   color: #ffffff;
   border-color: #4b4b4b;
   background: #4b4b4b;
@@ -1409,7 +1423,7 @@
   cursor: not-allowed;
 }
 
-.skin-page.products-page .module-page:has(#productsBody) > .stat-strip {
+.skin-page.products-page .module-page:has(#productsBody)>.stat-strip {
   min-width: 0;
   background: transparent;
 }
@@ -1440,7 +1454,7 @@
   font-weight: 800;
 }
 
-.skin-page.products-page .module-page:has(#productsBody) > .panel {
+.skin-page.products-page .module-page:has(#productsBody)>.panel {
   min-width: 0;
   border: 1px solid #b5b5b5;
   border-radius: var(--skin-radius-card);
@@ -1452,12 +1466,12 @@
   --muted: var(--card-muted);
 }
 
-.skin-page.products-page .module-page:has(#productsBody) > .panel :is(h2, .panel-note, .toggle-row strong) {
+.skin-page.products-page .module-page:has(#productsBody)>.panel :is(h2, .panel-note, .toggle-row strong) {
   color: var(--card-ink);
 }
 
-.skin-page.products-page .module-page:has(#productsBody) > .panel .panel-note,
-.skin-page.products-page .module-page:has(#productsBody) > .panel .field {
+.skin-page.products-page .module-page:has(#productsBody)>.panel .panel-note,
+.skin-page.products-page .module-page:has(#productsBody)>.panel .field {
   color: var(--card-muted);
 }
 
@@ -1574,12 +1588,12 @@
   background: #242424;
 }
 
-.skin-page.products-page .module-page:has(#productsBody) .toggle input:checked + span {
+.skin-page.products-page .module-page:has(#productsBody) .toggle input:checked+span {
   border-color: #d8d8d8;
   background: #d8d8d8;
 }
 
-.skin-page.products-page .module-page:has(#productsBody) .toggle input:focus-visible + span {
+.skin-page.products-page .module-page:has(#productsBody) .toggle input:focus-visible+span {
   outline: 3px solid #ffffff;
   outline-offset: 3px;
 }
@@ -1810,7 +1824,7 @@
   background: #222222;
 }
 
-.skin-page.products-page:has(#productsBody) #productToast > svg {
+.skin-page.products-page:has(#productsBody) #productToast>svg {
   color: #ffffff;
 }
 
@@ -1852,7 +1866,7 @@
     content: none;
   }
 
-  .skin-page.products-page .module-page:has(#productsBody) > .stat-strip {
+  .skin-page.products-page .module-page:has(#productsBody)>.stat-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-3);
   }
@@ -1875,11 +1889,11 @@
 }
 
 @media (max-width: 400px) {
-  .skin-page.products-page .module-page:has(#productsBody) > .module-heading {
+  .skin-page.products-page .module-page:has(#productsBody)>.module-heading {
     margin-bottom: var(--space-3);
   }
 
-  .skin-page.products-page .module-page:has(#productsBody) > .module-heading #openProductModal {
+  .skin-page.products-page .module-page:has(#productsBody)>.module-heading #openProductModal {
     min-height: 44px;
     max-width: 100%;
     padding-right: 14px;
@@ -1893,7 +1907,7 @@
   color: var(--card-ink);
 }
 
-.skin-page.sales-history-page .module-page:has(#historyBody) > .module-heading:has(.secondary-btn) {
+.skin-page.sales-history-page .module-page:has(#historyBody)>.module-heading:has(.secondary-btn) {
   display: flex;
   min-width: 0;
   justify-content: flex-end;
@@ -1901,17 +1915,17 @@
   color: var(--text-on-light);
 }
 
-.skin-page.sales-history-page .module-page:has(#historyBody) > .module-heading:not(:has(.secondary-btn)) {
+.skin-page.sales-history-page .module-page:has(#historyBody)>.module-heading:not(:has(.secondary-btn)) {
   display: none;
 }
 
-.skin-page.sales-history-page .module-page:has(#historyBody) > .module-heading > div > .greeting,
-.skin-page.sales-history-page .module-page:has(#historyBody) > .module-heading > div > h1,
-.skin-page.sales-history-page .module-page:has(#historyBody) > .module-heading > div > p:not(.greeting) {
+.skin-page.sales-history-page .module-page:has(#historyBody)>.module-heading>div>.greeting,
+.skin-page.sales-history-page .module-page:has(#historyBody)>.module-heading>div>h1,
+.skin-page.sales-history-page .module-page:has(#historyBody)>.module-heading>div>p:not(.greeting) {
   display: none;
 }
 
-.skin-page.sales-history-page .module-page:has(#historyBody) > .module-heading .secondary-btn {
+.skin-page.sales-history-page .module-page:has(#historyBody)>.module-heading .secondary-btn {
   align-self: flex-end;
   min-height: 44px;
   padding: 10px 16px;
@@ -1924,19 +1938,19 @@
   opacity: 1;
 }
 
-.skin-page.sales-history-page .module-page:has(#historyBody) > .module-heading .secondary-btn:hover:not(:disabled) {
+.skin-page.sales-history-page .module-page:has(#historyBody)>.module-heading .secondary-btn:hover:not(:disabled) {
   border-color: #3d3d3d;
   color: #ffffff;
   background: #3d3d3d;
 }
 
-.skin-page.sales-history-page .module-page:has(#historyBody) > .module-heading .secondary-btn:focus-visible {
+.skin-page.sales-history-page .module-page:has(#historyBody)>.module-heading .secondary-btn:focus-visible {
   outline: 3px solid #111111;
   outline-offset: 3px;
   box-shadow: none;
 }
 
-.skin-page.sales-history-page .module-page:has(#historyBody) > .module-heading .secondary-btn:disabled {
+.skin-page.sales-history-page .module-page:has(#historyBody)>.module-heading .secondary-btn:disabled {
   border-color: #222222;
   color: #ffffff;
   background: #222222;
@@ -1944,7 +1958,7 @@
   cursor: not-allowed;
 }
 
-.skin-page.sales-history-page .module-page:has(#historyBody) > .panel {
+.skin-page.sales-history-page .module-page:has(#historyBody)>.panel {
   min-width: 0;
   border: 1px solid #b5b5b5;
   border-radius: var(--skin-radius-card);
@@ -2136,12 +2150,12 @@
   font-size: max(0.8rem, var(--text-sm));
 }
 
-.skin-page.sales-history-page .module-page:has(#historyBody) .pagination > span {
+.skin-page.sales-history-page .module-page:has(#historyBody) .pagination>span {
   min-width: 0;
   color: var(--card-muted);
 }
 
-.skin-page.sales-history-page .module-page:has(#historyBody) .pagination > span:last-child {
+.skin-page.sales-history-page .module-page:has(#historyBody) .pagination>span:last-child {
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -2198,7 +2212,7 @@
 }
 
 @media (max-width: 640px) {
-  .skin-page.sales-history-page .module-page:has(#historyBody) > .module-heading {
+  .skin-page.sales-history-page .module-page:has(#historyBody)>.module-heading {
     align-items: flex-start;
   }
 
@@ -2219,7 +2233,7 @@
     flex-direction: column;
   }
 
-  .skin-page.sales-history-page .module-page:has(#historyBody) .pagination > span:last-child {
+  .skin-page.sales-history-page .module-page:has(#historyBody) .pagination>span:last-child {
     flex-wrap: wrap;
   }
 }
@@ -2354,7 +2368,7 @@
   color: var(--card-ink);
 }
 
-.skin-page.audit-trail-page .module-page > .panel {
+.skin-page.audit-trail-page .module-page>.panel {
   min-width: 0;
   padding: 22px;
   border: 1px solid #b5b5b5;
@@ -2367,24 +2381,24 @@
   --muted: var(--card-muted);
 }
 
-.skin-page.audit-trail-page .module-page > .panel .toolbar {
+.skin-page.audit-trail-page .module-page>.panel .toolbar {
   min-width: 0;
   margin-bottom: 16px;
 }
 
-.skin-page.audit-trail-page .module-page > .panel .toolbar form {
+.skin-page.audit-trail-page .module-page>.panel .toolbar form {
   min-width: 0;
   box-sizing: border-box;
 }
 
-.skin-page.audit-trail-page .module-page > .panel .toolbar .field {
+.skin-page.audit-trail-page .module-page>.panel .toolbar .field {
   min-width: 0;
   flex: 1 1 180px;
   color: var(--card-muted);
   font-size: max(0.8rem, 1rem);
 }
 
-.skin-page.audit-trail-page .module-page > .panel .toolbar select {
+.skin-page.audit-trail-page .module-page>.panel .toolbar select {
   width: 100%;
   min-width: 0;
   min-height: 44px;
@@ -2395,17 +2409,17 @@
   font-size: 1rem;
 }
 
-.skin-page.audit-trail-page .module-page > .panel .toolbar select option {
+.skin-page.audit-trail-page .module-page>.panel .toolbar select option {
   background-color: #222222;
   color: #ffffff;
 }
 
-.skin-page.audit-trail-page .module-page > .panel .toolbar select option:checked {
+.skin-page.audit-trail-page .module-page>.panel .toolbar select option:checked {
   background-color: #d8d8d8;
   color: #242424;
 }
 
-.skin-page.audit-trail-page .module-page > .panel .toolbar .primary-btn {
+.skin-page.audit-trail-page .module-page>.panel .toolbar .primary-btn {
   min-width: 96px;
   min-height: 44px;
   border: 1px solid #d8d8d8;
@@ -2414,7 +2428,7 @@
   font-size: 1rem;
 }
 
-.skin-page.audit-trail-page .module-page > .panel .toolbar .secondary-btn {
+.skin-page.audit-trail-page .module-page>.panel .toolbar .secondary-btn {
   min-width: 96px;
   min-height: 44px;
   border: 1px solid #b5b5b5;
@@ -2423,23 +2437,23 @@
   font-size: 1rem;
 }
 
-.skin-page.audit-trail-page .module-page > .panel .toolbar :is(.primary-btn, .secondary-btn):hover {
+.skin-page.audit-trail-page .module-page>.panel .toolbar :is(.primary-btn, .secondary-btn):hover {
   border-color: #ffffff;
   color: #111111;
   background: #ffffff;
 }
 
-.skin-page.audit-trail-page .module-page > .panel :is(.primary-btn, .secondary-btn, .small-btn):focus-visible {
+.skin-page.audit-trail-page .module-page>.panel :is(.primary-btn, .secondary-btn, .small-btn):focus-visible {
   outline: 3px solid #ffffff;
   outline-offset: 2px;
   box-shadow: none;
 }
 
-.skin-page.audit-trail-page .module-page > .panel :is(.primary-btn, .secondary-btn, .small-btn):active {
+.skin-page.audit-trail-page .module-page>.panel :is(.primary-btn, .secondary-btn, .small-btn):active {
   transform: translateY(1px);
 }
 
-.skin-page.audit-trail-page .module-page > .panel :is(.primary-btn, .secondary-btn, .small-btn):disabled {
+.skin-page.audit-trail-page .module-page>.panel :is(.primary-btn, .secondary-btn, .small-btn):disabled {
   border-color: #b5b5b5;
   color: #ffffff;
   background: #4b4b4b;
@@ -2523,23 +2537,23 @@
   color: #ffffff;
 }
 
-.skin-page.audit-trail-page .module-page .table-wrap .empty-state > span {
+.skin-page.audit-trail-page .module-page .table-wrap .empty-state>span {
   display: block;
   margin-top: 8px;
   color: #d8d8d8;
 }
 
-.skin-page.audit-trail-page .module-page > .panel .pagination {
+.skin-page.audit-trail-page .module-page>.panel .pagination {
   min-width: 0;
   color: #d8d8d8;
   font-size: max(0.8rem, 0.9rem);
 }
 
-.skin-page.audit-trail-page .module-page > .panel .pagination > span {
+.skin-page.audit-trail-page .module-page>.panel .pagination>span {
   min-width: 0;
 }
 
-.skin-page.audit-trail-page .module-page > .panel .pagination .small-btn {
+.skin-page.audit-trail-page .module-page>.panel .pagination .small-btn {
   min-width: 88px;
   min-height: 44px;
   border: 1px solid #b5b5b5;
@@ -2548,35 +2562,35 @@
   font-size: 0.9rem;
 }
 
-.skin-page.audit-trail-page .module-page > .panel .pagination a.small-btn:hover {
+.skin-page.audit-trail-page .module-page>.panel .pagination a.small-btn:hover {
   border-color: #ffffff;
   color: #ffffff;
   background: #3d3d3d;
 }
 
 @media (max-width: 640px) {
-  .skin-page.audit-trail-page .module-page > .panel {
+  .skin-page.audit-trail-page .module-page>.panel {
     padding: 16px;
   }
 
-  .skin-page.audit-trail-page .module-page > .panel .toolbar .field {
+  .skin-page.audit-trail-page .module-page>.panel .toolbar .field {
     flex-basis: 100%;
   }
 
-  .skin-page.audit-trail-page .module-page > .panel .toolbar form > div {
+  .skin-page.audit-trail-page .module-page>.panel .toolbar form>div {
     width: 100%;
   }
 
-  .skin-page.audit-trail-page .module-page > .panel .toolbar :is(.primary-btn, .secondary-btn) {
+  .skin-page.audit-trail-page .module-page>.panel .toolbar :is(.primary-btn, .secondary-btn) {
     flex: 1 1 0;
   }
 
-  .skin-page.audit-trail-page .module-page > .panel .pagination {
+  .skin-page.audit-trail-page .module-page>.panel .pagination {
     align-items: flex-start;
     flex-direction: column;
   }
 
-  .skin-page.audit-trail-page .module-page > .panel .pagination > span:last-child {
+  .skin-page.audit-trail-page .module-page>.panel .pagination>span:last-child {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -2630,7 +2644,7 @@
   min-width: 0;
 }
 
-.skin-page.notifications-skin-page .module-page > .stat-strip {
+.skin-page.notifications-skin-page .module-page>.stat-strip {
   min-width: 0;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
@@ -2663,7 +2677,7 @@
   font-weight: 800;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel {
+.skin-page.notifications-skin-page .module-page>.panel {
   min-width: 0;
   padding: 22px;
   border: 1px solid #5c5c5c;
@@ -2676,18 +2690,18 @@
   --muted: #d8d8d8;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .toolbar,
-.skin-page.notifications-skin-page .module-page > .panel .table-wrap {
+.skin-page.notifications-skin-page .module-page>.panel .toolbar,
+.skin-page.notifications-skin-page .module-page>.panel .table-wrap {
   min-width: 0;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .toolbar .field {
+.skin-page.notifications-skin-page .module-page>.panel .toolbar .field {
   min-width: 0;
   color: #d8d8d8;
   font-size: max(0.8rem, 1rem);
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .toolbar select {
+.skin-page.notifications-skin-page .module-page>.panel .toolbar select {
   width: 100%;
   min-width: 0;
   min-height: 44px;
@@ -2698,21 +2712,21 @@
   font-size: 1rem;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .toolbar select option {
+.skin-page.notifications-skin-page .module-page>.panel .toolbar select option {
   background-color: #222222;
   color: #ffffff;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .toolbar select option:checked {
+.skin-page.notifications-skin-page .module-page>.panel .toolbar select option:checked {
   background-color: #d8d8d8;
   color: #242424;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .table-wrap {
+.skin-page.notifications-skin-page .module-page>.panel .table-wrap {
   overflow-x: auto;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .table-wrap table {
+.skin-page.notifications-skin-page .module-page>.panel .table-wrap table {
   width: max-content;
   min-width: 900px;
   table-layout: auto;
@@ -2721,7 +2735,7 @@
   font-size: 0.9rem;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .table-wrap :is(th, td) {
+.skin-page.notifications-skin-page .module-page>.panel .table-wrap :is(th, td) {
   min-width: 0;
   padding: 12px;
   border-bottom: 1px solid #b5b5b5;
@@ -2730,45 +2744,45 @@
   overflow-wrap: anywhere;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .table-wrap th {
+.skin-page.notifications-skin-page .module-page>.panel .table-wrap th {
   color: #ffffff;
   font-size: 0.9rem;
   font-weight: 800;
   text-align: left;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .table-wrap tbody td:nth-child(4) {
+.skin-page.notifications-skin-page .module-page>.panel .table-wrap tbody td:nth-child(4) {
   color: #d8d8d8;
   white-space: nowrap;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .table-wrap tbody tr {
+.skin-page.notifications-skin-page .module-page>.panel .table-wrap tbody tr {
   opacity: 1 !important;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .table-wrap tbody tr.unread-row td:first-child {
+.skin-page.notifications-skin-page .module-page>.panel .table-wrap tbody tr.unread-row td:first-child {
   border-left: 5px solid #d8d8d8;
   font-weight: 800;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .table-wrap tbody tr.unread-row td:nth-child(2) {
+.skin-page.notifications-skin-page .module-page>.panel .table-wrap tbody tr.unread-row td:nth-child(2) {
   font-weight: 800;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .table-wrap tbody tr:hover {
+.skin-page.notifications-skin-page .module-page>.panel .table-wrap tbody tr:hover {
   background: #d8d8d8;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .table-wrap tbody tr:hover td {
+.skin-page.notifications-skin-page .module-page>.panel .table-wrap tbody tr:hover td {
   color: #242424;
   border-bottom-color: #3d3d3d;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .table-wrap tbody tr.unread-row:hover td:first-child {
+.skin-page.notifications-skin-page .module-page>.panel .table-wrap tbody tr.unread-row:hover td:first-child {
   border-left-color: #242424;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .table-wrap .status-badge {
+.skin-page.notifications-skin-page .module-page>.panel .table-wrap .status-badge {
   min-width: 0;
   padding: 5px 9px;
   border: 1px solid #b5b5b5;
@@ -2778,92 +2792,92 @@
   text-transform: none;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .table-wrap .status-badge.status-critical {
+.skin-page.notifications-skin-page .module-page>.panel .table-wrap .status-badge.status-critical {
   border-color: #5c1210;
   color: #5c1210;
   background: #ffb3ae;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .table-wrap .status-badge.status-warning {
+.skin-page.notifications-skin-page .module-page>.panel .table-wrap .status-badge.status-warning {
   border-color: #4a2a06;
   color: #4a2a06;
   background: #ffdca8;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .table-wrap .status-badge.status-info {
+.skin-page.notifications-skin-page .module-page>.panel .table-wrap .status-badge.status-info {
   border-color: #b5b5b5;
   color: #ffffff;
   background: #3d3d3d;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .table-wrap tbody tr:hover .status-badge.status-critical,
-.skin-page.notifications-skin-page .module-page > .panel .table-wrap tbody tr:hover .status-badge.status-warning {
+.skin-page.notifications-skin-page .module-page>.panel .table-wrap tbody tr:hover .status-badge.status-critical,
+.skin-page.notifications-skin-page .module-page>.panel .table-wrap tbody tr:hover .status-badge.status-warning {
   color: #5c1210;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .table-wrap tbody tr:hover .status-badge.status-warning {
+.skin-page.notifications-skin-page .module-page>.panel .table-wrap tbody tr:hover .status-badge.status-warning {
   color: #4a2a06;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .table-wrap tbody tr:hover .status-badge.status-info {
+.skin-page.notifications-skin-page .module-page>.panel .table-wrap tbody tr:hover .status-badge.status-info {
   border-color: #242424;
   color: #ffffff;
   background: #222222;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .table-wrap tbody tr:last-child td {
+.skin-page.notifications-skin-page .module-page>.panel .table-wrap tbody tr:last-child td {
   border-bottom: 0;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .table-wrap .empty-state {
+.skin-page.notifications-skin-page .module-page>.panel .table-wrap .empty-state {
   padding: 32px 16px;
   color: #ffffff;
   text-align: center;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .table-wrap .empty-state strong {
+.skin-page.notifications-skin-page .module-page>.panel .table-wrap .empty-state strong {
   color: #ffffff;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel .table-wrap .empty-state > span {
+.skin-page.notifications-skin-page .module-page>.panel .table-wrap .empty-state>span {
   display: block;
   margin-top: 8px;
   color: #d8d8d8;
 }
 
-.skin-page.notifications-skin-page .module-page > .panel :is(select, a, button):focus-visible {
+.skin-page.notifications-skin-page .module-page>.panel :is(select, a, button):focus-visible {
   outline: 3px solid #ffffff;
   outline-offset: 2px;
   box-shadow: none;
 }
 
 @media (max-width: 720px) {
-  .skin-page.notifications-skin-page .module-page > .stat-strip {
+  .skin-page.notifications-skin-page .module-page>.stat-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 520px) {
-  .skin-page.notifications-skin-page .module-page > .panel {
+  .skin-page.notifications-skin-page .module-page>.panel {
     padding: 16px;
   }
 
-  .skin-page.notifications-skin-page .module-page > .panel .table-wrap table {
+  .skin-page.notifications-skin-page .module-page>.panel .table-wrap table {
     display: table;
     width: max-content;
     min-width: 900px;
     table-layout: auto;
   }
 
-  .skin-page.notifications-skin-page .module-page > .panel .table-wrap thead {
+  .skin-page.notifications-skin-page .module-page>.panel .table-wrap thead {
     display: table-header-group;
   }
 
-  .skin-page.notifications-skin-page .module-page > .panel .table-wrap tbody {
+  .skin-page.notifications-skin-page .module-page>.panel .table-wrap tbody {
     display: table-row-group;
   }
 
-  .skin-page.notifications-skin-page .module-page > .panel .table-wrap tbody tr {
+  .skin-page.notifications-skin-page .module-page>.panel .table-wrap tbody tr {
     display: table-row;
     padding: 0;
     border: 0;
@@ -2871,16 +2885,16 @@
     background: transparent;
   }
 
-  .skin-page.notifications-skin-page .module-page > .panel .table-wrap tbody td {
+  .skin-page.notifications-skin-page .module-page>.panel .table-wrap tbody td {
     display: table-cell;
   }
 
-  .skin-page.notifications-skin-page .module-page > .panel .table-wrap tbody td::before {
+  .skin-page.notifications-skin-page .module-page>.panel .table-wrap tbody td::before {
     display: none;
     content: none;
   }
 
-  .skin-page.notifications-skin-page .module-page > .panel .table-wrap tbody tr:hover {
+  .skin-page.notifications-skin-page .module-page>.panel .table-wrap tbody tr:hover {
     background: #d8d8d8;
   }
 }
@@ -2890,7 +2904,7 @@
   min-width: 0;
 }
 
-.skin-page.access-denied-page .module-page > .panel {
+.skin-page.access-denied-page .module-page>.panel {
   min-width: 0;
   padding: 24px;
   border: 1px solid #5c5c5c;
@@ -2901,21 +2915,21 @@
   box-shadow: var(--shadow-card);
 }
 
-.skin-page.access-denied-page .module-page > .panel .panel-header,
-.skin-page.access-denied-page .module-page > .panel .panel-header > div {
+.skin-page.access-denied-page .module-page>.panel .panel-header,
+.skin-page.access-denied-page .module-page>.panel .panel-header>div {
   min-width: 0;
 }
 
-.skin-page.access-denied-page .module-page > .panel .panel-header h2 {
+.skin-page.access-denied-page .module-page>.panel .panel-header h2 {
   color: #ffffff;
 }
 
-.skin-page.access-denied-page .module-page > .panel .panel-note {
+.skin-page.access-denied-page .module-page>.panel .panel-note {
   color: #d8d8d8;
   font-size: max(0.8rem, 1rem);
 }
 
-.skin-page.access-denied-page .module-page > .panel > .primary-btn {
+.skin-page.access-denied-page .module-page>.panel>.primary-btn {
   display: inline-flex;
   min-width: 180px;
   min-height: 44px;
@@ -2929,24 +2943,24 @@
   text-decoration: none;
 }
 
-.skin-page.access-denied-page .module-page > .panel > .primary-btn:hover {
+.skin-page.access-denied-page .module-page>.panel>.primary-btn:hover {
   border-color: #ffffff;
   color: #111111;
   background: #ffffff;
 }
 
-.skin-page.access-denied-page .module-page > .panel > .primary-btn:focus-visible {
+.skin-page.access-denied-page .module-page>.panel>.primary-btn:focus-visible {
   outline: 3px solid #ffffff;
   outline-offset: 2px;
   box-shadow: none;
 }
 
 @media (max-width: 520px) {
-  .skin-page.access-denied-page .module-page > .panel {
+  .skin-page.access-denied-page .module-page>.panel {
     padding: 18px;
   }
 
-  .skin-page.access-denied-page .module-page > .panel > .primary-btn {
+  .skin-page.access-denied-page .module-page>.panel>.primary-btn {
     width: 100%;
   }
 }
@@ -2982,7 +2996,7 @@
   box-shadow: none;
 }
 
-.global-search-results .global-search-suggestions > span,
+.global-search-results .global-search-suggestions>span,
 .global-search-results .global-search-chips button {
   font-size: 0.8rem;
 }
@@ -3004,4 +3018,234 @@
 
 .dashboard-page .dash-overview .dash-kpi .kpi-meta {
   color: var(--card-muted);
+}
+
+/* Stock Alerts table panel: dark-card skin scoped to its status filter. */
+.skin-page .module-page:has(#alertStatusFilter) {
+  min-width: 0;
+}
+
+.skin-page:has(#alertStatusFilter) .main-panel,
+.skin-page:has(#alertStatusFilter) .main-panel>.content-area {
+  min-width: 0;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel {
+  min-width: 0;
+  color: var(--card-ink);
+  border: 1px solid #d8d8d8;
+  background-color: #000000;
+  background-image: var(--card-dark-gradient);
+  --text: var(--card-ink);
+  --muted: var(--card-muted);
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .toolbar {
+  min-width: 0;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .toolbar>.field {
+  min-width: 0;
+  color: var(--card-muted);
+  font-size: 1rem;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .toolbar select#alertStatusFilter {
+  min-width: 0;
+  min-height: 44px;
+  border: 1px solid #b5b5b5;
+  color: #ffffff;
+  color-scheme: dark;
+  background-color: rgb(0 0 0 / 22%);
+  font-size: 1rem;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .toolbar select#alertStatusFilter:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .toolbar select#alertStatusFilter option {
+  color: #ffffff;
+  background-color: #222222;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .toolbar select#alertStatusFilter option:checked {
+  color: #242424;
+  background-color: #d8d8d8;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap {
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap table {
+  width: max-content;
+  min-width: 1080px;
+  table-layout: auto;
+  color: #ffffff;
+  font-size: 0.9rem;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap :is(th, td) {
+  min-width: 0;
+  padding: 12px;
+  border-bottom: 1px solid #b5b5b5;
+  color: #ffffff;
+  vertical-align: top;
+  overflow-wrap: normal;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap th {
+  color: #d8d8d8;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-align: left;
+  white-space: normal;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap th:nth-child(1) {
+  min-width: 100px;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap th:nth-child(2) {
+  min-width: 140px;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap th:nth-child(3) {
+  min-width: 130px;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap th:nth-child(4) {
+  min-width: 145px;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap th:nth-child(5) {
+  min-width: 170px;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap th:nth-child(6) {
+  min-width: 240px;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap th:nth-child(7) {
+  min-width: 155px;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap tbody td:last-child {
+  color: #d8d8d8;
+  white-space: nowrap;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap .status-badge.status-critical {
+  border: 1px solid var(--cs-critical-text);
+  color: var(--cs-critical-text);
+  background: var(--cs-critical);
+  font-size: 0.8rem;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap .status-badge.status-warning {
+  border: 1px solid var(--cs-warning-text);
+  color: var(--cs-warning-text);
+  background: var(--cs-warning);
+  font-size: 0.8rem;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap .empty-state {
+  padding: 32px 16px;
+  color: #ffffff;
+  text-align: center;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap .empty-state strong {
+  color: #ffffff;
+  font-size: 1rem;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap .empty-state>span {
+  display: block;
+  margin-top: 8px;
+  color: #d8d8d8;
+  font-size: 0.9rem;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap tbody tr:not(:has(.empty-state)):hover {
+  background: #d8d8d8;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap tbody tr:not(:has(.empty-state)):hover td {
+  color: #242424;
+  border-bottom-color: #707070;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap tbody tr:not(:has(.empty-state)):hover td:last-child {
+  color: #242424;
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap tbody tr:not(:has(.empty-state)):hover .status-badge.status-critical {
+  border-color: #242424;
+  color: var(--cs-critical-text);
+}
+
+.skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap tbody tr:not(:has(.empty-state)):hover .status-badge.status-warning {
+  border-color: #242424;
+  color: var(--cs-warning-text);
+}
+
+@media (max-width: 520px) {
+  .skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap {
+    overflow-x: auto;
+  }
+
+  .skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap table {
+    display: table;
+    width: max-content;
+    min-width: 1080px;
+    table-layout: auto;
+  }
+
+  .skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap thead {
+    display: table-header-group;
+  }
+
+  .skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap tbody {
+    display: table-row-group;
+  }
+
+  .skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap tbody tr {
+    display: table-row;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap tbody td {
+    display: table-cell;
+    min-width: 0;
+  }
+
+  .skin-page .module-page:has(#alertStatusFilter)>.panel .table-wrap tbody td::before {
+    display: none;
+    content: none;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+
+  .dashboard-body.skin-page,
+  .dashboard-body.dashboard-page {
+    --sidebar-width: var(--sidebar-width-collapsed);
+  }
+}
+
+.dashboard-page .rail-frame .rail-card .rail-meta {
+  color: var(--gray-700);
+}
+
+.dashboard-page .rail-frame .rail-card--alerts .alert-count-box .kpi-value {
+  color: var(--red-600);
 }
