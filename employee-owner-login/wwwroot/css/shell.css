@@ -3005,3 +3005,207 @@
 .dashboard-page .dash-overview .dash-kpi .kpi-meta {
   color: var(--card-muted);
 }
+
+/* Stock Alerts table panel: dark-card skin scoped to its status filter. */
+.skin-page .module-page:has(#alertStatusFilter) {
+  min-width: 0;
+}
+
+.skin-page:has(#alertStatusFilter) .main-panel,
+.skin-page:has(#alertStatusFilter) .main-panel > .content-area {
+  min-width: 0;
+}
+
+.skin-page .module-page:has(#alertStatusFilter) > .panel {
+  min-width: 0;
+  color: var(--card-ink);
+  border: 1px solid #d8d8d8;
+  background-color: #000000;
+  background-image: var(--card-dark-gradient);
+  --text: var(--card-ink);
+  --muted: var(--card-muted);
+}
+
+.skin-page .module-page:has(#alertStatusFilter) > .panel .toolbar {
+  min-width: 0;
+}
+
+.skin-page .module-page:has(#alertStatusFilter) > .panel .toolbar > .field {
+  min-width: 0;
+  color: var(--card-muted);
+  font-size: 1rem;
+}
+
+.skin-page .module-page:has(#alertStatusFilter) > .panel .toolbar select#alertStatusFilter {
+  min-width: 0;
+  min-height: 44px;
+  border: 1px solid #b5b5b5;
+  color: #ffffff;
+  color-scheme: dark;
+  background-color: rgb(0 0 0 / 22%);
+  font-size: 1rem;
+}
+
+.skin-page .module-page:has(#alertStatusFilter) > .panel .toolbar select#alertStatusFilter:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+.skin-page .module-page:has(#alertStatusFilter) > .panel .toolbar select#alertStatusFilter option {
+  color: #ffffff;
+  background-color: #222222;
+}
+
+.skin-page .module-page:has(#alertStatusFilter) > .panel .toolbar select#alertStatusFilter option:checked {
+  color: #242424;
+  background-color: #d8d8d8;
+}
+
+.skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap {
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap table {
+  width: max-content;
+  min-width: 1080px;
+  table-layout: auto;
+  color: #ffffff;
+  font-size: 0.9rem;
+}
+
+.skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap :is(th, td) {
+  min-width: 0;
+  padding: 12px;
+  border-bottom: 1px solid #b5b5b5;
+  color: #ffffff;
+  vertical-align: top;
+  overflow-wrap: normal;
+}
+
+.skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap th {
+  color: #d8d8d8;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-align: left;
+  white-space: normal;
+}
+
+.skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap th:nth-child(1) { min-width: 100px; }
+.skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap th:nth-child(2) { min-width: 140px; }
+.skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap th:nth-child(3) { min-width: 130px; }
+.skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap th:nth-child(4) { min-width: 145px; }
+.skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap th:nth-child(5) { min-width: 170px; }
+.skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap th:nth-child(6) { min-width: 240px; }
+.skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap th:nth-child(7) { min-width: 155px; }
+
+.skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap tbody td:last-child {
+  color: #d8d8d8;
+  white-space: nowrap;
+}
+
+.skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap .status-badge.status-critical {
+  border: 1px solid var(--cs-critical-text);
+  color: var(--cs-critical-text);
+  background: var(--cs-critical);
+  font-size: 0.8rem;
+}
+
+.skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap .status-badge.status-warning {
+  border: 1px solid var(--cs-warning-text);
+  color: var(--cs-warning-text);
+  background: var(--cs-warning);
+  font-size: 0.8rem;
+}
+
+.skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap .empty-state {
+  padding: 32px 16px;
+  color: #ffffff;
+  text-align: center;
+}
+
+.skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap .empty-state strong {
+  color: #ffffff;
+  font-size: 1rem;
+}
+
+.skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap .empty-state > span {
+  display: block;
+  margin-top: 8px;
+  color: #d8d8d8;
+  font-size: 0.9rem;
+}
+
+.skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap tbody tr:not(:has(.empty-state)):hover {
+  background: #d8d8d8;
+}
+
+.skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap tbody tr:not(:has(.empty-state)):hover td {
+  color: #242424;
+  border-bottom-color: #707070;
+}
+
+.skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap tbody tr:not(:has(.empty-state)):hover td:last-child {
+  color: #242424;
+}
+
+.skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap tbody tr:not(:has(.empty-state)):hover .status-badge.status-critical {
+  border-color: #242424;
+  color: var(--cs-critical-text);
+}
+
+.skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap tbody tr:not(:has(.empty-state)):hover .status-badge.status-warning {
+  border-color: #242424;
+  color: var(--cs-warning-text);
+}
+
+@media (max-width: 520px) {
+  .skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap {
+    overflow-x: auto;
+  }
+
+  .skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap table {
+    display: table;
+    width: max-content;
+    min-width: 1080px;
+    table-layout: auto;
+  }
+
+  .skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap thead {
+    display: table-header-group;
+  }
+
+  .skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap tbody {
+    display: table-row-group;
+  }
+
+  .skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap tbody tr {
+    display: table-row;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap tbody td {
+    display: table-cell;
+    min-width: 0;
+  }
+
+  .skin-page .module-page:has(#alertStatusFilter) > .panel .table-wrap tbody td::before {
+    display: none;
+    content: none;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .dashboard-body.skin-page,
+  .dashboard-body.dashboard-page {
+    --sidebar-width: var(--sidebar-width-collapsed);
+  }
+}
+
+.dashboard-page .rail-frame .rail-card .rail-meta { color: var(--gray-700); }
+.dashboard-page .rail-frame .rail-card--alerts .alert-count-box .kpi-value { color: var(--red-600); }
