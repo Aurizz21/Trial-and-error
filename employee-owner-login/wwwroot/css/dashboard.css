@@ -1994,6 +1994,7 @@ th {
   grid-template-columns: minmax(0, 1fr) 300px;
   gap: 20px;
   align-items: stretch;
+  width: 100%;
 }
 
 .dashboard-main-col {
@@ -2001,6 +2002,7 @@ th {
   flex-direction: column;
   gap: 20px;
   min-width: 0;
+  overflow: hidden;
 }
 
 .dashboard-sidebar-col {
@@ -2008,6 +2010,7 @@ th {
   flex-direction: column;
   gap: 20px;
   min-width: 0;
+  overflow: hidden;
 }
 
 .dashboard-sidebar-col > * {
@@ -2088,13 +2091,13 @@ th {
 .dash-chart-card .chart-plot {
   position: relative;
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: 260px;
+  width: 100%;
 }
 
 .dash-chart-card .chart-plot canvas {
   display: block;
-  width: 100% !important;
-  height: 100% !important;
+  max-width: 100%;
 }
 
 .dash-chart-card .chart-empty {
@@ -2436,11 +2439,13 @@ th {
   margin-top: 0;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
   .dashboard-layout {
     grid-template-columns: minmax(0, 1fr);
   }
+}
 
+@media (max-width: 900px) {
   .dashboard-kpi-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

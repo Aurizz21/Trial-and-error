@@ -710,4 +710,18 @@ document.addEventListener("DOMContentLoaded", () => {
     renderCharts();
     setInterval(() => refreshDashboard(), 30000);
   }
+
+  // Chart.js keeps a stale size after viewport changes (DevTools open/close,
+  // sidebar toggling, etc.). Debounce a resize so charts reflow after layout
+  // settles.
+  let __chartResizeTimer;
+  window.addEventListener("resize", () => {
+    clearTimeout(__chartResizeTimer);
+    __chartResizeTimer = setTimeout(() => {
+      weeklyStockChartInstance?.resize();
+      thresholdChartInstance?.resize();
+      consumptionChartInstance?.resize();
+      depletionChartInstance?.resize();
+    }, 200);
+  });
 });
