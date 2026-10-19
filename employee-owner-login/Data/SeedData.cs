@@ -14,7 +14,7 @@ public static class SeedData
             return;
         }
 
-        var rng = new Random(42); // fixed seed -> same data every fresh install
+        var rng = new Random(42);
 
         // ---------------------------------------------------------------
         // 1. Users — using the SAME password hashes as AuthService.cs
@@ -57,13 +57,13 @@ public static class SeedData
         db.SaveChanges();
 
         // ---------------------------------------------------------------
-        // 3. Sales — realistic pattern over the last 100 days.
-        //    Each product sells most days with a slight upward trend and weekend spikes.
+        // 3. Sales — realistic pattern over the last 730 days.
+        //    Each product sells most days with seasonal and weekend spikes.
         // ---------------------------------------------------------------
         var sales = new List<Sale>();
         var today = DateTime.Today;
-        var startDay = today.AddDays(-100);
-        var totalDays = 101; // inclusive of today
+        var totalDays = 730;
+        var startDay = today.AddDays(-(totalDays - 1));
 
         for (var dayIndex = 0; dayIndex < totalDays; dayIndex++)
         {
@@ -75,8 +75,17 @@ public static class SeedData
                 // Baseline daily sales per product.
                 var baseDaily = product.Category == "Whole Chicken" ? 6.0 : 4.0;
 
-                // Slight upward trend over 100 days (+30% growth across the window).
-                var trend = baseDaily * (1.0 + 0.3 * (dayIndex / (double)totalDays));
+                // Seasonal demand pattern for the Philippine poultry market.
+                var seasonalMultiplier = day.Month switch
+                {
+                    11 or 12 => 1.5,
+                    5 => 1.3,
+                    1 or 2 => 0.8,
+                    _ => 1.0
+                };
+
+                // Gradual industry growth of 10% across the two-year window.
+                var trend = baseDaily * (1.0 + 0.1 * (dayIndex / (double)(totalDays - 1)));
 
                 // Weekend bump: +60%
                 var weekendMultiplier = isWeekend ? 1.6 : 1.0;
@@ -92,7 +101,7 @@ public static class SeedData
                 if (rng.NextDouble() < 0.02)
                     noise *= 0.85 + rng.NextDouble() * 0.10;
 
-                var quantity = Math.Round((decimal)Math.Max(1.0, trend * weekendMultiplier * noise), 2);
+                var quantity = Math.Round((decimal)Math.Max(1.0, trend * seasonalMultiplier * weekendMultiplier * noise), 2);
 
                 var hour = rng.Next(7, 19);
                 var minute = rng.Next(0, 60);

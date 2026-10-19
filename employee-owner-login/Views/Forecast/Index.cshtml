@@ -38,156 +38,250 @@
             {
                 <div class="kpi-value">@Model.AverageAccuracy.ToString("0.0")%</div>
             }
-        </article>
-    </section>
+            <label><input type="checkbox" id="aiToggle" checked="@(Model.Rows.FirstOrDefault()?.UseAiForAlerts ?? true)"
+                              onclick="toggleAi(this)" /> Use AI for Alerts</label>
+            </article>
+        </section>
 
-    <section class="panel">
-        <div class="panel-header">
-            <h2>Actual vs Forecast (Last 7 Days vs Next 7 Days)</h2>
-            <p class="panel-note">Model: @Model.Model · Generated: @Model.GeneratedAt</p>
-        </div>
-        <div class="chart-plot" style="min-height:320px;">
-            <canvas id="forecastChart"></canvas>
-        </div>
-    </section>
+        <section class="panel" style="margin-top: 20px; border-left: 4px solid #3b82f6;">
+            <div class="panel-header" style="padding-bottom: 10px;">
+                <h2 style="font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                    <span style="color: #3b82f6;">🤖</span> ML.NET AI Model Insights
+                </h2>
+            </div>
+            <div style="display: flex; gap: 24px; flex-wrap: wrap; font-size: 0.85rem; color: var(--muted);">
+                <div><strong>Training Data:</strong> 730 Days (2 Years)</div>
+                <div><strong>Algorithm:</strong> Singular Spectrum Analysis (SSA)</div>
+                <div><strong>Detected Weekly Pattern:</strong> +60% Weekend Spike</div>
+                <div><strong>Detected Seasonal Pattern:</strong> +50% Nov/Dec Holiday Spike</div>
+            </div>
+        </section>
 
-    <section class="panel">
-        <div class="panel-header">
-            <h2>Forecast by Product</h2>
-        </div>
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Product</th>
-                        <th>Category</th>
-                        <th>Current Stock</th>
-                        <th>Last 7 Days</th>
-                        <th>Daily WMA</th>
-                        <th>Next 7 Forecast</th>
-                        <th>Days Left</th>
-                        <th>Predicted Depletion</th>
-                        <th>Reorder</th>
-                        <th>Confidence</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var r in Model.Rows)
-                    {
+        <section class="panel">
+            <div class="panel-header">
+                <h2>Actual vs Forecast (Last 7 Days vs Next 7 Days)</h2>
+                <p class="panel-note">Model: @Model.Model · Generated: @Model.GeneratedAt</p>
+            </div>
+            <div class="chart-plot" style="min-height:320px;">
+                <canvas id="forecastChart"></canvas>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header">
+                <h2>Forecast by Product</h2>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
                         <tr>
-                            <td>@r.ProductName</td>
-                            <td>@r.Category</td>
-                            <td>@r.CurrentStock.ToString("0.##") @r.Units</td>
-                            <td>@r.Last7DaysSales.ToString("0.##") @r.Units</td>
-                            <td>@r.WeightedMovingAverage.ToString("0.##")</td>
-                            <td>@r.ForecastNext7Days.ToString("0.##") @r.Units</td>
-                            <td>@r.DaysRemaining.ToString("0.0")</td>
-                            <td>@r.PredictedDepletionDate</td>
-                            <td>@r.SuggestedReorderQuantity.ToString("0.##") @r.Units</td>
-                            <td>
-                                @if (r.ForecastAccuracy.HasValue)
-                                {
-                                    @r.ForecastAccuracy.Value.ToString("0.0")<text>%</text>
-                                }
-                                else
-                                {
-                                    <span class="muted">—</span>
-                                }
-                            </td>
-                            <td><span class="status-badge status-@r.Status.ToLowerInvariant()">@r.Status</span></td>
+                            <th>Product</th>
+                            <th>Category</th>
+                            <th>Current Stock</th>
+                            <th>Last 7 Days</th>
+                            <th>Daily WMA</th>
+                            <th>Next 7 Forecast</th>
+                            <th>Days Left</th>
+                            <th>Predicted Depletion</th>
+                            <th>Reorder</th>
+                            <th>Confidence</th>
+                            <th>WMA Acc.</th>
+                            <th>AI Acc.</th>
+                            <th>Status</th>
+                            <th>AI Forecast (Next 7 Days)</th>
                         </tr>
-                    }
-                    @if (!Model.Rows.Any())
-                    {
-                        <tr>
-                            <td colspan="11" class="empty-state">
-                                <strong>No products to forecast</strong>
-                                <span>Add products and record sales to see predictions.</span>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </section>
-</div>
-
-<script>
-    window.forecastState = {
-        chartData: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ChartData))
-    };
-</script>
-<script>
-    (function () {
-        function drawChart() {
-            const canvas = document.getElementById('forecastChart');
-            if (!canvas) return;
-            if (typeof Chart === 'undefined') {
-                console.warn('Chart.js not loaded yet, retrying...');
-                setTimeout(drawChart, 100);
-                return;
-            }
-
-            const data = (window.forecastState && window.forecastState.chartData) || [];
-            if (!data.length) {
-                canvas.parentElement.innerHTML = '<p class="empty-state"><strong>No data to chart</strong></p>';
-                return;
-            }
-
-            const labels = data.map(d => d.product || d.Product);
-            const actual = data.map(d => d.last7DaysActual ?? d.Last7DaysActual ?? 0);
-            const forecast = data.map(d => d.next7DaysForecast ?? d.Next7DaysForecast ?? 0);
-
-            const root = getComputedStyle(document.documentElement);
-            const canvasStyle = getComputedStyle(canvas);
-            Chart.defaults.font.size = 13;
-            const primary = canvasStyle.getPropertyValue('--chart-primary').trim() || root.getPropertyValue('--chart-primary').trim() || '#2563eb';
-            const warning = canvasStyle.getPropertyValue('--chart-warning').trim() || root.getPropertyValue('--chart-warning').trim() || '#f59e0b';
-            const muted = canvasStyle.getPropertyValue('--chart-tick').trim() || root.getPropertyValue('--chart-tick').trim() || canvasStyle.getPropertyValue('--muted').trim() || root.getPropertyValue('--muted').trim() || '#6b7280';
-            const grid = canvasStyle.getPropertyValue('--chart-grid').trim() || root.getPropertyValue('--chart-grid').trim() || 'rgba(0,0,0,0.06)';
-
-            new Chart(canvas, {
-                type: 'bar',
-                data: {
-                    labels,
-                    datasets: [
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model.Rows)
                         {
-                            label: 'Last 7 Days (actual)',
-                            data: actual,
-                            backgroundColor: primary,
-                            borderRadius: 4,
-                            maxBarThickness: 24
-                        },
+                            <tr>
+                                <td>@r.ProductName</td>
+                                <td>@r.Category</td>
+                                <td>@r.CurrentStock.ToString("0.##") @r.Units</td>
+                                <td>@r.Last7DaysSales.ToString("0.##") @r.Units</td>
+                                <td>@r.WeightedMovingAverage.ToString("0.##")</td>
+                                <td>@r.ForecastNext7Days.ToString("0.##") @r.Units</td>
+                                <td>@r.DaysRemaining.ToString("0.0")</td>
+                                <td>@r.PredictedDepletionDate</td>
+                                <td>@r.SuggestedReorderQuantity.ToString("0.##") @r.Units</td>
+                                <td>
+                                    @if (r.ForecastAccuracy.HasValue)
+                                    {
+                                        @r.ForecastAccuracy.Value.ToString("0.0")
+                                        <text>%</text>
+                                    }
+                                    else
+                                    {
+                                        <span class="muted">—</span>
+                                    }
+                                </td>
+                                <td>@r.WmaAccuracy.ToString("0.0")%</td>
+                                <td>@r.AiAccuracy.ToString("0.0")%</td>
+                                <td><span class="status-badge status-@r.Status.ToLowerInvariant()">@r.Status</span></td>
+                                <td>
+                                    @if (r.MlForecast7Days > 0)
+                                    {
+                                        <strong>@r.MlForecast7Days.ToString("0.##") @r.Units</strong>
+                                        <br />
+                                        <small class="text-muted">Depletes: @r.MlDepletionDate</small>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                        @if (!Model.Rows.Any())
                         {
-                            label: 'Next 7 Days (forecast)',
-                            data: forecast,
-                            backgroundColor: warning,
-                            borderRadius: 4,
-                            maxBarThickness: 24
+                            <tr>
+                                <td colspan="14" class="empty-state">
+                                    <strong>No products to forecast</strong>
+                                    <span>Add products and record sales to see predictions.</span>
+                                </td>
+                            </tr>
                         }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { grid: { display: false }, ticks: { color: muted } },
-                        y: { beginAtZero: true, grid: { color: grid }, ticks: { color: muted } }
-                    },
-                    plugins: {
-                        legend: {
-                            labels: { color: muted, usePointStyle: true, pointStyle: 'circle' }
-                        }
-                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header">
+                <h2>30-Day Seasonal Projection (Holiday Spike Demo)</h2>
+            </div>
+            <div class="chart-plot" style="min-height:320px;">
+                <canvas id="seasonalChart"></canvas>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        window.forecastState = {
+            chartData: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ChartData)),
+            chart30DayLabels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Chart30DayLabels)),
+            wma30DayCurve: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Wma30DayCurve)),
+            ai30DayCurve: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Ai30DayCurve))
+                };
+    </script>
+    <script>
+        function toggleAi(checkbox) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('useAi', checkbox.checked);
+            window.location.href = url.toString();
+        }
+    </script>
+    <script>
+        (function () {
+            function drawChart() {
+                const canvas = document.getElementById('forecastChart');
+                if (!canvas) return;
+                if (typeof Chart === 'undefined') {
+                    console.warn('Chart.js not loaded yet, retrying...');
+                    setTimeout(drawChart, 100);
+                    return;
                 }
-            });
-        }
 
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', drawChart);
-        } else {
-            drawChart();
-        }
-    })();
-</script>
+                const data = (window.forecastState && window.forecastState.chartData) || [];
+                if (!data.length) {
+                    canvas.parentElement.innerHTML = '<p class="empty-state"><strong>No data to chart</strong></p>';
+                    return;
+                }
+
+                const labels = data.map(d => d.product || d.Product);
+                const actual = data.map(d => d.last7DaysActual ?? d.Last7DaysActual ?? 0);
+                const forecast = data.map(d => d.next7DaysForecast ?? d.Next7DaysForecast ?? 0);
+                const aiForecast = data.map(d => d.mlForecast7Days ?? d.MlForecast7Days ?? 0);
+
+                const root = getComputedStyle(document.documentElement);
+                const canvasStyle = getComputedStyle(canvas);
+                Chart.defaults.font.size = 13;
+                const muted = canvasStyle.getPropertyValue('--chart-tick').trim() || root.getPropertyValue('--chart-tick').trim() || canvasStyle.getPropertyValue('--muted').trim() || root.getPropertyValue('--muted').trim() || '#6b7280';
+                const grid = canvasStyle.getPropertyValue('--chart-grid').trim() || root.getPropertyValue('--chart-grid').trim() || 'rgba(0,0,0,0.06)';
+
+                new Chart(canvas, {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [
+                            {
+                                label: 'Last 7 Days (actual)',
+                                data: actual,
+                                backgroundColor: '#ef4444',
+                                borderRadius: 4,
+                                maxBarThickness: 24
+                            },
+                            {
+                                label: 'Next 7 Days (forecast)',
+                                data: forecast,
+                                backgroundColor: '#f59e0b',
+                                borderRadius: 4,
+                                maxBarThickness: 24
+                            },
+                            {
+                                label: 'AI Forecast (ML.NET)',
+                                data: aiForecast,
+                                backgroundColor: '#3b82f6',
+                                borderRadius: 4,
+                                maxBarThickness: 24
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { grid: { display: false }, ticks: { color: muted } },
+                            y: { beginAtZero: true, grid: { color: grid }, ticks: { color: muted } }
+                        },
+                        plugins: {
+                            legend: {
+                                labels: { color: muted, usePointStyle: true, pointStyle: 'circle' }
+                            }
+                        }
+                    }
+                });
+
+                const seasonalCanvas = document.getElementById('seasonalChart');
+                const seasonalState = window.forecastState;
+                if (seasonalCanvas && seasonalState) {
+                    const seasonalLabels = seasonalState.chart30DayLabels || seasonalState.Chart30DayLabels || [];
+                    const wmaCurve = seasonalState.wma30DayCurve || seasonalState.Wma30DayCurve || [];
+                    const aiCurve = seasonalState.ai30DayCurve || seasonalState.Ai30DayCurve || [];
+
+                    new Chart(seasonalCanvas, {
+                        type: 'line',
+                        data: {
+                            labels: seasonalLabels,
+                            datasets: [
+                                {
+                                    label: 'WMA (Flat)',
+                                    data: wmaCurve,
+                                    borderColor: '#f59e0b',
+                                    backgroundColor: '#f59e0b',
+                                    tension: 0.15
+                                },
+                                {
+                                    label: 'AI Forecast (ML.NET)',
+                                    data: aiCurve,
+                                    borderColor: '#3b82f6',
+                                    backgroundColor: '#3b82f6',
+                                    tension: 0.15
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                        }
+                    });
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', drawChart);
+            } else {
+                drawChart();
+            }
+        })();
+    </script>

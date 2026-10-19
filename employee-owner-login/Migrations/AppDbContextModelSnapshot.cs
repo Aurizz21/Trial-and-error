@@ -63,6 +63,9 @@ namespace PoultryOS.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AiForecast30DaysJson")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<double?>("ConfidenceScore")
                         .HasColumnType("float");
 
@@ -72,6 +75,10 @@ namespace PoultryOS.Migrations
 
                     b.Property<DateTime>("GeneratedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("ModelType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("PredictedDepletionDate")
                         .HasColumnType("datetime2");

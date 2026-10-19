@@ -24,6 +24,13 @@ public class ForecastRowViewModel
 
     // Real accuracy vs. yesterday's actual (null when insufficient data)
     public double? ForecastAccuracy { get; set; }
+    public double WmaAccuracy { get; set; }
+    public double AiAccuracy { get; set; }
+    public bool UseAiForAlerts { get; set; }
+
+    //Machine learning
+    public decimal MlForecast7Days { get; set; }
+    public string MlDepletionDate { get; set; } = "Insufficient data";
 }
 
 // What the page needs in one object.
@@ -36,6 +43,9 @@ public class ForecastPageViewModel
     public int CriticalCount { get; set; }
     public int WarningCount { get; set; }
     public double AverageAccuracy { get; set; }
+    public List<decimal> Wma30DayCurve { get; set; } = new();
+    public List<float> Ai30DayCurve { get; set; } = new();
+    public List<string> Chart30DayLabels { get; set; } = new();
 
     // Labels
     public string GeneratedAt { get; set; } = string.Empty;
@@ -52,4 +62,5 @@ public class ForecastChartPoint
     public string Units { get; set; } = string.Empty;
     public decimal Last7DaysActual { get; set; }
     public decimal Next7DaysForecast { get; set; }
+    public decimal MlForecast7Days { get; set; }
 }

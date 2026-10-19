@@ -5,7 +5,7 @@ namespace PoultryOS.Models.Entities;
 public class Forecast
 {
     public int Id { get; set; }
-
+    public string ModelType { get; set; } = "WMA"; 
     public int ProductId { get; set; }
     public Product Product { get; set; } = null!;
 
@@ -13,6 +13,7 @@ public class Forecast
 
     public decimal WeightedMovingAverage { get; set; }
     public decimal ForecastNext7Days { get; set; }
+    public string? AiForecast30DaysJson { get; set; }
     public DateTime? PredictedDepletionDate { get; set; }
     public double? ConfidenceScore { get; set; }
     public string Status { get; set; } = "Healthy";

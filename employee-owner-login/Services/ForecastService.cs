@@ -8,207 +8,241 @@ namespace PoultryOS.Services;
 
 public class ForecastService : IForecastService
 {
-    private const int HistoryDays = 15;      // need 7 for WMA + 1 actual to compare
+    private const int HistoryDays = 730;
     private const int WmaWindow = 7;
-    private const double WarningDaysRemaining = 3d;
 
     private readonly AppDbContext _db;
+    private readonly MlForecastService _mlService;
+    private readonly StockRiskEvaluator _riskEvaluator;
+    private readonly BacktestService _backtestService;
 
-    public ForecastService(AppDbContext db) => _db = db;
-
-    public async Task<ForecastPageViewModel> GetForecastAsync()
+    public ForecastService(
+        AppDbContext db,
+        MlForecastService mlService,
+        StockRiskEvaluator riskEvaluator,
+        BacktestService backtestService)
     {
-        var today = DateTime.Today;
-        var historyStart = today.AddDays(-(HistoryDays - 1));
+        _db = db;
+        _mlService = mlService;
+        _riskEvaluator = riskEvaluator;
+        _backtestService = backtestService;
+    }
 
-        // --- Active products ---
-        var products = await _db.Products
-            .AsNoTracking()
-            .Where(p => p.IsActive)
-            .OrderBy(p => p.Name)
-            .ToListAsync();
+    public async Task<ForecastPageViewModel> GetForecastAsync(bool useAi = true)
+{
+    var today = DateTime.Today;
+    var historyStart = today.AddDays(-(HistoryDays - 1));
 
-        // --- Last N days of sales, grouped per (product, day) ---
-        var rawSales = await _db.Sales
-            .AsNoTracking()
-            .Where(s => s.SoldAt >= historyStart && s.SoldAt < today.AddDays(1))
-            .Select(s => new { s.ProductId, s.Quantity, s.SoldAt })
-            .ToListAsync();
+    // --- Active products ---
+    var products = await _db.Products
+        .AsNoTracking()
+        .Where(p => p.IsActive)
+        .OrderBy(p => p.Name)
+        .ToListAsync();
 
-        // --- Build per-product daily arrays (oldest -> newest) ---
-        var historyByProduct = new Dictionary<int, List<decimal>>();
-        foreach (var product in products)
+    // --- Last N days of sales, grouped per (product, day) ---
+    var rawSales = await _db.Sales
+        .AsNoTracking()
+        .Where(s => s.SoldAt >= historyStart && s.SoldAt < today.AddDays(1))
+        .Select(s => new { s.ProductId, s.Quantity, s.SoldAt })
+        .ToListAsync();
+
+    // --- Build per-product daily arrays (oldest -> newest) ---
+    var historyByProduct = new Dictionary<int, List<decimal>>();
+    foreach (var product in products)
+    {
+        var days = new List<decimal>(HistoryDays);
+        for (var d = 0; d < HistoryDays; d++)
         {
-            var days = new List<decimal>(HistoryDays);
-            for (var d = 0; d < HistoryDays; d++)
-            {
-                var dayStart = historyStart.AddDays(d);
-                var dayEnd = dayStart.AddDays(1);
-                var total = rawSales
-                    .Where(s => s.ProductId == product.Id && s.SoldAt >= dayStart && s.SoldAt < dayEnd)
-                    .Sum(s => s.Quantity);
-                days.Add(total);
-            }
-            historyByProduct[product.Id] = days;
+            var dayStart = historyStart.AddDays(d);
+            var dayEnd = dayStart.AddDays(1);
+            var total = rawSales
+                .Where(s => s.ProductId == product.Id && s.SoldAt >= dayStart && s.SoldAt < dayEnd)
+                .Sum(s => s.Quantity);
+            days.Add(total);
         }
+        historyByProduct[product.Id] = days;
+    }
 
-        // --- Build rows ---
-        var rows = new List<ForecastRowViewModel>();
-        foreach (var product in products)
+    // --- Build rows ---
+    var rows = new List<ForecastRowViewModel>();
+    var wma30DayCurve = new decimal[30];
+    var ai30DayCurve = new float[30];
+    foreach (var product in products)
+    {
+        var days = historyByProduct[product.Id];
+
+        var last7 = days.Skip(days.Count - WmaWindow).Take(WmaWindow).ToList();
+        var sellingDays = last7.Where(d => d > 0).ToList();
+        var last7Sum = last7.Sum();
+        var wma = sellingDays.Count >= 2
+            ? CalculateWma(sellingDays)
+            : 0d;
+        var forecast7 = (decimal)wma * WmaWindow;
+
+        var depletion = wma > 0 && product.CurrentStock > 0
+            ? DateTime.Today.AddDays((double)product.CurrentStock / (double)wma)
+            : DateTime.Today;
+
+        var suggestedReorder = wma > 0
+            ? Math.Max(0m, Math.Round(forecast7 - product.CurrentStock, 0))
+            : 0m;
+
+        // Accuracy: use the 7 days before the most recent selling day.
+        double? accuracy = null;
+        if (days.Count >= WmaWindow + 1)
         {
-            var days = historyByProduct[product.Id];
-
-            var last7 = days.Skip(days.Count - WmaWindow).Take(WmaWindow).ToList();
-            var sellingDays = last7.Where(d => d > 0).ToList();
-            var last7Sum = last7.Sum();                    // total still counts all 7 days
-            var wma = sellingDays.Count >= 2
-                ? CalculateWma(sellingDays)                // use only days with sales
-                : 0d;                                       // too few selling days → no forecast
-            var forecast7 = (decimal)wma * WmaWindow;
-
-            var daysRemaining = wma > 0 ? (double)product.CurrentStock / (double)wma : 0d;
-            var status = DetermineStatus(product, last7Sum, daysRemaining, wma);
-            var depletion = wma > 0 && product.CurrentStock > 0
-                ? DateTime.Today.AddDays((double)product.CurrentStock / (double)wma)
-                : DateTime.Today;
-
-            var suggestedReorder = wma > 0
-                ? Math.Max(0m, Math.Round(forecast7 - product.CurrentStock, 0))
-                : 0m;
-
-            // Accuracy: use the 7 days before the most recent selling day,
-            // predict that day, and compare to actual. Skip if not enough history.
-            double? accuracy = null;
-            if (days.Count >= WmaWindow + 1)
+            var lastSellingIndex = -1;
+            for (var i = days.Count - 1; i >= 0; i--)
             {
-                // Find the last day that actually had sales
-                var lastSellingIndex = -1;
-                for (var i = days.Count - 1; i >= 0; i--)
-                {
-                    if (days[i] > 0) { lastSellingIndex = i; break; }
-                }
+                if (days[i] > 0) { lastSellingIndex = i; break; }
+            }
 
-                // Only compute if we found a selling day with at least 7 days before it
-                if (lastSellingIndex >= WmaWindow)
-                {
-                    var actual = days[lastSellingIndex];
-                    var prior = days.Skip(lastSellingIndex - WmaWindow).Take(WmaWindow).ToList();
-                    var priorSelling = prior.Where(d => d > 0).ToList();
+            if (lastSellingIndex >= WmaWindow)
+            {
+                var actual = days[lastSellingIndex];
+                var prior = days.Skip(lastSellingIndex - WmaWindow).Take(WmaWindow).ToList();
+                var priorSelling = prior.Where(d => d > 0).ToList();
 
-                    if (priorSelling.Count >= 2)
+                if (priorSelling.Count >= 2)
+                {
+                    var predicted = CalculateWma(priorSelling);
+                    if (predicted > 0)
                     {
-                        var predicted = CalculateWma(priorSelling);
-                        if (predicted > 0)
-                        {
-                            var error = Math.Abs((double)actual - predicted) / (double)actual * 100d;
-                            accuracy = Math.Round(100d - Math.Min(100d, error), 1);
-                        }
+                        var error = Math.Abs((double)actual - predicted) / (double)actual * 100d;
+                        accuracy = Math.Round(100d - Math.Min(100d, error), 1);
                     }
                 }
             }
+        }
 
-            rows.Add(new ForecastRowViewModel
+        // --- CALL THE AI HERE ---
+        var mlResult = await _mlService.PredictAsync(product.Id, (float)product.CurrentStock);
+        bool useAiForAlerts = useAi;
+        var aiDailyRate = mlResult.Next30Days.Length > 0 ? mlResult.Next30Days.Average() : 0d;
+        var risk = _riskEvaluator.Evaluate(
+            product.CurrentStock,
+            product.ReorderThreshold,
+            wma,
+            aiDailyRate,
+            useAiForAlerts);
+        var (aiAccuracy, wmaAccuracy) = _backtestService.CalculateAccuracies(
+            days.Select(quantity => (float)quantity).ToList());
+
+        for (var dayIndex = 0; dayIndex < 30; dayIndex++)
+        {
+            wma30DayCurve[dayIndex] += (decimal)wma;
+            if (dayIndex < mlResult.Next30Days.Length)
+                ai30DayCurve[dayIndex] += mlResult.Next30Days[dayIndex];
+        }
+
+        rows.Add(new ForecastRowViewModel
+        {
+            ProductId = product.Id,
+            ProductName = product.Name,
+            Category = product.Category,
+            Units = product.Units,
+            CurrentStock = product.CurrentStock,
+            ReorderThreshold = product.ReorderThreshold,
+            Last7DaysSales = last7Sum,
+            WeightedMovingAverage = Math.Round((decimal)wma, 2),
+            ForecastNext7Days = Math.Round(forecast7, 2),
+            DaysRemaining = risk.DaysRemaining,
+            PredictedDepletionDate = wma > 0 && product.CurrentStock > 0
+                ? depletion.ToString("MMM d, yyyy", CultureInfo.InvariantCulture)
+                : "Insufficient data",
+            Status = risk.Status,
+            SuggestedReorderQuantity = suggestedReorder,
+            ForecastAccuracy = accuracy,
+            WmaAccuracy = wmaAccuracy,
+            AiAccuracy = aiAccuracy,
+            UseAiForAlerts = useAiForAlerts,
+            
+            // --- AI FIELDS ---
+            MlForecast7Days = Math.Round((decimal)mlResult.Next30Days.Take(7).Sum(), 2),
+            MlDepletionDate = mlResult.DepletionDate.HasValue
+                ? mlResult.DepletionDate.Value.ToString("MMM d, yyyy")
+                : "Insufficient data"
+        });
+    }
+
+    // --- KPI counts ---
+    var totalProducts = rows.Count;
+    var criticalCount = rows.Count(r => r.Status == "Critical");
+    var warningCount = rows.Count(r => r.Status == "Warning");
+    var accuracyScores = rows.Where(r => r.ForecastAccuracy.HasValue).Select(r => r.ForecastAccuracy!.Value).ToList();
+    var avgAccuracy = accuracyScores.Count > 0 ? Math.Round(accuracyScores.Average(), 1) : 0d;
+
+    var chartData = rows
+        .Select(r => new ForecastChartPoint
+        {
+            Product = r.ProductName,
+            Units = r.Units,
+            Last7DaysActual = r.Last7DaysSales,
+            Next7DaysForecast = r.ForecastNext7Days,
+            MlForecast7Days = r.MlForecast7Days
+        })
+        .ToList();
+
+    // --- Persist snapshots (WMA) ---
+    var forecastDayStart = DateTime.Today;
+    var forecastDayEnd = forecastDayStart.AddDays(1);
+
+    var existingToday = await _db.Forecasts
+        .Where(f => f.GeneratedAt >= forecastDayStart && f.GeneratedAt < forecastDayEnd && f.ModelType == "WMA")
+        .ToListAsync();
+
+    foreach (var row in rows)
+    {
+        var existing = existingToday.FirstOrDefault(f => f.ProductId == row.ProductId);
+        DateTime? depletionDate = null;
+        if (DateTime.TryParse(row.PredictedDepletionDate, out var parsed))
+            depletionDate = parsed;
+
+        if (existing is null)
+        {
+            _db.Forecasts.Add(new PoultryOS.Models.Entities.Forecast
             {
-                ProductId = product.Id,
-                ProductName = product.Name,
-                Category = product.Category,
-                Units = product.Units,
-                CurrentStock = product.CurrentStock,
-                ReorderThreshold = product.ReorderThreshold,
-                Last7DaysSales = last7Sum,
-                WeightedMovingAverage = Math.Round((decimal)wma, 2),
-                ForecastNext7Days = Math.Round(forecast7, 2),
-                DaysRemaining = Math.Round(daysRemaining, 1),
-                PredictedDepletionDate = wma > 0 && product.CurrentStock > 0
-                    ? depletion.ToString("MMM d, yyyy", CultureInfo.InvariantCulture)
-                    : "Insufficient data",
-                Status = status,
-                SuggestedReorderQuantity = suggestedReorder,
-                ForecastAccuracy = accuracy
+                ProductId = row.ProductId,
+                GeneratedAt = DateTime.Now,
+                WeightedMovingAverage = row.WeightedMovingAverage,
+                ForecastNext7Days = row.ForecastNext7Days,
+                PredictedDepletionDate = depletionDate,
+                ConfidenceScore = row.ForecastAccuracy,
+                Status = row.Status,
+                ModelType = "WMA"
             });
         }
-
-        // --- KPI counts ---
-        var totalProducts = rows.Count;
-        var criticalCount = rows.Count(r => r.Status == "Critical");
-        var warningCount = rows.Count(r => r.Status == "Warning");
-        var accuracyScores = rows.Where(r => r.ForecastAccuracy.HasValue).Select(r => r.ForecastAccuracy!.Value).ToList();
-        var avgAccuracy = accuracyScores.Count > 0 ? Math.Round(accuracyScores.Average(), 1) : -1d;
-
-                // --- Chart data ---
-        var chartData = rows
-            .Select(r => new ForecastChartPoint
-            {
-                Product = r.ProductName,
-                Units = r.Units,
-                Last7DaysActual = r.Last7DaysSales,
-                Next7DaysForecast = r.ForecastNext7Days
-            })
-            .ToList();
-
-        // ---------------------------------------------------------------
-        // Persist today's forecast snapshot (one row per product per day)
-        // ---------------------------------------------------------------
-        var forecastDayStart = DateTime.Today;
-        var forecastDayEnd = forecastDayStart.AddDays(1);
-
-        var existingToday = await _db.Forecasts
-            .Where(f => f.GeneratedAt >= forecastDayStart && f.GeneratedAt < forecastDayEnd)
-            .ToListAsync();
-
-        foreach (var row in rows)
+        else
         {
-            var existing = existingToday.FirstOrDefault(f => f.ProductId == row.ProductId);
-
-            DateTime? depletionDate = null;
-            if (DateTime.TryParse(row.PredictedDepletionDate, out var parsed))
-                depletionDate = parsed;
-
-            if (existing is null)
-            {
-                _db.Forecasts.Add(new PoultryOS.Models.Entities.Forecast
-                {
-                    ProductId = row.ProductId,
-                    GeneratedAt = DateTime.Now,
-                    WeightedMovingAverage = row.WeightedMovingAverage,
-                    ForecastNext7Days = row.ForecastNext7Days,
-                    PredictedDepletionDate = depletionDate,
-                    ConfidenceScore = row.ForecastAccuracy,
-                    Status = row.Status
-                });
-            }
-            else
-            {
-                existing.GeneratedAt = DateTime.Now;
-                existing.WeightedMovingAverage = row.WeightedMovingAverage;
-                existing.ForecastNext7Days = row.ForecastNext7Days;
-                existing.PredictedDepletionDate = depletionDate;
-                existing.ConfidenceScore = row.ForecastAccuracy;
-                existing.Status = row.Status;
-            }
+            existing.GeneratedAt = DateTime.Now;
+            existing.WeightedMovingAverage = row.WeightedMovingAverage;
+            existing.ForecastNext7Days = row.ForecastNext7Days;
+            existing.PredictedDepletionDate = depletionDate;
+            existing.ConfidenceScore = row.ForecastAccuracy;
+            existing.Status = row.Status;
         }
-
-        try
-        {
-            await _db.SaveChangesAsync();
-        }
-        catch (DbUpdateException)
-        {
-            // Don't block the page if persistence fails -- the forecast itself is fine.
-        }
-
-        return new ForecastPageViewModel
-        {
-            Rows = rows,
-            TotalProducts = totalProducts,
-            CriticalCount = criticalCount,
-            WarningCount = warningCount,
-            AverageAccuracy = avgAccuracy,
-            GeneratedAt = DateTime.Now.ToString("MMM d, yyyy h:mm tt", CultureInfo.InvariantCulture),
-            Model = "7-Day Weighted Moving Average",
-            ChartData = chartData
-        };
     }
+
+    try { await _db.SaveChangesAsync(); } catch (DbUpdateException) { }
+
+    return new ForecastPageViewModel
+    {
+        Rows = rows,
+        TotalProducts = totalProducts,
+        CriticalCount = criticalCount,
+        WarningCount = warningCount,
+        AverageAccuracy = avgAccuracy,
+        Chart30DayLabels = Enumerable.Range(0, 30)
+            .Select(dayOffset => today.AddDays(dayOffset).ToString("MMM d", CultureInfo.InvariantCulture))
+            .ToList(),
+        Wma30DayCurve = wma30DayCurve.ToList(),
+        Ai30DayCurve = ai30DayCurve.ToList(),
+        GeneratedAt = DateTime.Now.ToString("MMM d, yyyy h:mm tt", CultureInfo.InvariantCulture),
+        Model = "7-Day Weighted Moving Average + ML.NET SSA",
+        ChartData = chartData
+    };
+}
 
     // ==============================================================
     //  HELPERS
@@ -230,14 +264,4 @@ public class ForecastService : IForecastService
         return weightedTotal / divisor;
     }
 
-    private static string DetermineStatus(Product product, decimal weeklyConsumption, double daysRemaining, double wma)
-    {
-        if (product.CurrentStock <= product.ReorderThreshold || product.CurrentStock < weeklyConsumption * 0.2m)
-            return "Critical";
-
-        if (wma > 0 && daysRemaining <= WarningDaysRemaining)
-            return "Warning";
-
-        return "Healthy";
-    }
 }

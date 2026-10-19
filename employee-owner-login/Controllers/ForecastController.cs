@@ -13,9 +13,9 @@ public class ForecastController : Controller
 
     // GET /Forecast
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(bool useAi = true)
     {
-        var model = await _forecast.GetForecastAsync();
+        var model = await _forecast.GetForecastAsync(useAi);
         return View(model);
     }
 }
