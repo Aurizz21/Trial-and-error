@@ -27,7 +27,7 @@ public class MlForecastService
         public float[] ForecastedQuantities { get; set; } = Array.Empty<float>();
     }
 
-    public async Task<(float[] Next30Days, DateTime? DepletionDate)> PredictAsync(int productId, float currentStock)
+    public async Task<(float[] Next30Days, DateTime? DepletionDate, string? ErrorMessage)> PredictAsync(int productId, float currentStock)
     {
         var today = DateTime.Today;
         var tomorrow = today.AddDays(1);
@@ -42,7 +42,7 @@ public class MlForecastService
         {
             var cachedCurve = JsonSerializer.Deserialize<float[]>(cachedForecast.AiForecast30DaysJson);
             if (cachedCurve is { Length: 30 })
-                return (cachedCurve, cachedForecast.PredictedDepletionDate);
+                return (cachedCurve, cachedForecast.PredictedDepletionDate, null);
         }
 
         // 1. Get the last 730 days of sales for this product
@@ -54,26 +54,44 @@ public class MlForecastService
 
         // AI needs at least 2 weeks of data to find a pattern
         if (sales.Count < 14) 
-            return (Array.Empty<float>(), null);
+            return (Array.Empty<float>(), null, $"At least 14 sales data points are required for forecasting; found {sales.Count}.");
 
         // 2. Load data into ML.NET format
         var data = sales.Select(q => new SaleData { Quantity = (float)q }).ToList();
         var dataView = _mlContext.Data.LoadFromEnumerable(data);
 
+        var trainSize = sales.Count;
+        var maxSafeWindowSize = (trainSize - 1) / 2;
+        var preferredWindowSize = Math.Min(365, Math.Max(7, trainSize / 2));
+        var windowSize = Math.Min(preferredWindowSize, maxSafeWindowSize);
+
         // 3. Train the AI (SSA - Singular Spectrum Analysis)
         var pipeline = _mlContext.Forecasting.ForecastBySsa(
             outputColumnName: nameof(ForecastOutput.ForecastedQuantities),
             inputColumnName: nameof(SaleData.Quantity),
-            windowSize: Math.Min(365, Math.Max(7, sales.Count / 2)),
+            windowSize: windowSize,
             seriesLength: sales.Count,
-            trainSize: sales.Count,
+            trainSize: trainSize,
             horizon: 30);
 
-        var model = pipeline.Fit(dataView);
+        ForecastOutput forecast;
+        try
+        {
+            var model = pipeline.Fit(dataView);
 
-        // 4. Make the prediction
-        var forecastEngine = model.CreateTimeSeriesEngine<SaleData, ForecastOutput>(_mlContext);
-        var forecast = forecastEngine.Predict();
+            // 4. Make the prediction
+            var forecastEngine = model.CreateTimeSeriesEngine<SaleData, ForecastOutput>(_mlContext);
+            forecast = forecastEngine.Predict();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return (
+                Array.Empty<float>(),
+                null,
+                $"SSA forecasting could not run with {sales.Count} sales data points " +
+                $"(train size {trainSize}, window size {windowSize}). " +
+                $"More data may be required. Details: {ex.Message}");
+        }
 
         // 5. Calculate totals and depletion date
         float dailyAverage = forecast.ForecastedQuantities.Average();
@@ -97,6 +115,6 @@ public class MlForecastService
         });
         await _db.SaveChangesAsync();
 
-        return (forecast.ForecastedQuantities, depletionDate);
+        return (forecast.ForecastedQuantities, depletionDate, null);
     }
 }

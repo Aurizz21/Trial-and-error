@@ -1,5 +1,7 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PoultryOS.Data;
 using PoultryOS.Services;
 
 namespace PoultryOS.Controllers;
@@ -8,8 +10,13 @@ namespace PoultryOS.Controllers;
 public class NotificationsController : Controller
 {
     private readonly INotificationsService _notifications;
+    private readonly AppDbContext _db;
 
-    public NotificationsController(INotificationsService notifications) => _notifications = notifications;
+    public NotificationsController(INotificationsService notifications, AppDbContext db)
+    {
+        _notifications = notifications;
+        _db = db;
+    }
 
     // GET /Notifications?type=All|Critical|Warning|Info|Unread
     [HttpGet]
@@ -35,7 +42,8 @@ public class NotificationsController : Controller
                 title = n.Title,
                 message = n.Message,
                 timestamp = n.CreatedAt.ToString("o"),
-                isRead = n.IsRead
+                isRead = n.IsRead,
+                stockAlertId = n.StockAlertId
             });
 
         return Ok(new
@@ -43,5 +51,21 @@ public class NotificationsController : Controller
             notifications = recent,
             unreadCount = data.UnreadCount
         });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> MarkAllAsRead()
+    {
+        var unreadNotifications = await _db.Notifications
+            .Where(notification => !notification.IsRead)
+            .ToListAsync();
+
+        foreach (var notification in unreadNotifications)
+            notification.IsRead = true;
+
+        await _db.SaveChangesAsync();
+
+        return Ok(new { success = true, updatedCount = unreadNotifications.Count });
     }
 }

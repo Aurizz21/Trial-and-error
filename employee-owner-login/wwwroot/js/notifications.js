@@ -20,7 +20,9 @@
     }
   };
 
-  const { notifications, unreadCount } = await fetchNotifications();
+  const initialData = await fetchNotifications();
+  let notifications = initialData.notifications;
+  let unreadCount = initialData.unreadCount;
 
   // ---------- helpers ----------
   const relativeTime = (timestamp) => {
@@ -44,7 +46,9 @@
 
   const buildNotificationRow = (item, full = false) => {
     const row = document.createElement("a");
-    row.href = "/Notifications";
+    row.href = item.stockAlertId
+      ? `/Stock/Alerts#stock-alert-${encodeURIComponent(item.stockAlertId)}`
+      : "/Stock/Alerts";
     row.className = `notification-row notification-${item.type}${item.isRead ? " is-read" : " is-unread"}`;
     row.dataset.notificationId = item.id;
 
@@ -84,6 +88,7 @@
   const panel = document.getElementById("notificationPanel");
   const badge = document.getElementById("notificationBadge");
   const dropdownList = document.getElementById("notificationDropdownList");
+  const markAllButton = document.getElementById("markAllNotificationsRead");
 
   // ---------- render ----------
   const renderBadge = () => {
@@ -99,7 +104,7 @@
     if (notifications.length === 0) {
       const empty = document.createElement("p");
       empty.className = "notification-empty";
-      empty.textContent = "No notifications yet.";
+      empty.textContent = "You're all caught up.";
       dropdownList.append(empty);
       return;
     }
@@ -113,6 +118,49 @@
     renderBadge();
     renderDropdown();
   };
+
+  if (markAllButton) {
+    markAllButton.addEventListener("click", async () => {
+      markAllButton.disabled = true;
+      try {
+        const token =
+          document.querySelector('input[name="__RequestVerificationToken"]')
+            ?.value ?? "";
+        const response = await fetch("/Notifications/MarkAllAsRead", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            RequestVerificationToken: token,
+            "X-Requested-With": "XMLHttpRequest",
+          },
+        });
+        if (!response.ok) {
+          throw new Error(`Mark all as read failed with status ${response.status}.`);
+        }
+
+        const result = await response.json();
+        if (result.success !== true) {
+          throw new Error("The server did not confirm that notifications were marked as read.");
+        }
+
+        notifications = [];
+        unreadCount = 0;
+        render();
+      } catch (error) {
+        console.error("Unable to mark notifications as read.", error);
+        if (dropdownList) {
+          renderDropdown();
+          const message = document.createElement("p");
+          message.className = "notification-empty";
+          message.setAttribute("role", "status");
+          message.textContent = "Could not mark notifications as read. Please try again.";
+          dropdownList.append(message);
+        }
+      } finally {
+        markAllButton.disabled = false;
+      }
+    });
+  }
 
   // ---------- open/close the dropdown ----------
   const closePanel = () => {
