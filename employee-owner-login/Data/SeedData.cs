@@ -46,7 +46,7 @@ public static class SeedData
         // ---------------------------------------------------------------
         var products = new List<Product>
         {
-            new Product { Name = "Whole Chicken",  Category = "Whole Chicken", Units = "kg", Supplier = "Sunrise Farms",   CurrentStock = 85, ReorderThreshold = 30 },
+            new Product { Name = "Whole Chicken",  Category = "Whole Chicken", Units = "pcs", Supplier = "Sunrise Farms",   CurrentStock = 85, ReorderThreshold = 30 },
             new Product { Name = "Chicken Breast", Category = "Cuts & Parts",  Units = "kg", Supplier = "Sunrise Farms",   CurrentStock = 42, ReorderThreshold = 25 },
             new Product { Name = "Chicken Wings",  Category = "Cuts & Parts",  Units = "kg", Supplier = "Metro Poultry",   CurrentStock = 18, ReorderThreshold = 20 },
             new Product { Name = "Chicken Thighs", Category = "Cuts & Parts",  Units = "kg", Supplier = "Metro Poultry",   CurrentStock = 60, ReorderThreshold = 25 },
@@ -101,7 +101,10 @@ public static class SeedData
                 if (rng.NextDouble() < 0.02)
                     noise *= 0.85 + rng.NextDouble() * 0.10;
 
-                var quantity = Math.Round((decimal)Math.Max(1.0, trend * seasonalMultiplier * weekendMultiplier * noise), 2);
+                var calculatedQuantity = (decimal)Math.Max(1.0, trend * seasonalMultiplier * weekendMultiplier * noise);
+                var quantity = product.Units == "pcs"
+                    ? Math.Round(calculatedQuantity, 0)
+                    : Math.Round(calculatedQuantity, 2);
 
                 var hour = rng.Next(7, 19);
                 var minute = rng.Next(0, 60);

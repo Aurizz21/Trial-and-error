@@ -189,9 +189,9 @@
                 }
 
                 const labels = data.map(d => d.product || d.Product);
-                const actual = data.map(d => d.last7DaysActual ?? d.Last7DaysActual ?? 0);
-                const forecast = data.map(d => d.next7DaysForecast ?? d.Next7DaysForecast ?? 0);
-                const aiForecast = data.map(d => d.mlForecast7Days ?? d.MlForecast7Days ?? 0);
+                const actual = data.map(d => Number(d.last7DaysActual ?? d.Last7DaysActual ?? 0));
+                const forecast = data.map(d => Number(d.next7DaysForecast ?? d.Next7DaysForecast ?? 0));
+                const aiForecast = data.map(d => Number(d.mlForecast7Days ?? d.MlForecast7Days ?? 0));
 
                 const root = getComputedStyle(document.documentElement);
                 const canvasStyle = getComputedStyle(canvas);

@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td>${escapeHtml(r.soldAt)}</td>
                 <td>${escapeHtml(r.time)}</td>
                 <td>${escapeHtml(r.productName)}</td>
-                <td>${formatQuantity(r.quantity, r.units)}</td>
+                <td>${formatQuantity(r.quantity, r.unitOfMeasure)}</td>
                 <td>${escapeHtml(r.enteredBy)}</td>
                 <td>${r.notes ? escapeHtml(r.notes) : '<span class="muted">—</span>'}</td>
             </tr>

@@ -44,6 +44,9 @@
       timeStyle: "short",
     }).format(new Date(timestamp));
 
+  const hasUnreadIndicator = (item) =>
+    !item.isRead && !String(item.title ?? "").startsWith("Resolved");
+
   const buildNotificationRow = (item, full = false) => {
     const row = document.createElement("a");
     row.href = item.stockAlertId
@@ -77,6 +80,7 @@
     const unread = document.createElement("span");
     unread.className = "notification-unread-dot";
     unread.setAttribute("aria-hidden", "true");
+    unread.hidden = !hasUnreadIndicator(item);
 
     content.append(title, message, timestamp);
     row.append(indicator, content, unread);

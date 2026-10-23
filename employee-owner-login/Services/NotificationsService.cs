@@ -25,7 +25,8 @@ public class NotificationsService : INotificationsService
 
         // Counts BEFORE the filter -- KPIs show the totals
         var totalCount = await query.CountAsync();
-        var unreadCount = await query.CountAsync(n => !n.IsRead);
+        var unreadCount = await query.CountAsync(
+            n => !n.IsRead && !n.Title.StartsWith("Resolved"));
         var criticalCount = await query.CountAsync(n => n.Type == "Critical");
         var warningCount = await query.CountAsync(n => n.Type == "Warning");
 
@@ -35,7 +36,7 @@ public class NotificationsService : INotificationsService
             "Critical" => query.Where(n => n.Type == "Critical"),
             "Warning" => query.Where(n => n.Type == "Warning"),
             "Info" => query.Where(n => n.Type == "Info"),
-            "Unread" => query.Where(n => !n.IsRead),
+            "Unread" => query.Where(n => !n.IsRead && !n.Title.StartsWith("Resolved")),
             _ => query
         };
 

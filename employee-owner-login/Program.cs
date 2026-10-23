@@ -15,6 +15,7 @@ builder.Services.AddScoped<IStockAlertsService, StockAlertsService>();
 builder.Services.AddScoped<INotificationsService, NotificationsService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<ISalesEntryService, SalesEntryService>();
+builder.Services.AddScoped<IAlertService, AlertService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IForecastService, ForecastService>();
 builder.Services.AddScoped<MlForecastService>();

@@ -15,10 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   };
-  const selectedUnit = () => product?.selectedOptions[0]?.dataset.unit || 'pcs';
+  const selectedUnit = () => product?.selectedOptions[0]?.dataset.unit || '';
   const syncUnit = () => {
     const currentUnit = selectedUnit();
-    if (unit) unit.textContent = currentUnit;
+    if (unit) unit.textContent = currentUnit || '—';
     if (quantity) {
       quantity.step = currentUnit === 'kg' ? '0.5' : '1';
       quantity.min = currentUnit === 'kg' ? '0.5' : '1';

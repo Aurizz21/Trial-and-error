@@ -73,16 +73,9 @@ public class ForecastService : IForecastService
         var days = historyByProduct[product.Id];
 
         var last7 = days.Skip(days.Count - WmaWindow).Take(WmaWindow).ToList();
-        var sellingDays = last7.Where(d => d > 0).ToList();
         var last7Sum = last7.Sum();
-        var wma = sellingDays.Count >= 2
-            ? CalculateWma(sellingDays)
-            : 0d;
-        var forecast7 = (decimal)wma * WmaWindow;
-
-        var depletion = wma > 0 && product.CurrentStock > 0
-            ? DateTime.Today.AddDays((double)product.CurrentStock / (double)wma)
-            : DateTime.Today;
+        var wma = _riskEvaluator.CalculateDailyWmaRate(last7);
+        var forecast7 = Math.Round((decimal)wma * WmaWindow, 2);
 
         var suggestedReorder = wma > 0
             ? Math.Max(0m, Math.Round(forecast7 - product.CurrentStock, 0))
@@ -102,16 +95,11 @@ public class ForecastService : IForecastService
             {
                 var actual = days[lastSellingIndex];
                 var prior = days.Skip(lastSellingIndex - WmaWindow).Take(WmaWindow).ToList();
-                var priorSelling = prior.Where(d => d > 0).ToList();
-
-                if (priorSelling.Count >= 2)
+                var predicted = _riskEvaluator.CalculateDailyWmaRate(prior);
+                if (predicted > 0)
                 {
-                    var predicted = CalculateWma(priorSelling);
-                    if (predicted > 0)
-                    {
-                        var error = Math.Abs((double)actual - predicted) / (double)actual * 100d;
-                        accuracy = Math.Round(100d - Math.Min(100d, error), 1);
-                    }
+                    var error = Math.Abs((double)actual - predicted) / (double)actual * 100d;
+                    accuracy = Math.Round(100d - Math.Min(100d, error), 1);
                 }
             }
         }
@@ -119,13 +107,17 @@ public class ForecastService : IForecastService
         // --- CALL THE AI HERE ---
         var mlResult = await _mlService.PredictAsync(product.Id, (float)product.CurrentStock);
         bool useAiForAlerts = useAi;
-        var aiDailyRate = mlResult.Next30Days.Length > 0 ? mlResult.Next30Days.Average() : 0d;
+        var aiForecast7 = Math.Round((decimal)mlResult.Next30Days.Take(WmaWindow).Sum(), 2);
         var risk = _riskEvaluator.Evaluate(
             product.CurrentStock,
             product.ReorderThreshold,
             wma,
-            aiDailyRate,
+            (double)aiForecast7 / WmaWindow,
             useAiForAlerts);
+        var activeForecast7 = risk.ActiveModel == "ML.NET" ? aiForecast7 : forecast7;
+        var depletion = activeForecast7 > 0 && product.CurrentStock > 0
+            ? DateTime.Today.AddDays((double)product.CurrentStock / ((double)activeForecast7 / WmaWindow))
+            : DateTime.Today;
         var (aiAccuracy, wmaAccuracy) = _backtestService.CalculateAccuracies(
             days.Select(quantity => (float)quantity).ToList());
 
@@ -146,9 +138,9 @@ public class ForecastService : IForecastService
             ReorderThreshold = product.ReorderThreshold,
             Last7DaysSales = last7Sum,
             WeightedMovingAverage = Math.Round((decimal)wma, 2),
-            ForecastNext7Days = Math.Round(forecast7, 2),
+            ForecastNext7Days = forecast7,
             DaysRemaining = risk.DaysRemaining,
-            PredictedDepletionDate = wma > 0 && product.CurrentStock > 0
+            PredictedDepletionDate = activeForecast7 > 0 && product.CurrentStock > 0
                 ? depletion.ToString("MMM d, yyyy", CultureInfo.InvariantCulture)
                 : "Insufficient data",
             Status = risk.Status,
@@ -159,7 +151,7 @@ public class ForecastService : IForecastService
             UseAiForAlerts = useAiForAlerts,
             
             // --- AI FIELDS ---
-            MlForecast7Days = Math.Round((decimal)mlResult.Next30Days.Take(7).Sum(), 2),
+            MlForecast7Days = aiForecast7,
             MlDepletionDate = mlResult.DepletionDate.HasValue
                 ? mlResult.DepletionDate.Value.ToString("MMM d, yyyy")
                 : "Insufficient data"
@@ -243,25 +235,5 @@ public class ForecastService : IForecastService
         ChartData = chartData
     };
 }
-
-    // ==============================================================
-    //  HELPERS
-    // ==============================================================
-
-       private static double CalculateWma(IReadOnlyList<decimal> sales)
-    {
-        if (sales.Count < 2) return 0;
-
-        var trailing = sales.TakeLast(WmaWindow).ToList();
-        var weightedTotal = 0d;
-        for (var i = 0; i < trailing.Count; i++)
-        {
-            weightedTotal += (i + 1) * (double)trailing[i];
-        }
-
-        // Sum of weights 1+2+...+n = n(n+1)/2 -- works for any count
-        var divisor = (double)trailing.Count * (trailing.Count + 1) / 2d;
-        return weightedTotal / divisor;
-    }
 
 }

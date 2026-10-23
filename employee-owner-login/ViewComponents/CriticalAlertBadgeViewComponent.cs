@@ -15,9 +15,12 @@ public class CriticalAlertBadgeViewComponent : ViewComponent
 
     public async Task<IViewComponentResult> InvokeAsync()
     {
+        // Counts BOTH Critical and Warning alerts that are unresolved
         var count = await _db.StockAlerts
             .AsNoTracking()
-            .CountAsync(alert => alert.ResolvedAt == null && alert.Status == "Critical");
+            .CountAsync(alert => 
+                alert.ResolvedAt == null 
+                && (alert.Status == "Critical" || alert.Status == "Warning"));
 
         return View(count);
     }

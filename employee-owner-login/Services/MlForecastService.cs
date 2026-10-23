@@ -52,27 +52,29 @@ public class MlForecastService
             .Select(s => s.Quantity)
             .ToListAsync();
 
-        // AI needs at least 2 weeks of data to find a pattern
-        if (sales.Count < 14) 
-            return (Array.Empty<float>(), null, $"At least 14 sales data points are required for forecasting; found {sales.Count}.");
+        const int windowSize = 30;
+        const int minimumTrainingSize = windowSize * 2 + 1;
+        if (sales.Count < minimumTrainingSize)
+            return (
+                Array.Empty<float>(),
+                null,
+                $"At least {minimumTrainingSize} sales data points are required for a {windowSize}-day window; found {sales.Count}.");
 
         // 2. Load data into ML.NET format
         var data = sales.Select(q => new SaleData { Quantity = (float)q }).ToList();
         var dataView = _mlContext.Data.LoadFromEnumerable(data);
 
         var trainSize = sales.Count;
-        var maxSafeWindowSize = (trainSize - 1) / 2;
-        var preferredWindowSize = Math.Min(365, Math.Max(7, trainSize / 2));
-        var windowSize = Math.Min(preferredWindowSize, maxSafeWindowSize);
 
         // 3. Train the AI (SSA - Singular Spectrum Analysis)
         var pipeline = _mlContext.Forecasting.ForecastBySsa(
             outputColumnName: nameof(ForecastOutput.ForecastedQuantities),
             inputColumnName: nameof(SaleData.Quantity),
             windowSize: windowSize,
-            seriesLength: sales.Count,
+            seriesLength: trainSize,
             trainSize: trainSize,
-            horizon: 30);
+            horizon: 30,
+            discountFactor: 0.9f);
 
         ForecastOutput forecast;
         try

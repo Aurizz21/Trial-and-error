@@ -10,8 +10,13 @@ namespace PoultryOS.Services;
 public class SalesEntryService : ISalesEntryService
 {
     private readonly AppDbContext _db;
+    private readonly IAlertService _alertService;
 
-    public SalesEntryService(AppDbContext db) => _db = db;
+    public SalesEntryService(AppDbContext db, IAlertService alertService)
+    {
+        _db = db;
+        _alertService = alertService;
+    }
 
     // ==============================================================
     //  PAGE LOAD
@@ -168,7 +173,7 @@ public class SalesEntryService : ISalesEntryService
             await _db.SaveChangesAsync();
 
             // 4. Regenerate alert for this product if needed
-            await RegenerateAlertForProductAsync(product, user.Id);
+            await _alertService.RegenerateAlertForProductAsync(product, user.Id);
 
             await _db.SaveChangesAsync();
             await tx.CommitAsync();
@@ -209,83 +214,6 @@ public class SalesEntryService : ISalesEntryService
         {
             await tx.RollbackAsync();
             return Fail("Could not save the sale. Please try again.");
-        }
-    }
-
-    // ==============================================================
-    //  ALERT REGENERATION
-    // ==============================================================
-
-    private async Task RegenerateAlertForProductAsync(Product product, int userId)
-    {
-        var isLow = product.CurrentStock <= product.ReorderThreshold;
-
-        var existingAlert = await _db.StockAlerts
-            .FirstOrDefaultAsync(a => a.ProductId == product.Id && a.ResolvedAt == null);
-
-        if (isLow)
-        {
-            var status = "Critical";   // by paper: stock <= threshold → Critical
-            var message = $"{product.Name} stock is low: {product.CurrentStock:0.##} {product.Units} remaining (threshold {product.ReorderThreshold:0.##}).";
-
-            if (existingAlert is null)
-            {
-                // New alert
-                var alert = new StockAlert
-                {
-                    ProductId = product.Id,
-                    Status = status,
-                    Message = message,
-                    CurrentStock = product.CurrentStock,
-                    DaysRemaining = 2,
-                    SuggestedReorderQuantity = product.ReorderThreshold * 2,
-                    CreatedAt = DateTime.Now
-                };
-                _db.StockAlerts.Add(alert);
-
-                await _db.SaveChangesAsync();   // get the alert Id for the notification
-
-                _db.Notifications.Add(new Notification
-                {
-                    Type = status,
-                    Title = $"{status}: {product.Name}",
-                    Message = message,
-                    CreatedAt = alert.CreatedAt,
-                    IsRead = false,
-                    StockAlertId = alert.Id
-                });
-
-                _db.AuditLogs.Add(new AuditLog
-                {
-                    Timestamp = DateTime.Now,
-                    UserId = userId,
-                    ActionType = "Alert",
-                    Description = $"{status} alert created for {product.Name}."
-                });
-            }
-            else
-            {
-                // Update existing alert with the fresh stock value
-                existingAlert.CurrentStock = product.CurrentStock;
-                existingAlert.Message = message;
-                existingAlert.Status = status;
-            }
-        }
-        else
-        {
-            // Not low anymore -- resolve any open alert
-            if (existingAlert is not null)
-            {
-                existingAlert.ResolvedAt = DateTime.Now;
-
-                _db.AuditLogs.Add(new AuditLog
-                {
-                    Timestamp = DateTime.Now,
-                    UserId = userId,
-                    ActionType = "Alert",
-                    Description = $"Alert resolved for {product.Name} (stock recovered)."
-                });
-            }
         }
     }
 

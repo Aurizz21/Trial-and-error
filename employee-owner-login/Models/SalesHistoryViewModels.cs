@@ -6,7 +6,7 @@ public class SalesHistoryRowViewModel
     public int Id { get; set; }
     public DateTime SoldAt { get; set; }
     public string ProductName { get; set; } = string.Empty;
-    public string Units { get; set; } = string.Empty;
+    public string UnitOfMeasure { get; set; } = string.Empty;
     public decimal Quantity { get; set; }
     public string EnteredBy { get; set; } = string.Empty;
     public string Notes { get; set; } = string.Empty;

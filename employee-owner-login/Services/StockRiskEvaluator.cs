@@ -2,6 +2,19 @@ namespace PoultryOS.Services;
 
 public class StockRiskEvaluator
 {
+    public double CalculateDailyWmaRate(IReadOnlyList<decimal> sales)
+    {
+        var sellingDays = sales.Where(quantity => quantity > 0).TakeLast(7).ToList();
+        if (sellingDays.Count < 2) return 0;
+
+        var weightedTotal = 0d;
+        for (var i = 0; i < sellingDays.Count; i++)
+            weightedTotal += (i + 1) * (double)sellingDays[i];
+
+        var divisor = (double)sellingDays.Count * (sellingDays.Count + 1) / 2d;
+        return weightedTotal / divisor;
+    }
+
     public record RiskResult(
         string Status, 
         double DaysRemaining, 
@@ -10,22 +23,31 @@ public class StockRiskEvaluator
         double AiDaysRemaining
     );
 
-    public RiskResult Evaluate(decimal currentStock, decimal reorderThreshold, double wmaDailyRate, double aiDailyRate, bool useAiForAlerts)
+    public RiskResult Evaluate(
+        decimal currentStock,
+        decimal reorderThreshold,
+        double wmaDailyRate,
+        double aiDailyRate,
+        bool useAiForAlerts)
     {
-        // 1. Calculate Days Remaining for both models
+        // Calculate days remaining from each model's daily forecast rate.
         double wmaDays = wmaDailyRate > 0 ? (double)currentStock / wmaDailyRate : 999;
         double aiDays = aiDailyRate > 0 ? (double)currentStock / aiDailyRate : 999;
 
-        // 2. Claude's rule: "Worst-case model selection"
-        // If the user wants AI, use AI. If AI fails (0), fallback to WMA.
-        double activeDays = useAiForAlerts && aiDays < 999 ? aiDays : wmaDays;
-        string activeModel = (useAiForAlerts && aiDays < 999) ? "ML.NET" : "WMA";
+        // Use AI for alerts when requested, falling back to WMA if AI has no forecast.
+        var useAi = useAiForAlerts && aiDailyRate > 0;
+        double activeDays = useAi ? aiDays : wmaDays;
+        string activeModel = useAi ? "ML.NET" : "WMA";
 
-        // 3. Claude's rule: "Matching status thresholds to legacy rules"
         string status = "Healthy";
-        if (currentStock <= reorderThreshold || (activeDays <= 3 && activeDays > 0))
+
+        if (currentStock <= reorderThreshold || activeDays <= 3)
         {
-            status = currentStock <= reorderThreshold ? "Critical" : "Warning";
+            status = "Critical";
+        }
+        else if (currentStock <= reorderThreshold * 1.20m || activeDays <= 7)
+        {
+            status = "Warning";
         }
         
         // Cap the display at 99+ days so it doesn't show 999

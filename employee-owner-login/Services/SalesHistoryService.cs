@@ -57,7 +57,7 @@ public class SalesHistoryService : ISalesHistoryService
                 Id = s.Id,
                 SoldAt = s.SoldAt,
                 ProductName = s.Product.Name,
-                Units = s.Product.Units,
+                UnitOfMeasure = s.Product.Units,
                 Quantity = s.Quantity,
                 EnteredBy = s.User.Username,
                 Notes = s.Notes ?? string.Empty
