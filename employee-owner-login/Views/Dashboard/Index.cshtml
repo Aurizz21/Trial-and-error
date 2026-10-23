@@ -12,7 +12,7 @@
             stockOverview: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.StockOverview)),
             activeAlerts: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ActiveAlerts)),
             weeklyConsumption: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.WeeklyConsumption))
-        };
+            };
     </script>
 }
 
@@ -24,107 +24,119 @@
                     <h2>Weekly Stock Snapshot</h2>
                 </div>
                 <div class="chart-plot">
-                    <div class="chart-empty hidden" data-chart-empty="weeklyStockChart"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 6h16M4 12h11M4 18h7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="18" cy="12" r="2" stroke="currentColor" stroke-width="1.6"/></svg><strong>No stock data to compare</strong><span>Active products will appear here.</span></div>
-                    <canvas id="weeklyStockChart"></canvas>
+                    <div class="chart-empty hidden" data-chart-empty="weeklyStockChart"><svg viewBox="0 0 24 24"
+                                                                                             fill="none" aria-hidden="true">
+                        <path d="M4 6h16M4 12h11M4 18h7" stroke="currentColor" stroke-width="1.7"
+                              stroke-linecap="round" />
+                        <circle cx="18" cy="12" r="2" stroke="currentColor" stroke-width="1.6" />
+                    </svg><strong>No stock data to compare</strong><span>Active products will appear here.</span>
                 </div>
-            </article>
-
-            <article class="glass-card dash-chart-card">
-                <div class="dash-card-head">
-                    <h2>Stock vs Threshold</h2>
-                </div>
-                <div class="chart-plot">
-                    <div class="chart-empty hidden" data-chart-empty="thresholdChart"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 6h16M4 12h11M4 18h7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="18" cy="12" r="2" stroke="currentColor" stroke-width="1.6"/></svg><strong>No stock data to compare</strong><span>Active products will appear here.</span></div>
-                    <canvas id="thresholdChart"></canvas>
-                </div>
-            </article>
-        </section>
-
-        <section class="dashboard-kpi-row" aria-label="Sales and forecast metrics">
-            <article class="kpi-card dash-kpi">
-                <div class="kpi-label">Today's Sales</div>
-                <div class="kpi-value kpi-lines">
-                    <span>@Model.WholeChickenTodaySales.ToString("0.##") pcs whole chicken</span>
-                    <span>@Model.CutsAndPartsTodaySales.ToString("0.##") kg cuts &amp; parts</span>
-                </div>
-                <div class="kpi-meta">@Model.TodaySalesChangePercent.ToString("0.0")% vs same day last week</div>
-            </article>
-
-            <article class="kpi-card dash-kpi">
-                <div class="kpi-label">Forecast Confidence</div>
-                @if (Model.ForecastAccuracy < 0)
-                {
-                    <div class="kpi-value">—</div>
-                    <div class="kpi-meta">Insufficient data</div>
-                }
-                else
-                {
-                    <div class="kpi-value">@Model.ForecastAccuracy.ToString("0.0")%</div>
-                    <div class="kpi-meta">7-Day WMA model</div>
-                }
-            </article>
-
-            <article class="kpi-card dash-kpi">
-                <div class="kpi-label">This Week's Sales</div>
-                <div class="kpi-value">@Model.ThisWeekSales.ToString("0.##") kg</div>
-                <div class="kpi-meta">@Model.WeekSalesChangePercent.ToString("0.0")% vs previous 7 days</div>
-            </article>
-
-            <article class="kpi-card dash-kpi">
-                <div class="kpi-label">This Month's Sales</div>
-                <div class="kpi-value">@Model.ThisMonthSales.ToString("0.##") kg</div>
-                <div class="kpi-meta">@Model.MonthSalesChangePercent.ToString("0.0")% vs previous 30 days</div>
-            </article>
-        </section>
-    </div>
-
-    <aside class="dashboard-sidebar-col">
-        <article class="rail-card rail-card--alerts">
-            <h2>Critical Alerts</h2>
-            <div class="alert-count-box">
-                <span class="kpi-value">@Model.CriticalAlertCount</span>
+                <canvas id="weeklyStockChart"></canvas>
             </div>
-            @if (Model.CriticalAlertProductNames.Count == 0)
-            {
-                <p class="critical-alert-products">All clear</p>
-            }
-            else
-            {
-                <p class="critical-alert-products">@string.Join(", ", Model.CriticalAlertProductNames)</p>
-            }
         </article>
 
-        <article class="rail-card">
-            <h2>Current Stock</h2>
-            <ul class="rail-list">
-                <li>@Model.WholeChickenStock.ToString("0.##") pcs whole chicken</li>
-                <li>@Model.CutsAndPartsStock.ToString("0.##") kg cuts &amp; parts</li>
-            </ul>
-        </article>
-    </aside>
-
-    <section class="rail-card rail-card--quick dashboard-quick-sale" id="quickSaleCard">
-        <h2>Quick Sale</h2>
-        <form id="quick-sale-form" method="post" asp-controller="Sales" asp-action="RecordSale">
-            @Html.AntiForgeryToken()
-            <input type="hidden" name="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" />
-            <div class="quick-sale-fields">
-                <label>
-                    Product
-                    <select id="productId" name="productId">
-                        @foreach (var product in Model.Products)
-                        {
-                            <option value="@product.Id">@product.Name</option>
-                        }
-                    </select>
-                </label>
-                <label>
-                    Quantity
-                    <input id="quantity" name="quantity" type="number" min="1" max="200" step="1" value="1" />
-                </label>
-                <button type="submit" class="primary-btn">Record Sale</button>
+        <article class="glass-card dash-chart-card">
+            <div class="dash-card-head">
+                <h2>Stock vs Threshold</h2>
             </div>
-        </form>
-        <div id="quick-sale-toast" class="toast" aria-live="polite"></div>
-    </section>
+            <div class="chart-plot">
+                <div class="chart-empty hidden" data-chart-empty="thresholdChart"><svg viewBox="0 0 24 24"
+                                                                                       fill="none" aria-hidden="true">
+                    <path d="M4 6h16M4 12h11M4 18h7" stroke="currentColor" stroke-width="1.7"
+                          stroke-linecap="round" />
+                    <circle cx="18" cy="12" r="2" stroke="currentColor" stroke-width="1.6" />
+                </svg><strong>No stock data to compare</strong><span>Active products will appear here.</span>
+            </div>
+            <canvas id="thresholdChart"></canvas>
+        </div>
+    </article>
+</section>
+
+<section class="dashboard-kpi-row" aria-label="Sales and forecast metrics">
+    <article class="kpi-card dash-kpi">
+        <div class="kpi-label">Today's Sales</div>
+        <div class="kpi-value kpi-lines">
+            <span>@Model.WholeChickenTodaySales.ToString("0.##") pcs whole chicken</span>
+            <span>@Model.CutsAndPartsTodaySales.ToString("0.##") kg cuts &amp; parts</span>
+        </div>
+        <div class="kpi-meta">@Model.TodaySalesChangePercent.ToString("0.0")% vs same day last week</div>
+    </article>
+
+    <article class="kpi-card dash-kpi">
+        <div class="kpi-label">Forecast Confidence</div>
+        @if (Model.ForecastAccuracy < 0)
+        {
+            <div class="kpi-value">—</div>
+            <div class="kpi-meta">Insufficient data</div>
+        }
+        else
+        {
+            <div class="kpi-value">@Model.ForecastAccuracy.ToString("0.0")%</div>
+            <div class="kpi-meta">7-Day WMA model</div>
+        }
+    </article>
+
+    <article class="kpi-card dash-kpi">
+        <div class="kpi-label">This Week's Sales</div>
+        <div class="kpi-value">@Model.ThisWeekSales.ToString("0.##") kg</div>
+        <div class="kpi-meta">@Model.WeekSalesChangePercent.ToString("0.0")% vs previous 7 days</div>
+    </article>
+
+    <article class="kpi-card dash-kpi">
+        <div class="kpi-label">This Month's Sales</div>
+        <div class="kpi-value">@Model.ThisMonthSales.ToString("0.##") kg</div>
+        <div class="kpi-meta">@Model.MonthSalesChangePercent.ToString("0.0")% vs previous 30 days</div>
+    </article>
+</section>
+</div>
+
+<aside class="dashboard-sidebar-col">
+    <article class="rail-card rail-card--alerts">
+        <h2>Critical Alerts</h2>
+        <div class="alert-count-box">
+            <span class="kpi-value">@Model.CriticalAlertCount</span>
+        </div>
+        @if (Model.CriticalAlertProductNames.Count == 0)
+        {
+            <p class="critical-alert-products">All clear</p>
+        }
+        else
+        {
+            <p class="critical-alert-products">@string.Join(", ", Model.CriticalAlertProductNames)</p>
+        }
+    </article>
+
+    <article class="rail-card">
+        <h2>Current Stock</h2>
+        <ul class="rail-list">
+            <li>@Model.WholeChickenStock.ToString("0.##") pcs whole chicken</li>
+            <li>@Model.CutsAndPartsStock.ToString("0.##") kg cuts &amp; parts</li>
+        </ul>
+    </article>
+</aside>
+
+<section class="rail-card rail-card--quick dashboard-quick-sale" id="quickSaleCard">
+    <h2>Quick Sale</h2>
+    <form id="quick-sale-form" method="post" asp-controller="Sales" asp-action="RecordSale">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+        <div class="quick-sale-fields">
+            <label>
+                Product
+                <select id="productId" name="productId">
+                    @foreach (var product in Model.Products)
+                    {
+                        <option value="@product.Id">@product.Name</option>
+                    }
+                </select>
+            </label>
+            <label>
+                Quantity
+                <input id="quantity" name="quantity" type="number" min="1" max="200" step="1" value="1" />
+            </label>
+            <button type="submit" class="primary-btn">Record Sale</button>
+        </div>
+    </form>
+    <div id="quick-sale-toast" class="toast" aria-live="polite"></div>
+</section>
 </div>

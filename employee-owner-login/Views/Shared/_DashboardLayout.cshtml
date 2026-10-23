@@ -13,7 +13,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Manok ni Rene</title>
+    <title>@ViewData["Title"] - Poultry OS</title>
     <link rel="icon" type="image/svg+xml" href="~/images/logo.svg" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/tokens.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
@@ -30,7 +30,7 @@
             <div class="sidebar-header">
                 <span class="logo-chip"><img class="logo-mark" src="/images/logo.svg" alt="" /></span>
                 <div>
-                    <div class="logo-text">Manok ni Rene</div>
+                    <div class="logo-text">Poultry OS</div>
                     <small>Stock &amp; sales</small>
                 </div>
             </div>
@@ -134,7 +134,6 @@
                     </div>
                     <div>
                         <strong>@userName</strong>
-                        <small>@role</small>
                     </div>
                 </div>
                 <form class="signout-form" asp-controller="Account" asp-action="Logout" method="post">
@@ -156,7 +155,7 @@
                     </button>
                     @* Pages that opted into the new skin show their own title here;
                        legacy pages keep the brand mark in the top bar. *@
-                    <div class="farm-title">@(string.IsNullOrEmpty(bodyClass) ? "Manok ni Rene" : pageTitle)</div>
+                    <div class="farm-title">@(string.IsNullOrEmpty(bodyClass) ? "Poultry OS" : pageTitle)</div>
                 </div>
 
                 <div class="topbar-right">

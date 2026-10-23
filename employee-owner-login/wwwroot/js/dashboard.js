@@ -306,7 +306,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "reorderThreshold",
       (row) =>
         Number(stockField(row, "currentStock")) <
-        Number(stockField(row, "reorderThreshold"))
+          Number(stockField(row, "reorderThreshold"))
           ? "#ff7670"
           : "#61d394",
     );
