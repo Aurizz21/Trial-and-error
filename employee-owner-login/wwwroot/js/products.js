@@ -81,7 +81,6 @@ document.addEventListener("DOMContentLoaded", () => {
     overlay.classList.remove("is-open");
     overlay.setAttribute("aria-hidden", "true");
     form.reset();
-    unitSelect.disabled = false;
     document.body.classList.remove("modal-open");
     escapeHandler && document.removeEventListener("keydown", escapeHandler);
     escapeHandler = null;
@@ -105,8 +104,6 @@ document.addEventListener("DOMContentLoaded", () => {
     setField("startingStock", editing ? product.stock : "");
     setField("reorderThreshold", editing ? product.threshold : "");
     setField("supplier", editing ? product.supplier : "");
-    unitSelect.disabled = editing;
-
     overlay.classList.add("is-open");
     overlay.setAttribute("aria-hidden", "false");
     document.body.classList.add("modal-open");

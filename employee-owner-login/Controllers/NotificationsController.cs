@@ -31,6 +31,8 @@ public class NotificationsController : Controller
     public async Task<IActionResult> Recent()
     {
         var data = await _notifications.GetAsync("All");
+        var unreadCount = await _db.Notifications
+            .CountAsync(n => !n.IsRead && !n.Title.StartsWith("Resolved"));
 
         var recent = data.Notifications
             .OrderByDescending(n => n.CreatedAt)
@@ -49,7 +51,7 @@ public class NotificationsController : Controller
         return Ok(new
         {
             notifications = recent,
-            unreadCount = data.UnreadCount
+            unreadCount
         });
     }
 

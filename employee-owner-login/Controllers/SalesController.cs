@@ -105,7 +105,7 @@ public class SalesController : Controller
                 soldAt = r.SoldAt.ToString("yyyy-MM-dd"),
                 time = r.SoldAt.ToString("HH:mm"),
                 productName = r.ProductName,
-                units = r.Units,
+                unitOfMeasure = r.UnitOfMeasure,
                 quantity = r.Quantity,
                 enteredBy = r.EnteredBy,
                 notes = r.Notes

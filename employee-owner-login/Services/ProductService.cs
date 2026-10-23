@@ -12,8 +12,18 @@ public class ProductService : IProductService
     private static readonly string[] AllowedUnits = { "pcs", "kg" };
 
     private readonly AppDbContext _db;
+    private readonly StockRiskEvaluator _riskEvaluator;
+    private readonly IAlertService _alertService;
 
-    public ProductService(AppDbContext db) => _db = db;
+    public ProductService(
+        AppDbContext db,
+        StockRiskEvaluator riskEvaluator,
+        IAlertService alertService)
+    {
+        _db = db;
+        _riskEvaluator = riskEvaluator;
+        _alertService = alertService;
+    }
 
     // ---------- READ ----------
 
@@ -25,10 +35,14 @@ public class ProductService : IProductService
             .OrderBy(p => p.Id)
             .ToListAsync();
 
-        var weekly = await GetWeeklyTotalsAsync();
+        var salesMetrics = await GetWeeklyMetricsAsync();
+        var aiDailyRates = await GetAiDailyRatesAsync(products.Select(p => p.Id).ToList());
 
         return products
-            .Select(p => ToRow(p, weekly.GetValueOrDefault(p.Id)))
+            .Select(p => ToRow(
+                p,
+                salesMetrics.GetValueOrDefault(p.Id),
+                aiDailyRates.GetValueOrDefault(p.Id)))
             .ToList();
     }
 
@@ -39,8 +53,12 @@ public class ProductService : IProductService
             .FirstOrDefaultAsync(p => p.Id == id && p.IsActive);
         if (product is null) return null;
 
-        var weekly = await GetWeeklyTotalsAsync();
-        return ToRow(product, weekly.GetValueOrDefault(product.Id));
+        var salesMetrics = await GetWeeklyMetricsAsync();
+        var aiDailyRates = await GetAiDailyRatesAsync(new[] { product.Id });
+        return ToRow(
+            product,
+            salesMetrics.GetValueOrDefault(product.Id),
+            aiDailyRates.GetValueOrDefault(product.Id));
     }
 
     // ---------- CREATE ----------
@@ -98,12 +116,21 @@ public class ProductService : IProductService
             changes.Add($"stock {product.CurrentStock:0.##} to {request.CurrentStock:0.##}");
         if (product.ReorderThreshold != request.ReorderThreshold)
             changes.Add($"threshold {product.ReorderThreshold:0.##} to {request.ReorderThreshold:0.##}");
+        if (product.Units != request.Units)
+            changes.Add($"unit {product.Units} to {request.Units}");
 
         product.Name = name;
         product.Category = request.Category;
+        product.Units = request.Units;
         product.Supplier = (request.Supplier ?? string.Empty).Trim();
         product.CurrentStock = request.CurrentStock;
         product.ReorderThreshold = request.ReorderThreshold;
+
+        var userId = await _db.Users
+            .Where(u => u.Username == username)
+            .Select(u => (int?)u.Id)
+            .FirstOrDefaultAsync();
+        await _alertService.RegenerateAlertForProductAsync(product, userId);
 
         var detail = changes.Count > 0 ? $" ({string.Join(", ", changes)})" : string.Empty;
         _db.AuditLogs.Add(await NewAuditAsync(username, $"Updated product {name}{detail}."));
@@ -156,20 +183,62 @@ public class ProductService : IProductService
 
     // ---------- helpers ----------
 
-    private async Task<Dictionary<int, decimal>> GetWeeklyTotalsAsync()
+    private async Task<Dictionary<int, ProductSalesMetrics>> GetWeeklyMetricsAsync()
     {
         var since = DateTime.Today.AddDays(-6);
-        return await _db.Sales
+        var sales = await _db.Sales
             .AsNoTracking()
             .Where(s => s.SoldAt >= since)
+            .Select(s => new { s.ProductId, s.Quantity, s.SoldAt })
+            .ToListAsync();
+
+        return sales
             .GroupBy(s => s.ProductId)
-            .Select(g => new { ProductId = g.Key, Total = g.Sum(s => s.Quantity) })
-            .ToDictionaryAsync(x => x.ProductId, x => x.Total);
+            .ToDictionary(group => group.Key, group =>
+            {
+                var dailyTotals = group
+                    .GroupBy(s => s.SoldAt.Date)
+                    .ToDictionary(day => day.Key, day => day.Sum(s => s.Quantity));
+                var dailySales = Enumerable.Range(0, 7)
+                    .Select(offset => dailyTotals.GetValueOrDefault(since.Date.AddDays(offset)))
+                    .ToList();
+
+                return new ProductSalesMetrics(
+                    dailySales.Sum(),
+                    _riskEvaluator.CalculateDailyWmaRate(dailySales));
+            });
     }
 
-    private static ProductRowViewModel ToRow(Product p, decimal weekly)
+    private async Task<Dictionary<int, double>> GetAiDailyRatesAsync(IReadOnlyCollection<int> productIds)
     {
-        var (status, days) = Evaluate(p.CurrentStock, p.ReorderThreshold, weekly);
+        if (productIds.Count == 0) return new Dictionary<int, double>();
+
+        var today = DateTime.Today;
+        var forecasts = await _db.Forecasts
+            .AsNoTracking()
+            .Where(f =>
+                productIds.Contains(f.ProductId)
+                && f.ModelType == "ML.NET"
+                && f.GeneratedAt >= today)
+            .OrderByDescending(f => f.GeneratedAt)
+            .Select(f => new { f.ProductId, f.ForecastNext7Days, f.GeneratedAt })
+            .ToListAsync();
+
+        return forecasts
+            .GroupBy(f => f.ProductId)
+            .ToDictionary(
+                group => group.Key,
+                group => (double)group.First().ForecastNext7Days / 7d);
+    }
+
+    private ProductRowViewModel ToRow(Product p, ProductSalesMetrics metrics, double aiDailyRate)
+    {
+        var risk = _riskEvaluator.Evaluate(
+            p.CurrentStock,
+            p.ReorderThreshold,
+            metrics.DailyWmaRate,
+            aiDailyRate,
+            useAiForAlerts: true);
         return new ProductRowViewModel
         {
             Id = p.Id,
@@ -179,22 +248,13 @@ public class ProductService : IProductService
             Supplier = p.Supplier,
             CurrentStock = p.CurrentStock,
             ReorderThreshold = p.ReorderThreshold,
-            WeeklyConsumption = weekly,
-            DaysRemaining = days,
-            Status = status
+            WeeklyConsumption = metrics.WeeklyTotal,
+            DaysRemaining = metrics.DailyWmaRate > 0 ? risk.DaysRemaining : null,
+            Status = risk.Status
         };
     }
 
-    private static (string Status, double? DaysRemaining) Evaluate(decimal stock, decimal threshold, decimal weekly)
-    {
-        var avgDaily = weekly / 7m;
-        double? days = avgDaily > 0 ? (double)(stock / avgDaily) : null;
-
-        var critical = stock <= threshold || (weekly > 0 && stock < weekly * 0.20m);
-        if (critical) return ("Critical", days);
-        if (days.HasValue && days.Value <= 3) return ("Warning", days);
-        return ("Healthy", days);
-    }
+    private readonly record struct ProductSalesMetrics(decimal WeeklyTotal, double DailyWmaRate);
 
     private static string? Validate(ProductFormRequest r)
     {

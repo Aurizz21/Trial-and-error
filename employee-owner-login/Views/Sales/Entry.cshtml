@@ -18,14 +18,16 @@
                 <form id="saleEntryForm" class="form-grid" action="/Sales/RecordSale" method="post">
                     @Html.AntiForgeryToken()
                     <label class="field">Product<select id="saleProduct" name="ProductId" required>
-                        <option value="">Select product</option>@foreach (var product in Model.Products){
-                        <option value="@product.Id" data-unit="@product.Units">@product.Name</option>
-                    }
-                </select></label>
+                        <option value="">Select product</option>
+                        @foreach (var product in Model.Products)
+                        {
+                            <option value="@product.Id" data-unit="@product.Units">@product.Name</option>
+                        }
+                    </select></label>
                 <label class="field">Quantity<div class="input-with-unit"><input id="saleQuantity" name="Quantity"
                                                                                      type="number" inputmode="decimal" min="1" step="1" placeholder="1"
                                                                                      aria-describedby="saleQuantityHelp quantityError" required /><span id="saleUnit"
-                                                                                       class="unit-label" aria-live="polite">pcs</span></div><small id="saleQuantityHelp"
+                                                                                       class="unit-label" aria-live="polite">—</span></div><small id="saleQuantityHelp"
                                                                              class="field-hint">Use the unit shown beside the quantity: pcs for whole chicken, kg for
                     cuts and parts.</small><small id="quantityError" class="field-error" role="alert"
                                                   hidden></small></label>

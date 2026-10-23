@@ -10,11 +10,15 @@ public class DashboardService : IDashboardService
 {
     private const int TrendDays = 14;
     private const int WmaWindow = 7;
-    private const double WarningDaysRemaining = 3d;
 
     private readonly AppDbContext _db;
+    private readonly StockRiskEvaluator _riskEvaluator;
 
-    public DashboardService(AppDbContext db) => _db = db;
+    public DashboardService(AppDbContext db, StockRiskEvaluator riskEvaluator)
+    {
+        _db = db;
+        _riskEvaluator = riskEvaluator;
+    }
 
     // ==============================================================
     //  ENTRY POINT
@@ -199,7 +203,7 @@ public class DashboardService : IDashboardService
     //  KPIs
     // ==============================================================
 
-        private static double CalculateForecastAccuracy(
+        private double CalculateForecastAccuracy(
         List<Product> products,
         Dictionary<int, List<decimal>> history)
     {
@@ -226,7 +230,7 @@ public class DashboardService : IDashboardService
             // Skip if not enough selling days in the prior window
             if (prior.Count(d => d > 0) < 2) continue;
 
-            var forecast = CalculateWma(prior);
+            var forecast = _riskEvaluator.CalculateDailyWmaRate(prior);
             if (forecast <= 0) continue;
 
             var error = Math.Abs((double)actual - forecast) / (double)actual * 100d;
@@ -309,7 +313,7 @@ public class DashboardService : IDashboardService
     //  STOCK OVERVIEW
     // ==============================================================
 
-    private static List<StockOverviewRow> BuildStockOverview(
+    private List<StockOverviewRow> BuildStockOverview(
         List<Product> products,
         Dictionary<int, decimal> weeklyByProduct,
         Dictionary<int, List<decimal>> history)
@@ -322,9 +326,14 @@ public class DashboardService : IDashboardService
                 days = new List<decimal>();
 
             var weekly = weeklyByProduct.GetValueOrDefault(product.Id);
-            var forecast = CalculateWma(days);
-            var daysRemaining = forecast > 0 ? (double)product.CurrentStock / forecast : 0d;
-            var status = DetermineStatus(product, weekly, daysRemaining);
+            var forecast = _riskEvaluator.CalculateDailyWmaRate(days.TakeLast(WmaWindow).ToList());
+            var risk = _riskEvaluator.Evaluate(
+                product.CurrentStock,
+                product.ReorderThreshold,
+                forecast,
+                0,
+                useAiForAlerts: false);
+            var daysRemaining = forecast > 0 ? risk.DaysRemaining : 0d;
 
             var predictedDate = forecast > 0 && product.CurrentStock > 0
                 ? DateTime.Today.AddDays((double)product.CurrentStock / forecast)
@@ -343,7 +352,7 @@ public class DashboardService : IDashboardService
                 PredictedDepletionDate = forecast > 0 && product.CurrentStock > 0
                     ? predictedDate.ToString("MMM d, yyyy", CultureInfo.InvariantCulture)
                     : "Insufficient Data",
-                Status = status
+                Status = risk.Status
             });
         }
 
@@ -408,39 +417,6 @@ public class DashboardService : IDashboardService
             ReorderThreshold = entity.ReorderThreshold,
             SalesHistory = new List<decimal>()
         };
-    }
-
-    // ==============================================================
-    //  MATH + RULES
-    // ==============================================================
-
-        private static double CalculateWma(IReadOnlyList<decimal> sales)
-    {
-        // Skip zero-sales days so a quiet day doesn't drag the forecast down.
-        var selling = sales.Where(d => d > 0).TakeLast(WmaWindow).ToList();
-
-        if (selling.Count < 2) return 0;    // too few data points for a meaningful WMA
-
-        var weightedTotal = 0d;
-        for (var i = 0; i < selling.Count; i++)
-        {
-            weightedTotal += (i + 1) * (double)selling[i];
-        }
-
-        // Divisor is the sum of weights: for n days, sum = n*(n+1)/2.
-        var divisor = (double)selling.Count * (selling.Count + 1) / 2d;
-        return weightedTotal / divisor;
-    }
-
-    private static string DetermineStatus(Product product, decimal weeklyConsumption, double daysRemaining)
-    {
-        if (product.CurrentStock < weeklyConsumption * 0.2m || product.CurrentStock <= product.ReorderThreshold)
-            return "Critical";
-
-        if (daysRemaining <= WarningDaysRemaining)
-            return "Warning";
-
-        return "Healthy";
     }
 
     private static string GetGreeting(DateTime now)

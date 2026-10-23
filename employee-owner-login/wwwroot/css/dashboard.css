@@ -696,6 +696,8 @@ select {
   letter-spacing: 0.01em;
   text-transform: capitalize;
   border: 1px solid transparent;
+  white-space: nowrap;
+  text-align: center;
 }
 
 .status-critical {
@@ -2898,6 +2900,10 @@ th {
   font-weight: var(--weight-bold);
   text-transform: none;
   letter-spacing: 0;
+}
+
+.forecast-page .table-wrap :is(th, td):nth-child(13) {
+  min-width: 88px;
 }
 
 .skin-page .module-page .table-wrap tbody tr:last-child :is(th, td) {
