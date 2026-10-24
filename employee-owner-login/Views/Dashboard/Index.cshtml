@@ -56,10 +56,10 @@
     <article class="kpi-card dash-kpi">
         <div class="kpi-label">Today's Sales</div>
         <div class="kpi-value kpi-lines">
-            <span>@Model.WholeChickenTodaySales.ToString("0.##") pcs whole chicken</span>
-            <span>@Model.CutsAndPartsTodaySales.ToString("0.##") kg cuts &amp; parts</span>
+            <span>@Model.TodaySalesPcs.ToString("0.##") pcs</span>
+            <span>@Model.TodaySalesKg.ToString("0.##") kg</span>
         </div>
-        <div class="kpi-meta">@Model.TodaySalesChangePercent.ToString("0.0")% vs same day last week</div>
+        <div class="kpi-meta">pcs @(Model.TodaySalesPcsChangePercent.HasValue ? Model.TodaySalesPcsChangePercent.Value.ToString("+0.0;-0.0;0.0") + "%" : "—") · kg @(Model.TodaySalesKgChangePercent.HasValue ? Model.TodaySalesKgChangePercent.Value.ToString("+0.0;-0.0;0.0") + "%" : "—") vs same day last week</div>
     </article>
 
     <article class="kpi-card dash-kpi">
@@ -78,14 +78,20 @@
 
     <article class="kpi-card dash-kpi">
         <div class="kpi-label">This Week's Sales</div>
-        <div class="kpi-value">@Model.ThisWeekSales.ToString("0.##") kg</div>
-        <div class="kpi-meta">@Model.WeekSalesChangePercent.ToString("0.0")% vs previous 7 days</div>
+        <div class="kpi-value kpi-lines">
+            <span>@Model.ThisWeekSalesPcs.ToString("0.##") pcs</span>
+            <span>@Model.ThisWeekSalesKg.ToString("0.##") kg</span>
+        </div>
+        <div class="kpi-meta">pcs @(Model.WeekSalesPcsChangePercent.HasValue ? Model.WeekSalesPcsChangePercent.Value.ToString("+0.0;-0.0;0.0") + "%" : "—") · kg @(Model.WeekSalesKgChangePercent.HasValue ? Model.WeekSalesKgChangePercent.Value.ToString("+0.0;-0.0;0.0") + "%" : "—") vs previous 7 days</div>
     </article>
 
     <article class="kpi-card dash-kpi">
         <div class="kpi-label">This Month's Sales</div>
-        <div class="kpi-value">@Model.ThisMonthSales.ToString("0.##") kg</div>
-        <div class="kpi-meta">@Model.MonthSalesChangePercent.ToString("0.0")% vs previous 30 days</div>
+        <div class="kpi-value kpi-lines">
+            <span>@Model.ThisMonthSalesPcs.ToString("0.##") pcs</span>
+            <span>@Model.ThisMonthSalesKg.ToString("0.##") kg</span>
+        </div>
+        <div class="kpi-meta">pcs @(Model.MonthSalesPcsChangePercent.HasValue ? Model.MonthSalesPcsChangePercent.Value.ToString("+0.0;-0.0;0.0") + "%" : "—") · kg @(Model.MonthSalesKgChangePercent.HasValue ? Model.MonthSalesKgChangePercent.Value.ToString("+0.0;-0.0;0.0") + "%" : "—") vs previous 30 days</div>
     </article>
 </section>
 </div>

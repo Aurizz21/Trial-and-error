@@ -5,20 +5,20 @@
     ViewData["Title"] = "Audit Trail";
     ViewData["BodyClass"] = "skin-page audit-trail-page";
 
-    string PageUrl(int p) => $"/Audit?actionType={Model.ActionTypeFilter}&user={Model.UserFilter}&page={p}";
+    string PageUrl(int p) => $"/Audit/Index?actionType={Uri.EscapeDataString(Model.ActionTypeFilter)}&user={Uri.EscapeDataString(Model.UserFilter)}&page={p}";
 }
 <div class="module-page">
     <header class="module-heading">
         <div>
             <p class="greeting">Owner workspace</p>
             <h1>Audit Trail</h1>
-            <p>Every important event: logins, sales, product changes, and system actions.</p>
+            <p>Every important event: logins, logouts, sales, restocks, product changes, and alerts.</p>
         </div>
     </header>
 
     <section class="panel">
         <div class="toolbar">
-            <form method="get" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;width:100%;">
+            <form method="get" asp-controller="Audit" asp-action="Index" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;width:100%;">
                 <label class="field">Action Type
                     <select name="actionType">
                         <option value="All" selected="@(Model.ActionTypeFilter == "All")">All</option>
@@ -40,7 +40,7 @@
                 </label>
                 <div style="display:flex;flex-direction:row;gap:8px;align-items:flex-end;">
                     <button type="submit" class="primary-btn">Apply</button>
-                    <a href="/Audit" class="secondary-btn">Reset</a>
+                    <a href="/Audit/Index" class="secondary-btn">Reset</a>
                 </div>
             </form>
         </div>

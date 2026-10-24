@@ -515,6 +515,41 @@
    --radius-card-old: 14px;
 }
 
+.login-page {
+   --login-overlay-gradient:
+      linear-gradient(180deg,
+         rgb(162 162 162 / 0.48) 0%,
+         rgb(61 61 61 / 0.48) 48%,
+         rgb(10 10 10 / 0.64) 100%),
+      linear-gradient(28deg,
+         rgb(10 10 10 / 0.22) 0%,
+         rgb(10 10 10 / 0.10) 38%,
+         transparent 66%);
+   --login-card-fill: rgb(190 190 190 / 0.88);
+   --login-card-fallback: var(--gray-300);
+   --login-card-blur: 18px;
+   --login-card-glow:
+      0 0 42px rgb(244 244 244 / 0.22),
+      0 22px 60px rgb(10 10 10 / 0.35);
+   --login-heading: var(--gray-950);
+   --login-text: var(--gray-800);
+   --login-placeholder: var(--gray-700);
+   --login-input-fill: rgb(255 255 255 / 0.14);
+   --login-input-border: var(--gray-650);
+   --login-input-radius: var(--radius-pill);
+   --login-button-gradient: linear-gradient(180deg, var(--gray-700) 0%, var(--gray-950) 100%);
+   --login-button-hover-gradient: linear-gradient(180deg, var(--gray-800) 0%, var(--gray-950) 100%);
+   --login-button-active-gradient: linear-gradient(180deg, var(--gray-850) 0%, var(--gray-950) 100%);
+   --login-button-text: var(--gray-000);
+   --login-button-radius: var(--radius-pill);
+   --login-logo-fill: var(--gray-300);
+   --login-logo-radius: 50%;
+   --login-logo-size: 80px;
+   --login-focus-shadow: var(--focus-shadow);
+   --login-error: var(--critical-on-light);
+   --login-copyright: var(--gray-200);
+}
+
 /* ==========================================================================
    TEMPORARY - delete in Stage 3 when dashboard.css is rewritten.
    The dark application theme that every not-yet-migrated page still runs on.

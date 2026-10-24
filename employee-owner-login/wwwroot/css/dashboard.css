@@ -297,66 +297,6 @@ select {
   letter-spacing: -0.015em;
 }
 
-.topbar-search {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--muted);
-  background: var(--panel-alt);
-  border: 1px solid transparent;
-  border-radius: var(--radius-control);
-  padding: 9px 11px;
-  width: min(360px, 36vw);
-  min-height: 44px;
-  transition:
-    border-color 0.16s ease,
-    background-color 0.16s ease;
-}
-
-.topbar-search:focus-within {
-  border-color: var(--primary-border);
-  background: var(--panel);
-  box-shadow: var(--focus-ring);
-}
-
-.global-search-trigger {
-  display: grid;
-  place-items: center;
-  flex: 0 0 30px;
-  width: 30px;
-  height: 30px;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-pill);
-  color: var(--muted);
-  background: transparent;
-  cursor: pointer;
-}
-
-.global-search-trigger:hover {
-  color: var(--primary);
-  background: var(--panel-alt);
-}
-
-.global-search-trigger:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-
-.topbar-search svg {
-  flex: 0 0 auto;
-}
-
-.topbar-search input {
-  border: none;
-  outline: none;
-  background: transparent;
-  width: 100%;
-  color: var(--text);
-  font-size: 0.88rem;
-}
-
 .date-pill {
   color: var(--muted);
   font-size: 0.82rem;
@@ -1158,11 +1098,6 @@ th {
     flex-wrap: wrap;
   }
 
-  :where(.dashboard-page, .skin-page) .topbar-search {
-    order: 3;
-    width: 100%;
-  }
-
   .content-area {
     padding: 18px 14px 28px;
   }
@@ -1243,13 +1178,6 @@ th {
 
   :where(.dashboard-page, .skin-page) .farm-title {
     font-size: 1.28rem;
-  }
-
-  :where(.dashboard-page, .skin-page) .topbar-search {
-    order: 3;
-    width: 100%;
-    margin-left: 0;
-    min-height: 46px;
   }
 
   :where(.dashboard-page, .skin-page) .content-area {
@@ -1483,18 +1411,6 @@ th {
   box-shadow: inset 2px 0 0 color-mix(in srgb, var(--white) 72%, transparent);
 }
 
-.topbar-search {
-  transition:
-    border-color 180ms ease-out,
-    background-color 180ms ease-out,
-    box-shadow 180ms ease-out;
-}
-
-.topbar-search:hover:not(:focus-within) {
-  border-color: var(--border);
-  background: var(--panel);
-}
-
 .mobile-menu,
 .notification-btn {
   transition:
@@ -1557,7 +1473,6 @@ th {
 @media (prefers-reduced-motion: reduce) {
 
   .nav-link,
-  .topbar-search,
   .mobile-menu,
   .notification-btn,
   .avatar,
@@ -1840,54 +1755,6 @@ th {
   color: var(--win-ink);
 }
 
-:where(.dashboard-page, .skin-page) .topbar-search {
-  margin-left: 28px;
-  width: min(430px, 40vw);
-  min-height: 44px;
-  padding: 0 8px 0 18px;
-  border: 1px solid var(--gray-250);
-  border-radius: var(--radius-pill);
-  background: var(--gray-200);
-  color: var(--gray-600);
-}
-
-:where(.dashboard-page, .skin-page) .topbar-search:hover:not(:focus-within) {
-  background: var(--gray-200);
-  border-color: var(--gray-300);
-}
-
-:where(.dashboard-page, .skin-page) .topbar-search:focus-within {
-  background: var(--skin-white);
-  border-color: var(--gray-350);
-  box-shadow: var(--focus-ring);
-}
-
-:where(.dashboard-page, .skin-page) .topbar-search input {
-  order: 1;
-  color: var(--gray-800);
-  font-size: 0.88rem;
-}
-
-/* --gray-500 was 3.3:1 on the glass bar, under the floor for placeholder text. */
-:where(.dashboard-page, .skin-page) .topbar-search input::placeholder {
-  color: var(--gray-600);
-}
-
-:where(.dashboard-page, .skin-page) .global-search-trigger {
-  order: 2;
-  width: 34px;
-  height: 34px;
-  flex: 0 0 34px;
-  color: var(--gray-700);
-  border-radius: var(--radius-pill);
-}
-
-:where(.dashboard-page, .skin-page) .global-search-trigger:hover,
-:where(.dashboard-page, .skin-page) .global-search-trigger:focus-visible {
-  background: var(--overlay-dark-07);
-  color: var(--skin-ink);
-}
-
 :where(.dashboard-page, .skin-page) .topbar-right {
   margin-left: auto;
   gap: 18px;
@@ -1945,11 +1812,6 @@ th {
     padding: 18px 24px 18px 26px;
   }
 
-  :where(.dashboard-page, .skin-page) .topbar-search {
-    margin-left: 20px;
-    width: min(340px, 38vw);
-  }
-
   :where(.dashboard-page, .skin-page) .farm-title {
     font-size: 1.5rem;
   }
@@ -1975,11 +1837,6 @@ th {
 @media (max-width: 900px) {
   .dashboard-page .dash-charts {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  :where(.dashboard-page, .skin-page) .topbar-search {
-    margin-left: 16px;
-    width: min(300px, 40vw);
   }
 
   .dashboard-page .rail-frame {

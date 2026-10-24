@@ -36,7 +36,7 @@
     <section class="panel">
         <div class="toolbar">
             <label class="field">Filter
-                <select onchange="location.href='/Notifications?type=' + this.value">
+                <select onchange="location.href='/Notifications/Index?type=' + encodeURIComponent(this.value)">
                     <option value="All" selected="@(Model.TypeFilter == "All")">All</option>
                     <option value="Unread" selected="@(Model.TypeFilter == "Unread")">Unread</option>
                     <option value="Critical" selected="@(Model.TypeFilter == "Critical")">Critical</option>

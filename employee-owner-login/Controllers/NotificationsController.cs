@@ -18,7 +18,7 @@ public class NotificationsController : Controller
         _db = db;
     }
 
-    // GET /Notifications?type=All|Critical|Warning|Info|Unread
+    // GET /Notifications/Index?type=All|Critical|Warning|Info|Unread
     [HttpGet]
     public async Task<IActionResult> Index(string type = "All")
     {

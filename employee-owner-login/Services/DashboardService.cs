@@ -38,6 +38,33 @@ public class DashboardService : IDashboardService
             .OrderBy(p => p.Name)
             .ToListAsync();
 
+        var productIds = products.Select(product => product.Id).ToList();
+        var aiForecasts = await _db.Forecasts
+            .AsNoTracking()
+            .Where(f =>
+                productIds.Contains(f.ProductId)
+                && f.ModelType == "ML.NET"
+                && f.GeneratedAt >= today
+                && f.GeneratedAt < today.AddDays(1))
+            .OrderByDescending(f => f.GeneratedAt)
+            .Select(f => new { f.ProductId, f.ForecastNext7Days })
+            .ToListAsync();
+        var aiDailyRates = aiForecasts
+            .GroupBy(f => f.ProductId)
+            .ToDictionary(group => group.Key, group => (double)group.First().ForecastNext7Days / 7d);
+
+        var salesForKpis = await _db.Sales
+            .AsNoTracking()
+            .Where(s => s.SoldAt >= today.AddDays(-59) && s.SoldAt < today.AddDays(1))
+            .Select(s => new { s.Quantity, s.SoldAt, s.Product.Units })
+            .ToListAsync();
+        decimal SumSalesByUnit(DateTime start, DateTime end, string units) =>
+            salesForKpis
+                .Where(s => s.SoldAt >= start && s.SoldAt < end && s.Units == units)
+                .Sum(s => s.Quantity);
+        decimal? ChangePercent(decimal current, decimal previous) =>
+            previous == 0m ? null : Math.Round((current - previous) / previous * 100m, 1);
+
         // --- Sales in the trend window ---
         var salesInTrend = await _db.Sales
             .AsNoTracking()
@@ -66,44 +93,19 @@ public class DashboardService : IDashboardService
         }
 
         // --- Today's sales ---
-        var todaySales = salesInTrend.Where(s => s.SoldAt.Date == today).ToList();
-        var wholeChickenIds = products.Where(p => p.Category == "Whole Chicken").Select(p => p.Id).ToHashSet();
-        var cutsIds = products.Where(p => p.Category == "Cuts & Parts").Select(p => p.Id).ToHashSet();
-
-        var wholeChickenToday = todaySales.Where(s => wholeChickenIds.Contains(s.ProductId)).Sum(s => s.Quantity);
-        var cutsToday = todaySales.Where(s => cutsIds.Contains(s.ProductId)).Sum(s => s.Quantity);
-
-        // --- Same weekday last week for change % ---
-        var lastWeekCompareDay = today.AddDays(-7);
-        var lastWeekSalesTotal = await _db.Sales
-            .AsNoTracking()
-            .Where(s => s.SoldAt >= lastWeekCompareDay && s.SoldAt < lastWeekCompareDay.AddDays(1))
-            .SumAsync(s => (decimal?)s.Quantity) ?? 0m;
-
-        var todayTotal = todaySales.Sum(s => s.Quantity);
-        var changePct = lastWeekSalesTotal == 0
-            ? 0m
-            : Math.Round((todayTotal - lastWeekSalesTotal) / lastWeekSalesTotal * 100m, 1);
-
         var tomorrow = today.AddDays(1);
-        var thisWeekSales = await _db.Sales
-            .Where(s => s.SoldAt >= today.AddDays(-6) && s.SoldAt < tomorrow)
-            .SumAsync(s => (decimal?)s.Quantity) ?? 0m;
-        var lastWeekSales = await _db.Sales
-            .Where(s => s.SoldAt >= today.AddDays(-13) && s.SoldAt < today.AddDays(-6))
-            .SumAsync(s => (decimal?)s.Quantity) ?? 0m;
-        var thisMonthSales = await _db.Sales
-            .Where(s => s.SoldAt >= today.AddDays(-29) && s.SoldAt < tomorrow)
-            .SumAsync(s => (decimal?)s.Quantity) ?? 0m;
-        var lastMonthSales = await _db.Sales
-            .Where(s => s.SoldAt >= today.AddDays(-59) && s.SoldAt < today.AddDays(-29))
-            .SumAsync(s => (decimal?)s.Quantity) ?? 0m;
-        var weekChangePct = lastWeekSales == 0m
-            ? 0m
-            : Math.Round((thisWeekSales - lastWeekSales) / lastWeekSales * 100m, 1);
-        var monthChangePct = lastMonthSales == 0m
-            ? 0m
-            : Math.Round((thisMonthSales - lastMonthSales) / lastMonthSales * 100m, 1);
+        var todayPcs = SumSalesByUnit(today, tomorrow, "pcs");
+        var todayKg = SumSalesByUnit(today, tomorrow, "kg");
+        var previousSameDayPcs = SumSalesByUnit(today.AddDays(-7), today.AddDays(-6), "pcs");
+        var previousSameDayKg = SumSalesByUnit(today.AddDays(-7), today.AddDays(-6), "kg");
+        var thisWeekPcs = SumSalesByUnit(today.AddDays(-6), tomorrow, "pcs");
+        var thisWeekKg = SumSalesByUnit(today.AddDays(-6), tomorrow, "kg");
+        var lastWeekPcs = SumSalesByUnit(today.AddDays(-13), today.AddDays(-6), "pcs");
+        var lastWeekKg = SumSalesByUnit(today.AddDays(-13), today.AddDays(-6), "kg");
+        var thisMonthPcs = SumSalesByUnit(today.AddDays(-29), tomorrow, "pcs");
+        var thisMonthKg = SumSalesByUnit(today.AddDays(-29), tomorrow, "kg");
+        var lastMonthPcs = SumSalesByUnit(today.AddDays(-59), today.AddDays(-29), "pcs");
+        var lastMonthKg = SumSalesByUnit(today.AddDays(-59), today.AddDays(-29), "kg");
 
         // --- Active alerts ---
         var activeAlerts = await _db.StockAlerts
@@ -146,20 +148,27 @@ public class DashboardService : IDashboardService
             TotalProducts = products.Count,
             WholeChickenStock = products.Where(p => p.Category == "Whole Chicken").Sum(p => p.CurrentStock),
             CutsAndPartsStock = products.Where(p => p.Category == "Cuts & Parts").Sum(p => p.CurrentStock),
-            WholeChickenTodaySales = wholeChickenToday,
-            CutsAndPartsTodaySales = cutsToday,
-            TodaySalesChangePercent = changePct,
-            ThisWeekSales = thisWeekSales,
-            LastWeekSales = lastWeekSales,
-            ThisMonthSales = thisMonthSales,
-            LastMonthSales = lastMonthSales,
-            WeekSalesChangePercent = weekChangePct,
-            MonthSalesChangePercent = monthChangePct,
+            TodaySalesPcs = todayPcs,
+            TodaySalesKg = todayKg,
+            TodaySalesPcsChangePercent = ChangePercent(todayPcs, previousSameDayPcs),
+            TodaySalesKgChangePercent = ChangePercent(todayKg, previousSameDayKg),
+            ThisWeekSalesPcs = thisWeekPcs,
+            ThisWeekSalesKg = thisWeekKg,
+            LastWeekSalesPcs = lastWeekPcs,
+            LastWeekSalesKg = lastWeekKg,
+            WeekSalesPcsChangePercent = ChangePercent(thisWeekPcs, lastWeekPcs),
+            WeekSalesKgChangePercent = ChangePercent(thisWeekKg, lastWeekKg),
+            ThisMonthSalesPcs = thisMonthPcs,
+            ThisMonthSalesKg = thisMonthKg,
+            LastMonthSalesPcs = lastMonthPcs,
+            LastMonthSalesKg = lastMonthKg,
+            MonthSalesPcsChangePercent = ChangePercent(thisMonthPcs, lastMonthPcs),
+            MonthSalesKgChangePercent = ChangePercent(thisMonthKg, lastMonthKg),
             ForecastAccuracy = CalculateForecastAccuracy(products, historyByProduct),
             DailySalesTrend = BuildDailySalesTrend(products, historyByProduct, today),
             WeeklyConsumption = BuildWeeklyConsumption(products, weeklyByProduct),
             LowStockDistribution = BuildLowStockDistribution(activeAlerts),
-            StockOverview = BuildStockOverview(products, weeklyByProduct, historyByProduct),
+            StockOverview = BuildStockOverview(products, weeklyByProduct, historyByProduct, aiDailyRates),
             ActiveAlerts = activeAlerts.Select(ToAlertItem).ToList(),
             CriticalAlertProductNames = activeAlerts
                 .Where(alert => alert.Status == "Critical")
@@ -316,7 +325,8 @@ public class DashboardService : IDashboardService
     private List<StockOverviewRow> BuildStockOverview(
         List<Product> products,
         Dictionary<int, decimal> weeklyByProduct,
-        Dictionary<int, List<decimal>> history)
+        Dictionary<int, List<decimal>> history,
+        Dictionary<int, double> aiDailyRates)
     {
         var rows = new List<StockOverviewRow>();
 
@@ -331,8 +341,8 @@ public class DashboardService : IDashboardService
                 product.CurrentStock,
                 product.ReorderThreshold,
                 forecast,
-                0,
-                useAiForAlerts: false);
+                aiDailyRates.GetValueOrDefault(product.Id),
+                useAiForAlerts: true);
             var daysRemaining = forecast > 0 ? risk.DaysRemaining : 0d;
 
             var predictedDate = forecast > 0 && product.CurrentStock > 0

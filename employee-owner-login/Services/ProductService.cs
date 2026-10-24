@@ -94,7 +94,28 @@ public class ProductService : IProductService
         product.ReorderThreshold = request.ReorderThreshold;
 
         _db.AuditLogs.Add(await NewAuditAsync(username, $"Added product {name}."));
-        return await SaveAsync($"{name} was added.");
+        var successMessage = $"{name} was added.";
+        var saveResult = await SaveAsync(successMessage);
+        if (!saveResult.Success) return saveResult;
+
+        var userId = await _db.Users
+            .Where(u => u.Username == username)
+            .Select(u => (int?)u.Id)
+            .FirstOrDefaultAsync();
+        await _alertService.RegenerateAlertForProductAsync(product, userId);
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            foreach (var entry in _db.ChangeTracker.Entries()
+                         .Where(entry => entry.State != EntityState.Unchanged)
+                         .ToList())
+                entry.State = EntityState.Detached;
+        }
+
+        return ServiceResult.Ok(successMessage);
     }
 
     // ---------- UPDATE ----------
@@ -111,30 +132,55 @@ public class ProductService : IProductService
         var nameTaken = await _db.Products.AnyAsync(p => p.Id != id && p.Name == name);
         if (nameTaken) return ServiceResult.Fail($"A product named \"{name}\" already exists.");
 
-        var changes = new List<string>();
-        if (product.CurrentStock != request.CurrentStock)
-            changes.Add($"stock {product.CurrentStock:0.##} to {request.CurrentStock:0.##}");
-        if (product.ReorderThreshold != request.ReorderThreshold)
-            changes.Add($"threshold {product.ReorderThreshold:0.##} to {request.ReorderThreshold:0.##}");
-        if (product.Units != request.Units)
-            changes.Add($"unit {product.Units} to {request.Units}");
+        await using var tx = await _db.Database.BeginTransactionAsync();
+        try
+        {
+            if (product.Units != request.Units
+                && (await _db.Sales.AnyAsync(s => s.ProductId == product.Id)
+                    || await _db.StockReplenishments.AnyAsync(r => r.ProductId == product.Id)))
+            {
+                await tx.RollbackAsync();
+                return ServiceResult.Fail("Unit cannot be changed because this product already has sales or restocks.");
+            }
 
-        product.Name = name;
-        product.Category = request.Category;
-        product.Units = request.Units;
-        product.Supplier = (request.Supplier ?? string.Empty).Trim();
-        product.CurrentStock = request.CurrentStock;
-        product.ReorderThreshold = request.ReorderThreshold;
+            var changes = new List<string>();
+            if (product.CurrentStock != request.CurrentStock)
+                changes.Add($"stock {product.CurrentStock:0.##} to {request.CurrentStock:0.##}");
+            if (product.ReorderThreshold != request.ReorderThreshold)
+                changes.Add($"threshold {product.ReorderThreshold:0.##} to {request.ReorderThreshold:0.##}");
+            if (product.Units != request.Units)
+                changes.Add($"unit {product.Units} to {request.Units}");
 
-        var userId = await _db.Users
-            .Where(u => u.Username == username)
-            .Select(u => (int?)u.Id)
-            .FirstOrDefaultAsync();
-        await _alertService.RegenerateAlertForProductAsync(product, userId);
+            product.Name = name;
+            product.Category = request.Category;
+            product.Units = request.Units;
+            product.Supplier = (request.Supplier ?? string.Empty).Trim();
+            product.CurrentStock = request.CurrentStock;
+            product.ReorderThreshold = request.ReorderThreshold;
 
-        var detail = changes.Count > 0 ? $" ({string.Join(", ", changes)})" : string.Empty;
-        _db.AuditLogs.Add(await NewAuditAsync(username, $"Updated product {name}{detail}."));
-        return await SaveAsync($"{name} was updated.");
+            var userId = await _db.Users
+                .Where(u => u.Username == username)
+                .Select(u => (int?)u.Id)
+                .FirstOrDefaultAsync();
+            await _alertService.RegenerateAlertForProductAsync(product, userId);
+
+            var detail = changes.Count > 0 ? $" ({string.Join(", ", changes)})" : string.Empty;
+            _db.AuditLogs.Add(await NewAuditAsync(username, $"Updated product {name}{detail}."));
+            var result = await SaveAsync($"{name} was updated.");
+            if (!result.Success)
+            {
+                await tx.RollbackAsync();
+                return result;
+            }
+
+            await tx.CommitAsync();
+            return result;
+        }
+        catch
+        {
+            await tx.RollbackAsync();
+            throw;
+        }
     }
 
     public Task<ServiceResult> UpdateThresholdAsync(int id, decimal threshold, string username)
@@ -148,19 +194,41 @@ public class ProductService : IProductService
         var ids = thresholds.Keys.ToList();
         var products = await _db.Products.Where(p => ids.Contains(p.Id) && p.IsActive).ToListAsync();
 
-        var changed = 0;
-        foreach (var product in products)
+        var changedProducts = products
+            .Where(product => product.ReorderThreshold != thresholds[product.Id])
+            .ToList();
+
+        if (changedProducts.Count == 0) return ServiceResult.Ok("No changes to save.");
+
+        await using var tx = await _db.Database.BeginTransactionAsync();
+        try
         {
-            var newValue = thresholds[product.Id];
-            if (product.ReorderThreshold == newValue) continue;
-            product.ReorderThreshold = newValue;
-            changed++;
+            var userId = await _db.Users
+                .Where(u => u.Username == username)
+                .Select(u => (int?)u.Id)
+                .FirstOrDefaultAsync();
+            foreach (var product in changedProducts)
+            {
+                product.ReorderThreshold = thresholds[product.Id];
+                await _alertService.RegenerateAlertForProductAsync(product, userId);
+            }
+
+            _db.AuditLogs.Add(await NewAuditAsync(username, $"Updated reorder thresholds for {changedProducts.Count} product(s)."));
+            var result = await SaveAsync("Thresholds saved.");
+            if (!result.Success)
+            {
+                await tx.RollbackAsync();
+                return result;
+            }
+
+            await tx.CommitAsync();
+            return result;
         }
-
-        if (changed == 0) return ServiceResult.Ok("No changes to save.");
-
-        _db.AuditLogs.Add(await NewAuditAsync(username, $"Updated reorder thresholds for {changed} product(s)."));
-        return await SaveAsync("Thresholds saved.");
+        catch
+        {
+            await tx.RollbackAsync();
+            throw;
+        }
     }
 
     // ---------- DELETE (soft delete) ----------

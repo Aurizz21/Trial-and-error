@@ -38,8 +38,7 @@
             {
                 <div class="kpi-value">@Model.AverageAccuracy.ToString("0.0")%</div>
             }
-            <label><input type="checkbox" id="aiToggle" checked="@(Model.Rows.FirstOrDefault()?.UseAiForAlerts ?? true)"
-                              onclick="toggleAi(this)" /> Use AI for Alerts</label>
+            <label><input type="checkbox" id="aiToggle" checked="@(Model.Rows.FirstOrDefault()?.UseAiForAlerts ?? true)" onclick="toggleAi(this)" /> Use AI model for status on this page</label>
             </article>
         </section>
 

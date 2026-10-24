@@ -9,8 +9,13 @@ namespace PoultryOS.Services;
 public class StockReplenishmentService : IStockReplenishmentService
 {
     private readonly AppDbContext _db;
+    private readonly IAlertService _alertService;
 
-    public StockReplenishmentService(AppDbContext db) => _db = db;
+    public StockReplenishmentService(AppDbContext db, IAlertService alertService)
+    {
+        _db = db;
+        _alertService = alertService;
+    }
 
     public async Task<RestockResult> RestockAsync(RestockRequest request, string username)
     {
@@ -48,14 +53,15 @@ public class StockReplenishmentService : IStockReplenishmentService
             // 2. Increase stock
             product.CurrentStock += request.Quantity;
 
-            // 3. Resolve any open alert for this product
+            // 3. Refresh any open alert for this product
             var openAlert = await _db.StockAlerts
                 .FirstOrDefaultAsync(a => a.ProductId == product.Id && a.ResolvedAt == null);
 
+            await _alertService.RegenerateAlertForProductAsync(product, user.Id);
+
             var alertResolved = false;
-            if (openAlert is not null)
+            if (openAlert?.ResolvedAt is not null)
             {
-                openAlert.ResolvedAt = DateTime.Now;
                 alertResolved = true;
 
                 // Also add a notification that the alert was resolved
@@ -69,6 +75,9 @@ public class StockReplenishmentService : IStockReplenishmentService
                     StockAlertId = openAlert.Id
                 });
             }
+
+            var alertStillOpen = _db.StockAlerts.Local
+                .Any(alert => alert.ProductId == product.Id && alert.ResolvedAt is null);
 
             // 4. Audit log
             _db.AuditLogs.Add(new AuditLog
@@ -84,7 +93,9 @@ public class StockReplenishmentService : IStockReplenishmentService
 
             var message = alertResolved
                 ? $"{product.Name} restocked by {request.Quantity:0.##} {product.Units}. Low-stock alert resolved."
-                : $"{product.Name} restocked by {request.Quantity:0.##} {product.Units}.";
+                : alertStillOpen
+                    ? $"{product.Name} restocked by {request.Quantity:0.##} {product.Units}. Stock is still below the safe level."
+                    : $"{product.Name} restocked by {request.Quantity:0.##} {product.Units}.";
 
             return new RestockResult
             {

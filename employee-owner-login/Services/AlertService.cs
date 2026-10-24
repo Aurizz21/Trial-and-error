@@ -8,11 +8,16 @@ public sealed class AlertService : IAlertService
 {
     private readonly AppDbContext _db;
     private readonly StockRiskEvaluator _riskEvaluator;
+    private readonly MlForecastService _mlForecastService;
 
-    public AlertService(AppDbContext db, StockRiskEvaluator riskEvaluator)
+    public AlertService(
+        AppDbContext db,
+        StockRiskEvaluator riskEvaluator,
+        MlForecastService mlForecastService)
     {
         _db = db;
         _riskEvaluator = riskEvaluator;
+        _mlForecastService = mlForecastService;
     }
 
     public async Task RegenerateAlertForProductAsync(Product product, int? userId)
@@ -39,7 +44,26 @@ public sealed class AlertService : IAlertService
             .OrderByDescending(f => f.GeneratedAt)
             .Select(f => (decimal?)f.ForecastNext7Days)
             .FirstOrDefaultAsync();
-        var aiDailyRate = aiForecast.HasValue ? (double)aiForecast.Value / 7d : 0d;
+        var aiDailyRate = wmaDailyRate;
+        if (aiForecast.HasValue)
+        {
+            aiDailyRate = (double)aiForecast.Value / 7d;
+        }
+        else
+        {
+            try
+            {
+                var forecast = await _mlForecastService.PredictAsync(product.Id, (float)product.CurrentStock);
+                if (forecast.ErrorMessage is null && forecast.Next30Days.Length > 0)
+                    aiDailyRate = forecast.Next30Days.Take(7).Sum() / 7d;
+            }
+            catch (Exception)
+            {
+                aiDailyRate = wmaDailyRate;
+            }
+        }
+
+        // Stored alerts use AI when available, with WMA as the fallback.
         var risk = _riskEvaluator.Evaluate(
             product.CurrentStock,
             product.ReorderThreshold,

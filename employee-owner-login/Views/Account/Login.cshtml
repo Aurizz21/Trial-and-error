@@ -12,88 +12,71 @@
     <link rel="icon" type="image/svg+xml" href="~/images/logo.svg" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/tokens.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
-    <noscript><style>[data-scroll-reveal] { opacity: 1; filter: none; transform: none; transition: none; }</style></noscript>
 </head>
 <body>
     <main class="login-page">
-        <section class="hero page-section" data-scroll-reveal data-reveal-order="hero" aria-labelledby="hero-title">
-            <div class="hero-inner">
-                <h1 id="hero-title" class="hero-wordmark" data-scroll-reveal data-reveal-order="wordmark">Poultry OS</h1>
-                <p class="hero-tagline">A steady hand for the busy days at the shop.</p>
-                <nav class="hero-actions" aria-label="Page sections">
-                    <a class="hero-button hero-button--primary" href="#login-panel">Login</a>
-                    <a class="hero-button hero-button--secondary" href="#about-section">About</a>
-                </nav>
-            </div>
-        </section>
-
-        <section class="illustration-section page-section" data-scroll-reveal data-reveal-order="illustration" aria-label="Poultry illustrations">
-            <picture>
-                <source media="(max-width: 520px)" srcset="@Url.Content("~/images/illustration-login-mobile.png")?v=1" />
-                <img class="illustration-image" src="~/images/illustration-login.png" alt="Illustrated chickens and poultry cuts from Manok ni Rene" asp-append-version="true" />
-            </picture>
-        </section>
-
-        <section id="about-section" class="statement-section page-section" data-scroll-reveal data-reveal-order="statement" aria-labelledby="about-heading">
-            <h2 id="about-heading">Every sale, every bird, every batch — tracked the moment it happens.</h2>
-        </section>
-
-        <section id="login-panel" class="login-section page-section" data-scroll-reveal data-reveal-order="login-panel" aria-labelledby="login-heading">
+        <video class="login-video"
+               src="@Url.Content("~/videos/login-video.mp4")"
+               poster="@Url.Content("~/images/login-poster.jpg")"
+               muted loop playsinline autoplay preload="metadata" aria-hidden="true" tabindex="-1"></video>
+        <div class="login-overlay" aria-hidden="true"></div>
+        <a class="login-logo" href="@Url.Action("Login", "Account")" aria-label="Poultry OS sign in">
+            <img src="~/images/logo.svg" alt="" asp-append-version="true" />
+        </a>
+        <div class="login-content">
             <div class="login-card">
                 <div class="form-heading">
                     <p class="eyebrow">Owner and employee sign-in</p>
-                    <h2 id="login-heading">Welcome back</h2>
-                    <p>Check stock, record sales, and see what’s ahead.</p>
+                    <h1 id="login-heading">Welcome back</h1>
+                    <p>Check stock, record sales, and see what's ahead.</p>
                 </div>
 
                 <form asp-controller="Account" asp-action="Login" method="post" id="login-form" novalidate>
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="returnUrl" value="@returnUrl" />
                     <div asp-validation-summary="ModelOnly" class="validation-summary" role="alert"></div>
-                    <div class="field-group" data-scroll-reveal data-reveal-order="username">
+                    <div class="field-group">
                         <label asp-for="Username"></label>
                         <input asp-for="Username" autocomplete="username" placeholder="Enter your username" autofocus />
                         <span asp-validation-for="Username" class="field-error"></span>
                     </div>
-                    <div class="field-group" data-scroll-reveal data-reveal-order="password">
+                    <div class="field-group">
                         <label asp-for="Password"></label>
                         <div class="password-wrap">
                             <input asp-for="Password" autocomplete="current-password" placeholder="Enter your password" />
-                            <button type="button" class="password-toggle" id="password-toggle" aria-label="Show password" data-scroll-reveal data-reveal-order="password-toggle">Show</button>
+                            <button type="button" class="password-toggle" id="password-toggle" aria-label="Show password">Show</button>
                         </div>
                         <span asp-validation-for="Password" class="field-error"></span>
                     </div>
                     <div class="form-options">
-                        <label class="remember-label" data-scroll-reveal data-reveal-order="remember-me"><input asp-for="RememberMe" /><span>Remember me</span></label>
+                        <label class="remember-label"><input asp-for="RememberMe" /><span>Remember me</span></label>
                         <span class="secure-label"><span>&#10003;</span> Secure sign in</span>
                     </div>
-                    <button class="submit-button" type="submit" id="submit-button" data-scroll-reveal data-reveal-order="submit"><span class="button-label">Sign in</span><span class="button-arrow" aria-hidden="true">&#8594;</span></button>
+                    <button class="submit-button" type="submit" id="submit-button"><span class="button-label">Sign in</span><span class="button-arrow" aria-hidden="true">&#8594;</span></button>
                 </form>
-                <p class="access-note">Use your Manok ni Rene account credentials to continue.</p>
             </div>
-        </section>
-
-        <section class="features-section page-section" data-scroll-reveal data-reveal-order="features" aria-label="What the system does">
-            <article class="feature-item">
-                <h2>Log a sale in seconds</h2>
-                <p>Quick entry built for a busy counter.</p>
-            </article>
-            <article class="feature-item">
-                <h2>Know what's running low</h2>
-                <p>Stock alerts before you run out.</p>
-            </article>
-            <article class="feature-item">
-                <h2>See what's coming</h2>
-                <p>Simple forecasts for ordering ahead.</p>
-            </article>
-        </section>
+        </div>
+        <p class="login-copyright">Poultry OS &copy; 2026</p>
     </main>
 
-    <footer class="site-footer page-section" data-scroll-reveal data-reveal-order="footer">
-        <span>Manok ni Rene &copy; 2026 &nbsp;&bull;&nbsp; Built for better decisions</span>
-    </footer>
-
     <script src="~/js/login.js" asp-append-version="true"></script>
-    <script src="~/js/login-scroll.js" asp-append-version="true"></script>
+    <script>
+        (() => {
+            const video = document.querySelector(".login-video");
+            const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+            const smallViewport = window.matchMedia("(max-width: 700px)");
+            const syncPlayback = () => {
+                if (reducedMotion.matches || smallViewport.matches) {
+                    video.pause();
+                    return;
+                }
+                const playback = video.play();
+                if (playback && typeof playback.catch === "function") playback.catch(() => {});
+            };
+            syncPlayback();
+            reducedMotion.addEventListener?.("change", syncPlayback);
+            smallViewport.addEventListener?.("change", syncPlayback);
+        })();
+    </script>
 </body>
 </html>

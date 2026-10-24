@@ -11,7 +11,7 @@ public class AuditController : Controller
 
     public AuditController(IAuditService audit) => _audit = audit;
 
-    // GET /Audit?actionType=All&user=All&page=1
+    // GET /Audit/Index?actionType=All&user=All&page=1
     [HttpGet]
     public async Task<IActionResult> Index(string actionType = "All", string user = "All", int page = 1)
     {

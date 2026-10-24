@@ -42,29 +42,54 @@ public class MlForecastService
         {
             var cachedCurve = JsonSerializer.Deserialize<float[]>(cachedForecast.AiForecast30DaysJson);
             if (cachedCurve is { Length: 30 })
-                return (cachedCurve, cachedForecast.PredictedDepletionDate, null);
+            {
+                var nonNegativeCachedCurve = cachedCurve
+                    .Select(value => Math.Max(0, value))
+                    .ToArray();
+                var cachedDailyAverage = nonNegativeCachedCurve.Average();
+                return (
+                    nonNegativeCachedCurve,
+                    CalculateDepletionDate(currentStock, cachedDailyAverage, today),
+                    null);
+            }
         }
-
-        // 1. Get the last 730 days of sales for this product
-        var sales = await _db.Sales
-            .Where(s => s.ProductId == productId && s.SoldAt >= today.AddDays(-729))
-            .OrderBy(s => s.SoldAt)
-            .Select(s => s.Quantity)
-            .ToListAsync();
 
         const int windowSize = 30;
         const int minimumTrainingSize = windowSize * 2 + 1;
-        if (sales.Count < minimumTrainingSize)
+        var startOfRange = today.AddDays(-729);
+        var firstSale = await _db.Sales
+            .Where(s => s.ProductId == productId && s.SoldAt < tomorrow)
+            .Select(s => (DateTime?)s.SoldAt)
+            .MinAsync();
+        if (firstSale is null)
             return (
                 Array.Empty<float>(),
                 null,
-                $"At least {minimumTrainingSize} sales data points are required for a {windowSize}-day window; found {sales.Count}.");
+                $"At least {minimumTrainingSize} daily data points are required for a {windowSize}-day window; found 0.");
+
+        var startDay = firstSale.Value.Date > startOfRange ? firstSale.Value.Date : startOfRange;
+        var sales = await _db.Sales
+            .Where(s => s.ProductId == productId && s.SoldAt >= startDay && s.SoldAt < tomorrow)
+            .Select(s => new { s.SoldAt, s.Quantity })
+            .ToListAsync();
+        var salesByDay = sales
+            .GroupBy(s => s.SoldAt.Date)
+            .ToDictionary(group => group.Key, group => (float)group.Sum(s => s.Quantity));
+        var dailySales = Enumerable.Range(0, (today - startDay).Days + 1)
+            .Select(day => salesByDay.GetValueOrDefault(startDay.AddDays(day)))
+            .ToList();
+
+        if (dailySales.Count < minimumTrainingSize)
+            return (
+                Array.Empty<float>(),
+                null,
+                $"At least {minimumTrainingSize} daily data points are required for a {windowSize}-day window; found {dailySales.Count}.");
 
         // 2. Load data into ML.NET format
-        var data = sales.Select(q => new SaleData { Quantity = (float)q }).ToList();
+        var data = dailySales.Select(q => new SaleData { Quantity = q }).ToList();
         var dataView = _mlContext.Data.LoadFromEnumerable(data);
 
-        var trainSize = sales.Count;
+        var trainSize = dailySales.Count;
 
         // 3. Train the AI (SSA - Singular Spectrum Analysis)
         var pipeline = _mlContext.Forecasting.ForecastBySsa(
@@ -90,33 +115,40 @@ public class MlForecastService
             return (
                 Array.Empty<float>(),
                 null,
-                $"SSA forecasting could not run with {sales.Count} sales data points " +
+                $"SSA forecasting could not run with {dailySales.Count} daily data points " +
                 $"(train size {trainSize}, window size {windowSize}). " +
                 $"More data may be required. Details: {ex.Message}");
         }
 
         // 5. Calculate totals and depletion date
-        float dailyAverage = forecast.ForecastedQuantities.Average();
+        var forecastedQuantities = forecast.ForecastedQuantities
+            .Select(value => Math.Max(0, value))
+            .ToArray();
+        float dailyAverage = forecastedQuantities.Average();
 
-        DateTime? depletionDate = null;
-        if (dailyAverage > 0)
-        {
-            int daysUntilEmpty = (int)Math.Ceiling(currentStock / dailyAverage);
-            depletionDate = today.AddDays(daysUntilEmpty);
-        }
+        var depletionDate = CalculateDepletionDate(currentStock, dailyAverage, today);
 
         _db.Forecasts.Add(new PoultryOS.Models.Entities.Forecast
         {
             ProductId = productId,
             ModelType = "ML.NET",
             GeneratedAt = DateTime.Now,
-            ForecastNext7Days = (decimal)forecast.ForecastedQuantities.Take(7).Sum(),
-            AiForecast30DaysJson = JsonSerializer.Serialize(forecast.ForecastedQuantities),
+            ForecastNext7Days = (decimal)forecastedQuantities.Take(7).Sum(),
+            AiForecast30DaysJson = JsonSerializer.Serialize(forecastedQuantities),
             PredictedDepletionDate = depletionDate,
             Status = "Healthy"
         });
         await _db.SaveChangesAsync();
 
-        return (forecast.ForecastedQuantities, depletionDate, null);
+        return (forecastedQuantities, depletionDate, null);
+    }
+
+    private static DateTime? CalculateDepletionDate(float currentStock, float dailyAverage, DateTime today)
+    {
+        if (dailyAverage <= 0)
+            return null;
+
+        int daysUntilEmpty = (int)Math.Ceiling(currentStock / dailyAverage);
+        return today.AddDays(daysUntilEmpty);
     }
 }

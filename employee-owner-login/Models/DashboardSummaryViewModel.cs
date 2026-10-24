@@ -14,7 +14,11 @@ public sealed class DashboardSummaryViewModel
     public decimal CutsAndPartsStock { get; set; }
     public decimal WholeChickenTodaySales { get; set; }
     public decimal CutsAndPartsTodaySales { get; set; }
+    public decimal TodaySalesPcs { get; set; }
+    public decimal TodaySalesKg { get; set; }
     public decimal TodaySalesChangePercent { get; set; }
+    public decimal? TodaySalesPcsChangePercent { get; set; }
+    public decimal? TodaySalesKgChangePercent { get; set; }
     public double ForecastAccuracy { get; set; }
     public decimal ThisWeekSales { get; set; }
     public decimal LastWeekSales { get; set; }
@@ -22,6 +26,18 @@ public sealed class DashboardSummaryViewModel
     public decimal LastMonthSales { get; set; }
     public decimal WeekSalesChangePercent { get; set; }
     public decimal MonthSalesChangePercent { get; set; }
+    public decimal ThisWeekSalesPcs { get; set; }
+    public decimal ThisWeekSalesKg { get; set; }
+    public decimal LastWeekSalesPcs { get; set; }
+    public decimal LastWeekSalesKg { get; set; }
+    public decimal? WeekSalesPcsChangePercent { get; set; }
+    public decimal? WeekSalesKgChangePercent { get; set; }
+    public decimal ThisMonthSalesPcs { get; set; }
+    public decimal ThisMonthSalesKg { get; set; }
+    public decimal LastMonthSalesPcs { get; set; }
+    public decimal LastMonthSalesKg { get; set; }
+    public decimal? MonthSalesPcsChangePercent { get; set; }
+    public decimal? MonthSalesKgChangePercent { get; set; }
     public List<DailySalesPoint> DailySalesTrend { get; set; } = new();
     public List<ProductSalesSummary> WeeklyConsumption { get; set; } = new();
     public List<DonutSlice> LowStockDistribution { get; set; } = new();

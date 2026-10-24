@@ -361,32 +361,15 @@
   color: var(--glass-bar-ink);
 }
 
-.dashboard-body .topbar :is(.date-pill, .topbar-search input) {
+.dashboard-body .topbar .date-pill {
   color: var(--glass-bar-ink);
 }
 
-.dashboard-body .topbar :is(.global-search-trigger, .mobile-menu, .notification-btn) {
+.dashboard-body .topbar :is(.mobile-menu, .notification-btn) {
   color: var(--glass-bar-ink-soft);
 }
 
-/* The search field stays opaque so its text is readable whatever is scrolling
-   behind the bar. */
-.dashboard-body .topbar .topbar-search {
-  background: var(--gray-050);
-  border-color: var(--gray-250);
-}
-
-.dashboard-body .topbar .topbar-search input::placeholder {
-  color: var(--gray-600);
-}
-
-.dashboard-body .topbar .topbar-search:focus-within {
-  background: var(--gray-000);
-  border-color: var(--gray-400);
-}
-
-/* Mobile: opaque bar, no blur, and the existing two-row layout untouched, so
-   there is no layout shift and the drawer is unaffected. */
+/* Mobile: keep the opaque bar treatment and compact top-bar layout. */
 @media (max-width: 720px) {
   .dashboard-body .topbar {
     border-radius: 0;
@@ -446,79 +429,6 @@
 
 .mobile-menu:hover {
   background: var(--overlay-dark-06);
-}
-
-/* ---- search -------------------------------------------------------------- */
-
-.topbar-search {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin-left: var(--space-6);
-  width: min(430px, 38vw);
-  min-height: var(--touch-target);
-  padding: 0 var(--space-2) 0 var(--space-4);
-  border: 1px solid var(--gray-250);
-  border-radius: var(--radius-pill);
-  background: var(--surface-window);
-  color: var(--text-on-light);
-  transition: border-color var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out);
-}
-
-.topbar-search:hover:not(:focus-within) {
-  border-color: var(--gray-400);
-}
-
-.topbar-search:focus-within {
-  border-color: var(--gray-800);
-  box-shadow: var(--focus-shadow);
-}
-
-.topbar-search svg {
-  flex: 0 0 auto;
-}
-
-.topbar-search input {
-  order: 1;
-  width: 100%;
-  min-width: 0;
-  border: 0;
-  outline: none;
-  background: transparent;
-  color: var(--text-on-light);
-  font-size: var(--text-md);
-  /* 16px: stops iOS zooming on focus */
-}
-
-.topbar-search input::placeholder {
-  color: var(--text-muted-light);
-}
-
-.global-search-trigger {
-  order: 2;
-  display: grid;
-  flex: 0 0 34px;
-  width: 34px;
-  height: 34px;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-pill);
-  color: var(--text-muted-light);
-  background: transparent;
-  cursor: pointer;
-}
-
-.global-search-trigger:hover {
-  color: var(--text-on-light);
-  background: var(--overlay-dark-08);
-}
-
-.global-search-trigger:focus-visible {
-  outline: 2px solid transparent;
-  box-shadow: var(--focus-shadow-inset);
 }
 
 /* ---- date and bell ------------------------------------------------------- */
@@ -704,11 +614,6 @@
     padding: var(--space-4) var(--space-5);
   }
 
-  .topbar-search {
-    margin-left: var(--space-4);
-    width: min(320px, 40vw);
-  }
-
   .content-area {
     padding: var(--space-6);
   }
@@ -869,7 +774,7 @@
     display: none;
   }
 
-  /* The bar becomes two rows: title + hamburger + bell, then full-width search.
+  /* The bar keeps the title + hamburger + bell in one row.
      Flush with the top of the page there is no outer radius and no floating
      shadow; a hairline keeps it separated from the content instead. */
   .topbar {
@@ -882,12 +787,6 @@
   .mobile-menu {
     display: flex;
     order: -1;
-  }
-
-  .topbar-search {
-    order: 3;
-    width: 100%;
-    margin-left: 0;
   }
 
   .farm-title {
@@ -954,8 +853,7 @@
   .main-panel,
   .nav-link,
   .signout-link,
-  .notification-btn,
-  .topbar-search {
+  .notification-btn {
     transition-duration: 1ms;
   }
 
@@ -2965,42 +2863,7 @@
   }
 }
 
-/* Final contrast adjustments for shared search and data-dependent KPIs. */
-.global-search-results .global-search-filters {
-  font-size: 0.8rem;
-}
-
-.global-search-results .global-search-filters input[type="date"] {
-  border-color: #78818f;
-  color: #f3f4f6;
-  color-scheme: dark;
-  font-size: 0.8rem;
-  -webkit-text-fill-color: #f3f4f6;
-  opacity: 1;
-}
-
-.global-search-results .global-search-filters input[type="date"]::-webkit-datetime-edit,
-.global-search-results .global-search-filters input[type="date"]::-webkit-datetime-edit-fields-wrapper,
-.global-search-results .global-search-filters input[type="date"]::-webkit-datetime-edit-month-field,
-.global-search-results .global-search-filters input[type="date"]::-webkit-datetime-edit-day-field,
-.global-search-results .global-search-filters input[type="date"]::-webkit-datetime-edit-year-field,
-.global-search-results .global-search-filters input[type="date"]::-webkit-datetime-edit-text {
-  color: #f3f4f6;
-  -webkit-text-fill-color: #f3f4f6;
-  opacity: 1;
-}
-
-.global-search-results .global-search-filters input[type="date"]:focus-visible {
-  outline: 3px solid #ffffff;
-  outline-offset: 2px;
-  box-shadow: none;
-}
-
-.global-search-results .global-search-suggestions>span,
-.global-search-results .global-search-chips button {
-  font-size: 0.8rem;
-}
-
+/* Final contrast adjustments for data-dependent KPIs. */
 .skin-page .module-page:has(#alertStatusFilter) .stat-strip .kpi-value.status-critical,
 .skin-page .module-page:has(#alertStatusFilter) .stat-strip .kpi-value.status-warning {
   color: #ffffff;
