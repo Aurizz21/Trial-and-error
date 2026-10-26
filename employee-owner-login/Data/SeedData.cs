@@ -14,7 +14,7 @@ public static class SeedData
             return;
         }
 
-        var rng = new Random(42);
+        var rng = new Random(141);
 
         // ---------------------------------------------------------------
         // 1. Users — using the SAME password hashes as AuthService.cs
@@ -165,11 +165,11 @@ public static class SeedData
         // 5. AuditLog
         // ---------------------------------------------------------------
         db.AuditLogs.AddRange(
-            new AuditLog { Timestamp = DateTime.Now.AddDays(-120), UserId = owner.Id,    ActionType = "Login",  Description = "Owner account created during initial setup." },
-            new AuditLog { Timestamp = DateTime.Now.AddDays(-90),  UserId = owner.Id,    ActionType = "Login",  Description = "Employee account created." },
-            new AuditLog { Timestamp = DateTime.Now.AddDays(-1),   UserId = owner.Id,    ActionType = "Sale",   Description = "Recorded batch sale entry." },
-            new AuditLog { Timestamp = DateTime.Now.AddHours(-3),  UserId = employee.Id, ActionType = "Sale",   Description = "Recorded sale entry." },
-            new AuditLog { Timestamp = DateTime.Now.AddHours(-1),  UserId = null,        ActionType = "System", Description = "Stock alerts regenerated based on current inventory." }
+            new AuditLog { Timestamp = DateTime.Now.AddDays(-120), UserId = owner.Id, ActionType = "Login", Description = "Owner account created during initial setup." },
+            new AuditLog { Timestamp = DateTime.Now.AddDays(-90), UserId = owner.Id, ActionType = "Login", Description = "Employee account created." },
+            new AuditLog { Timestamp = DateTime.Now.AddDays(-1), UserId = owner.Id, ActionType = "Sale", Description = "Recorded batch sale entry." },
+            new AuditLog { Timestamp = DateTime.Now.AddHours(-3), UserId = employee.Id, ActionType = "Sale", Description = "Recorded sale entry." },
+            new AuditLog { Timestamp = DateTime.Now.AddHours(-1), UserId = null, ActionType = "System", Description = "Stock alerts regenerated based on current inventory." }
         );
 
         db.SaveChanges();
