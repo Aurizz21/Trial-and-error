@@ -38,7 +38,8 @@
             {
                 <div class="kpi-value">@Model.AverageAccuracy.ToString("0.0")%</div>
             }
-            <label><input type="checkbox" id="aiToggle" checked="@(Model.Rows.FirstOrDefault()?.UseAiForAlerts ?? true)" onclick="toggleAi(this)" /> Use AI model for status on this page</label>
+            <label><input type="checkbox" id="aiToggle" checked="@(Model.Rows.FirstOrDefault()?.UseAiForAlerts ?? true)"
+                              onclick="toggleAi(this)" /> Use AI model for status on this page</label>
             </article>
         </section>
 
@@ -52,7 +53,7 @@
                 <div><strong>Training Data:</strong> 730 Days (2 Years)</div>
                 <div><strong>Algorithm:</strong> Singular Spectrum Analysis (SSA)</div>
                 <div><strong>Detected Weekly Pattern:</strong> +60% Weekend Spike</div>
-                <div><strong>Detected Seasonal Pattern:</strong> +50% Nov/Dec Holiday Spike</div>
+                <div><strong>Model Focus:</strong> 30-Day Recent Momentum & Weekly Trends</div>
             </div>
         </section>
 
@@ -147,7 +148,7 @@
 
         <section class="panel">
             <div class="panel-header">
-                <h2>30-Day Seasonal Projection (Holiday Spike Demo)</h2>
+                <h2>30-Day Projection (AI vs WMA)</h2>
             </div>
             <div class="chart-plot" style="min-height:320px;">
                 <canvas id="seasonalChart"></canvas>
@@ -161,7 +162,7 @@
             chart30DayLabels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Chart30DayLabels)),
             wma30DayCurve: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Wma30DayCurve)),
             ai30DayCurve: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Ai30DayCurve))
-                };
+                    };
     </script>
     <script>
         function toggleAi(checkbox) {
@@ -211,7 +212,7 @@
                                 maxBarThickness: 24
                             },
                             {
-                                label: 'Next 7 Days (forecast)',
+                                label: 'Next 7 Days (WMA)',
                                 data: forecast,
                                 backgroundColor: '#f59e0b',
                                 borderRadius: 4,
@@ -254,7 +255,7 @@
                             labels: seasonalLabels,
                             datasets: [
                                 {
-                                    label: 'WMA (Flat)',
+                                    label: 'WMA (Flat Baseline)',
                                     data: wmaCurve,
                                     borderColor: '#f59e0b',
                                     backgroundColor: '#f59e0b',

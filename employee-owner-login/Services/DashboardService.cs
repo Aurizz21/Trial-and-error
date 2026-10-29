@@ -212,9 +212,9 @@ public class DashboardService : IDashboardService
     //  KPIs
     // ==============================================================
 
-        private double CalculateForecastAccuracy(
-        List<Product> products,
-        Dictionary<int, List<decimal>> history)
+    private double CalculateForecastAccuracy(
+    List<Product> products,
+    Dictionary<int, List<decimal>> history)
     {
         var scores = new List<double>();
 
@@ -223,9 +223,9 @@ public class DashboardService : IDashboardService
             if (!history.TryGetValue(product.Id, out var days) || days.Count < WmaWindow + 1)
                 continue;
 
-            // Find the last day with actual sales
+            // Find the last COMPLETED day with sales (days[^1] is today, still incomplete)
             var lastSellingIndex = -1;
-            for (var i = days.Count - 1; i >= 0; i--)
+            for (var i = days.Count - 2; i >= 0; i--)
             {
                 if (days[i] > 0) { lastSellingIndex = i; break; }
             }
@@ -373,7 +373,7 @@ public class DashboardService : IDashboardService
     //  ALERTS + BANNER
     // ==============================================================
 
-        private static AlertItem ToAlertItem(PoultryOS.Models.Entities.StockAlert alert)
+    private static AlertItem ToAlertItem(PoultryOS.Models.Entities.StockAlert alert)
     {
         var perDayForecast = alert.DaysRemaining > 0
             ? (double)alert.CurrentStock / alert.DaysRemaining
