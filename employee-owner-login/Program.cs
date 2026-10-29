@@ -5,10 +5,9 @@ using PoultryOS.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Register MVC and the in-memory authentication and inventory services.
+// Register MVC and application services.
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<AuthService>();
-builder.Services.AddSingleton<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ISalesHistoryService, SalesHistoryService>();
 builder.Services.AddScoped<IStockAlertsService, StockAlertsService>();
